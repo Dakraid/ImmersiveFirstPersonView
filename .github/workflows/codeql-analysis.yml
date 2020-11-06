@@ -62,7 +62,8 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
       
-    - run:  msbuild ImmersiveFirstPersonView10.sln 
+    - run: |
+        msbuild ImmersiveFirstPersonView10.sln 
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
