@@ -1,33 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace IFPV
 {
     internal abstract class CameraValueBase
     {
-        internal abstract string Name
-        {
-            get;
-        }
-
-        internal abstract double DefaultValue
-        {
-            get;
-        }
-
-        internal abstract double CurrentValue
-        {
-            get;
-            set;
-        }
-
-        internal abstract double ChangeSpeed
-        {
-            get;
-        }
+        private readonly List<CameraValueModifier> Modifiers = new List<CameraValueModifier>();
 
         [Flags]
         internal enum CameraValueFlags : uint
@@ -42,70 +21,58 @@ namespace IFPV
 
             DecreaseInstantly = 8,
 
-            DontUpdateIfDisabled = 0x10,
+            DontUpdateIfDisabled = 0x10
         }
 
-        internal CameraValueFlags Flags
-        {
-            get;
-            set;
-        }
+        internal abstract double ChangeSpeed { get; }
 
-        private double TargetValue
-        {
-            get;
-            set;
-        }
+        internal abstract double CurrentValue { get; set; }
 
-        private double LastValue
-        {
-            get;
-            set;
-        }
+        internal abstract double DefaultValue { get; }
 
-        private TValue InternalValue
-        {
-            get;
-            set;
-        }
+        internal CameraValueFlags Flags { get; set; }
 
-        internal TValue.TweenTypes Formula
-        {
-            get;
-            set;
-        }
+        internal TValue.TweenTypes Formula { get; set; }
 
-        private int UpdatedCountWhenDisabled
-        {
-            get;
-            set;
-        }
+        internal abstract string Name { get; }
 
-        internal CameraValueModifier AddModifier(CameraState fromState, CameraValueModifier.ModifierTypes type, double amount, bool autoRemoveOnLeaveState = true, long autoRemoveDelay = 0)
+        private TValue InternalValue { get; set; }
+
+        private double LastValue { get; set; }
+
+        private double TargetValue { get; set; }
+
+        private int UpdatedCountWhenDisabled { get; set; }
+
+        internal CameraValueModifier AddModifier(CameraState                       fromState,
+                                                 CameraValueModifier.ModifierTypes type,
+                                                 double                            amount,
+                                                 bool                              autoRemoveOnLeaveState = true,
+                                                 long                              autoRemoveDelay        = 0)
         {
-            if ((this.Flags & CameraValueFlags.NoModifiers) != CameraValueFlags.None)
+            if ((Flags & CameraValueFlags.NoModifiers) != CameraValueFlags.None)
                 return null;
 
-            var mod = new CameraValueModifier(this, fromState, type, amount, autoRemoveOnLeaveState, autoRemoveDelay);
-            bool added = false;
-            for(int i = 0; i < this.Modifiers.Count; i++)
+            var mod   = new CameraValueModifier(this, fromState, type, amount, autoRemoveOnLeaveState, autoRemoveDelay);
+            var added = false;
+            for (var i = 0; i < Modifiers.Count; i++)
             {
-                var m = this.Modifiers[i];
-                if(m.Priority > mod.Priority)
+                var m = Modifiers[i];
+                if (m.Priority > mod.Priority)
                 {
-                    this.Modifiers.Insert(i, mod);
+                    Modifiers.Insert(i, mod);
                     added = true;
                     break;
                 }
             }
 
             if (!added)
-                this.Modifiers.Add(mod);
+                Modifiers.Add(mod);
 
             if (mod.AutoRemove && fromState != null)
                 fromState.RemoveModifiersOnLeave.Add(mod);
 
-            this.UpdatedCountWhenDisabled = 0;
+            UpdatedCountWhenDisabled = 0;
 
             return mod;
         }
@@ -113,35 +80,46 @@ namespace IFPV
         internal void RemoveModifier(CameraValueModifier mod)
         {
             if (mod.Owner == this)
-            {
-                if(this.Modifiers.Remove(mod))
-                    this.UpdatedCountWhenDisabled = 0;
-            }
+                if (Modifiers.Remove(mod))
+                    UpdatedCountWhenDisabled = 0;
+        }
+
+        internal void Reset()
+        {
+            if ((Flags & CameraValueFlags.NoModifiers) != CameraValueFlags.None)
+                return;
+
+            Modifiers.Clear();
+
+            var value = DefaultValue;
+            LastValue     = value;
+            TargetValue   = value;
+            InternalValue = null;
+            CurrentValue  = value;
         }
 
         internal void Update(long now, bool enabled)
         {
-            if ((this.Flags & CameraValueFlags.NoModifiers) != CameraValueFlags.None)
+            if ((Flags & CameraValueFlags.NoModifiers) != CameraValueFlags.None)
                 return;
 
-            if((this.Flags & CameraValueFlags.DontUpdateIfDisabled) != CameraValueFlags.None)
+            if ((Flags & CameraValueFlags.DontUpdateIfDisabled) != CameraValueFlags.None)
             {
-                if (enabled)
-                    this.UpdatedCountWhenDisabled = 0;
+                if (enabled) { UpdatedCountWhenDisabled = 0; }
                 else
                 {
-                    if (this.UpdatedCountWhenDisabled > 0)
+                    if (UpdatedCountWhenDisabled > 0)
                         return;
-                    this.UpdatedCountWhenDisabled++;
+                    UpdatedCountWhenDisabled++;
                 }
             }
 
-            for(int i = this.Modifiers.Count - 1; i >= 0; i--)
+            for (var i = Modifiers.Count - 1; i >= 0; i--)
             {
-                var m = this.Modifiers[i];
-                if(m.RemoveTimer.HasValue)
+                var m = Modifiers[i];
+                if (m.RemoveTimer.HasValue)
                 {
-                    long timer = m.RemoveTimer.Value;
+                    var timer = m.RemoveTimer.Value;
                     if (timer < 0)
                         m.RemoveTimer = now - m.RemoveTimer.Value;
                     else if (now >= m.RemoveTimer.Value)
@@ -149,181 +127,168 @@ namespace IFPV
                 }
             }
 
-            double wantValue = this.DefaultValue;
+            var     wantValue  = DefaultValue;
             double? forceValue = null;
-            foreach(var x in this.Modifiers)
-            {
-                switch(x.Type)
+            foreach (var x in Modifiers)
+                switch (x.Type)
                 {
                     case CameraValueModifier.ModifierTypes.Set:
-                        wantValue = x.Amount;
+                        wantValue  = x.Amount;
                         forceValue = null;
                         break;
 
                     case CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis:
                         if (x.Amount > wantValue)
                         {
-                            wantValue = x.Amount;
+                            wantValue  = x.Amount;
                             forceValue = null;
                         }
+
                         break;
 
                     case CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis:
                         if (x.Amount < wantValue)
                         {
-                            wantValue = x.Amount;
+                            wantValue  = x.Amount;
                             forceValue = null;
                         }
+
                         break;
 
                     case CameraValueModifier.ModifierTypes.Add:
-                        wantValue += x.Amount;
-                        forceValue = null;
+                        wantValue  += x.Amount;
+                        forceValue =  null;
                         break;
 
                     case CameraValueModifier.ModifierTypes.Multiply:
-                        wantValue *= x.Amount;
-                        forceValue = null;
+                        wantValue  *= x.Amount;
+                        forceValue =  null;
                         break;
 
                     case CameraValueModifier.ModifierTypes.Force:
                         forceValue = x.Amount;
-                        wantValue = x.Amount;
+                        wantValue  = x.Amount;
                         break;
 
                     default:
                         throw new NotImplementedException();
                 }
-            }
 
-            if(wantValue != this.TargetValue)
+            if (wantValue != TargetValue)
             {
-                this.TargetValue = wantValue;
+                TargetValue = wantValue;
 
-                bool shouldTween = !forceValue.HasValue && (this.Flags & CameraValueFlags.NoTween) == CameraValueFlags.None;
-                if (shouldTween && wantValue > this.LastValue && (this.Flags & CameraValueFlags.IncreaseInstantly) != CameraValueFlags.None)
+                var shouldTween = !forceValue.HasValue && (Flags & CameraValueFlags.NoTween) == CameraValueFlags.None;
+                if (shouldTween && wantValue                     > LastValue &&
+                    (Flags & CameraValueFlags.IncreaseInstantly) != CameraValueFlags.None)
                     shouldTween = false;
-                if (shouldTween && wantValue < this.LastValue && (this.Flags & CameraValueFlags.DecreaseInstantly) != CameraValueFlags.None)
+                if (shouldTween && wantValue                     < LastValue &&
+                    (Flags & CameraValueFlags.DecreaseInstantly) != CameraValueFlags.None)
                     shouldTween = false;
 
                 if (shouldTween)
                 {
-                    this.InternalValue = new TValue(this.LastValue, double.MinValue, double.MaxValue);
-                    this.InternalValue.TweenTo(wantValue, this.ChangeSpeed, this.Formula, true);
+                    InternalValue = new TValue(LastValue, double.MinValue, double.MaxValue);
+                    InternalValue.TweenTo(wantValue, ChangeSpeed, Formula, true);
                 }
                 else
                 {
-                    this.CurrentValue = wantValue;
-                    this.LastValue = wantValue;
+                    CurrentValue = wantValue;
+                    LastValue    = wantValue;
                 }
             }
-            else if(this.InternalValue != null)
+            else if (InternalValue != null)
             {
-                this.InternalValue.Update(now);
-                this.LastValue = this.InternalValue.CurrentAmount;
-                this.CurrentValue = this.LastValue;
-                if (this.LastValue == wantValue)
-                    this.InternalValue = null;
+                InternalValue.Update(now);
+                LastValue    = InternalValue.CurrentAmount;
+                CurrentValue = LastValue;
+                if (LastValue == wantValue)
+                    InternalValue = null;
             }
             else
             {
-                double hasNow = this.CurrentValue;
+                var hasNow = CurrentValue;
                 if (hasNow != wantValue)
                 {
-                    this.CurrentValue = wantValue;
-                    this.LastValue = wantValue;
+                    CurrentValue = wantValue;
+                    LastValue    = wantValue;
                 }
             }
         }
-
-        internal void Reset()
-        {
-            if ((this.Flags & CameraValueFlags.NoModifiers) != CameraValueFlags.None)
-                return;
-
-            this.Modifiers.Clear();
-
-            double value = this.DefaultValue;
-            this.LastValue = value;
-            this.TargetValue = value;
-            this.InternalValue = null;
-            this.CurrentValue = value;
-        }
-
-        private readonly List<CameraValueModifier> Modifiers = new List<CameraValueModifier>();
     }
 
     internal sealed class CameraValueModifier
     {
-        internal enum ModifierTypes : int
+        internal readonly double Amount;
+
+        internal readonly bool AutoRemove;
+
+        internal readonly long AutoRemoveDelay;
+
+        internal readonly CameraValueBase Owner;
+
+        internal readonly int Priority;
+
+        internal readonly CameraState State;
+
+        internal readonly ModifierTypes Type;
+
+        internal long? RemoveTimer;
+
+        internal CameraValueModifier(CameraValueBase owner,
+                                     CameraState     state,
+                                     ModifierTypes   type,
+                                     double          amount,
+                                     bool            autoRemove,
+                                     long            autoRemoveDelay)
+        {
+            Owner           = owner;
+            State           = state;
+            Type            = type;
+            Amount          = amount;
+            AutoRemove      = autoRemove;
+            AutoRemoveDelay = autoRemoveDelay;
+
+            if (State != null)
+                Priority = State.Priority;
+            else
+                Priority = -1000000;
+        }
+
+        internal enum ModifierTypes
         {
             Set,
             SetIfPreviousIsHigherThanThis,
             SetIfPreviousIsLowerThanThis,
             Add,
             Multiply,
-            Force,
+            Force
         }
 
-        internal CameraValueModifier(CameraValueBase owner, CameraState state, ModifierTypes type, double amount, bool autoRemove, long autoRemoveDelay)
-        {
-            this.Owner = owner;
-            this.State = state;
-            this.Type = type;
-            this.Amount = amount;
-            this.AutoRemove = autoRemove;
-            this.AutoRemoveDelay = autoRemoveDelay;
+        internal void Remove() { Owner.RemoveModifier(this); }
 
-            if (this.State != null)
-                this.Priority = this.State.Priority;
-            else
-                this.Priority = -1000000;
-        }
-
-        internal readonly CameraValueBase Owner;
-
-        internal readonly CameraState State;
-
-        internal readonly ModifierTypes Type;
-
-        internal readonly double Amount;
-
-        internal readonly int Priority;
-
-        internal readonly bool AutoRemove;
-
-        internal readonly long AutoRemoveDelay;
-
-        internal long? RemoveTimer = null;
-
-        internal void RemoveDelayed(long time)
-        {
-            this.RemoveTimer = -time;
-        }
-
-        internal void Remove()
-        {
-            this.Owner.RemoveModifier(this);
-        }
+        internal void RemoveDelayed(long time) { RemoveTimer = -time; }
     }
 
     internal class CameraValueSimple : CameraValueBase
     {
+        private double _cur_value;
+
         internal CameraValueSimple(string name, double defaultValue, double changeSpeed)
         {
-            this._name = name;
-            this._def_value = defaultValue;
-            this._cur_value = defaultValue;
-            this._change = changeSpeed;
+            Name         = name;
+            DefaultValue = defaultValue;
+            _cur_value   = defaultValue;
+            ChangeSpeed  = changeSpeed;
 
-            if(name == null)
+            if (name == null)
             {
-                var t = this.GetType().Name;
-                List<string> words = new List<string>();
-                StringBuilder cur = new StringBuilder(32);
-                foreach(var c in t)
+                var t     = GetType().Name;
+                var words = new List<string>();
+                var cur   = new StringBuilder(32);
+                foreach (var c in t)
                 {
-                    if(char.IsUpper(c) && cur.Length != 0)
+                    if (char.IsUpper(c) && cur.Length != 0)
                     {
                         words.Add(cur.ToString().ToLowerInvariant());
                         cur.Clear();
@@ -335,50 +300,21 @@ namespace IFPV
                 if (cur.Length != 0)
                     words.Add(cur.ToString().ToLowerInvariant());
 
-                this._name = string.Join(" ", words);
+                Name = string.Join(" ", words);
             }
         }
 
-        private double _cur_value;
-        private double _def_value;
-        private double _change;
-        private string _name;
-
-        internal override string Name
-        {
-            get
-            {
-                return this._name;
-            }
-        }
+        internal override double ChangeSpeed { get; }
 
         internal override double CurrentValue
         {
-            get
-            {
-                return this._cur_value;
-            }
+            get => _cur_value;
 
-            set
-            {
-                this._cur_value = value;
-            }
+            set => _cur_value = value;
         }
 
-        internal override double DefaultValue
-        {
-            get
-            {
-                return this._def_value;
-            }
-        }
+        internal override double DefaultValue { get; }
 
-        internal override double ChangeSpeed
-        {
-            get
-            {
-                return this._change;
-            }
-        }
+        internal override string Name { get; }
     }
 }

@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace IFPV.States
+﻿namespace IFPV.States
 {
     /// <summary>
-    /// This profile is used when player has no control and should just see what the character is doing.
+    ///     This profile is used when player has no control and should just see what the character is doing.
     /// </summary>
     /// <seealso cref="IFPV.CameraState" />
-    abstract class Passenger : CameraState
+    internal abstract class Passenger : CameraState
     {
         internal override void OnEntering(CameraUpdate update)
         {

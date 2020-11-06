@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NetScriptFramework;
 using NetScriptFramework.SkyrimSE;
 
@@ -10,57 +7,31 @@ namespace IFPV
 {
     internal sealed class CameraCull
     {
+        internal readonly CameraMain      CameraMain;
+        private readonly  HashSet<IntPtr> _put_back = new HashSet<IntPtr>();
+
+        private readonly List<Tuple<NiAVObject, int>> Disabled = new List<Tuple<NiAVObject, int>>();
+
+        private readonly object Locker = new object();
+
+        private readonly List<Tuple<NiAVObject, float>> Unscaled = new List<Tuple<NiAVObject, float>>();
+
+        private int _state_cull;
+        private int _state_update;
+
         internal CameraCull(CameraMain cameraMain)
         {
             if (cameraMain == null)
                 throw new ArgumentNullException("cameraMain");
 
-            this.CameraMain = cameraMain;
+            CameraMain = cameraMain;
         }
 
-        internal static float UnscaleAmount
-        {
-            get;
-            set;
-        } = 0.00087f;
+        internal static float UnscaleAmount { get; set; } = 0.00087f;
 
-        internal readonly CameraMain CameraMain;
+        private bool ShouldObjectBeDisabled => _state_cull <= 0;
 
-        private readonly List<Tuple<NiAVObject, int>> Disabled = new List<Tuple<NiAVObject, int>>();
-
-        private readonly List<Tuple<NiAVObject, float>> Unscaled = new List<Tuple<NiAVObject, float>>();
-        
-        private readonly object Locker = new object();
-
-        internal void RemoveDisable(NiAVObject obj)
-        {
-            if (obj == null)
-                return;
-
-            bool had = false;
-            int reset = 0;
-            lock(this.Locker)
-            {
-                IntPtr addr = obj.Address;
-                for(int i = 0; i < this.Disabled.Count; i++)
-                {
-                    if(this.Disabled[i].Item1.Address == addr)
-                    {
-                        reset = this.Disabled[i].Item2;
-                        this.Disabled.RemoveAt(i);
-                        had = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!had)
-                return;
-
-            if(reset > 0)
-                SetEnabled(obj, true);
-            obj.DecRef();
-        }
+        private bool ShouldObjectBeUnscaled => _state_cull <= 0 && _state_update <= 0;
 
         internal void AddDisable(NiAVObject obj)
         {
@@ -68,18 +39,15 @@ namespace IFPV
                 return;
 
             obj.IncRef();
-            int reset = 0;
-            if (this.ShouldObjectBeDisabled)
+            var reset = 0;
+            if (ShouldObjectBeDisabled)
             {
                 reset = IsEnabled(obj) ? 1 : -1;
-                if(reset > 0)
+                if (reset > 0)
                     SetEnabled(obj, false);
             }
 
-            lock(this.Locker)
-            {
-                this.Disabled.Add(new Tuple<NiAVObject, int>(obj, reset));
-            }
+            lock (Locker) { Disabled.Add(new Tuple<NiAVObject, int>(obj, reset)); }
         }
 
         internal void AddUnscale(NiAVObject obj)
@@ -88,59 +56,129 @@ namespace IFPV
                 return;
 
             obj.IncRef();
-            float orig = obj.LocalTransform.Scale;
+            var orig = obj.LocalTransform.Scale;
             if (orig == UnscaleAmount)
                 orig = 1.0f;
-            if(this.ShouldObjectBeUnscaled)
+            if (ShouldObjectBeUnscaled)
                 SetScale(obj, UnscaleAmount, true);
 
-            lock(this.Locker)
-            {
-                this.Unscaled.Add(new Tuple<NiAVObject, float>(obj, orig));
-            }
+            lock (Locker) { Unscaled.Add(new Tuple<NiAVObject, float>(obj, orig)); }
         }
 
         internal void Clear()
         {
-            lock(this.Locker)
+            lock (Locker)
             {
-                foreach (var s in this.Disabled)
+                foreach (var s in Disabled)
                 {
-                    if(s.Item2 > 0)
+                    if (s.Item2 > 0)
                         SetEnabled(s.Item1, true);
                     s.Item1.DecRef();
                 }
 
-                this.Disabled.Clear();
+                Disabled.Clear();
 
-                foreach(var t in this.Unscaled)
+                foreach (var t in Unscaled)
                 {
                     SetScale(t.Item1, t.Item2, true);
                     t.Item1.DecRef();
                 }
 
-                this.Unscaled.Clear();
+                Unscaled.Clear();
             }
         }
 
-        private int _state_cull = 0;
-        private int _state_update = 0;
-        private readonly HashSet<IntPtr> _put_back = new HashSet<IntPtr>();
+        internal void OnShadowCulling(int index)
+        {
+            lock (Locker)
+            {
+                if (index == 0)
+                    IncCull();
+                else if (index == 1)
+                    DecCull();
+            }
+        }
+
+        internal void OnUpdating(int index)
+        {
+            lock (Locker)
+            {
+                if (index == 0)
+                    IncUpdate();
+                else if (index == 1)
+                    DecUpdate();
+            }
+        }
+
+        internal void RemoveDisable(NiAVObject obj)
+        {
+            if (obj == null)
+                return;
+
+            var had   = false;
+            var reset = 0;
+            lock (Locker)
+            {
+                var addr = obj.Address;
+                for (var i = 0; i < Disabled.Count; i++)
+                    if (Disabled[i].Item1.Address == addr)
+                    {
+                        reset = Disabled[i].Item2;
+                        Disabled.RemoveAt(i);
+                        had = true;
+                        break;
+                    }
+            }
+
+            if (!had)
+                return;
+
+            if (reset > 0)
+                SetEnabled(obj, true);
+            obj.DecRef();
+        }
+
+        private void DecCull()
+        {
+            if (--_state_cull != 0)
+                return;
+
+            foreach (var s in Disabled)
+                if (_put_back.Contains(s.Item1.Address))
+                    SetEnabled(s.Item1, false);
+
+            _put_back.Clear();
+
+            if (_state_update <= 0)
+                foreach (var t in Unscaled)
+                    SetScale(t.Item1, UnscaleAmount, true);
+        }
+
+        private void DecUpdate()
+        {
+            if (--_state_update != 0)
+                return;
+
+            if (_state_cull <= 0)
+                foreach (var t in Unscaled)
+                    SetScale(t.Item1, UnscaleAmount, false);
+        }
 
         private void IncCull()
         {
-            if (++this._state_cull != 1)
+            if (++_state_cull != 1)
                 return;
 
-            for(int i = 0; i < this.Disabled.Count; i++)
+            for (var i = 0; i < Disabled.Count; i++)
             {
-                var s = this.Disabled[i];
-                int reset = s.Item2;
+                var s     = Disabled[i];
+                var reset = s.Item2;
                 if (reset == 0)
                 {
-                    reset = IsEnabled(s.Item1) ? 1 : -1;
-                    this.Disabled[i] = new Tuple<NiAVObject, int>(s.Item1, reset);
+                    reset       = IsEnabled(s.Item1) ? 1 : -1;
+                    Disabled[i] = new Tuple<NiAVObject, int>(s.Item1, reset);
                 }
+
                 if (!IsEnabled(s.Item1) && reset > 0)
                 {
                     SetEnabled(s.Item1, true);
@@ -148,99 +186,25 @@ namespace IFPV
                 }
             }
 
-            if (this._state_update <= 0)
-            {
-                foreach (var t in this.Unscaled)
+            if (_state_update <= 0)
+                foreach (var t in Unscaled)
                     SetScale(t.Item1, t.Item2, true);
-            }
-        }
-
-        private void DecCull()
-        {
-            if (--this._state_cull != 0)
-                return;
-
-            foreach (var s in this.Disabled)
-            {
-                if(_put_back.Contains(s.Item1.Address))
-                    SetEnabled(s.Item1, false);
-            }
-
-            _put_back.Clear();
-
-            if (this._state_update <= 0)
-            {
-                foreach (var t in this.Unscaled)
-                    SetScale(t.Item1, UnscaleAmount, true);
-            }
         }
 
         private void IncUpdate()
         {
-            if (++this._state_update != 1)
+            if (++_state_update != 1)
                 return;
 
-            if(this._state_cull <= 0)
-            {
-                foreach (var t in this.Unscaled)
+            if (_state_cull <= 0)
+                foreach (var t in Unscaled)
                     SetScale(t.Item1, t.Item2, false);
-            }
-        }
-
-        private void DecUpdate()
-        {
-            if (--this._state_update != 0)
-                return;
-
-            if(this._state_cull <= 0)
-            {
-                foreach (var t in this.Unscaled)
-                    SetScale(t.Item1, UnscaleAmount, false);
-            }
-        }
-
-        internal void OnShadowCulling(int index)
-        {
-            lock(this.Locker)
-            {
-                if (index == 0)
-                    this.IncCull();
-                else if (index == 1)
-                    this.DecCull();
-            }
-        }
-
-        internal void OnUpdating(int index)
-        {
-            lock(this.Locker)
-            {
-                if (index == 0)
-                    this.IncUpdate();
-                else if(index == 1)
-                    this.DecUpdate();
-            }
-        }
-
-        private bool ShouldObjectBeDisabled
-        {
-            get
-            {
-                return this._state_cull <= 0;
-            }
-        }
-
-        private bool ShouldObjectBeUnscaled
-        {
-            get
-            {
-                return this._state_cull <= 0 && this._state_update <= 0;
-            }
         }
 
         private bool IsEnabled(NiAVObject obj)
         {
-            uint fl = Memory.ReadUInt32(obj.Address + 0xF4);
-            bool hadEnabled = (fl & 1) == 0;
+            var fl         = Memory.ReadUInt32(obj.Address + 0xF4);
+            var hadEnabled = (fl & 1) == 0;
             return hadEnabled;
         }
 
@@ -248,25 +212,25 @@ namespace IFPV
         {
             if (obj.Parent == null)
                 return;
-            
-            uint fl = Memory.ReadUInt32(obj.Address + 0xF4);
-            bool hadEnabled = (fl & 1) == 0;
+
+            var fl         = Memory.ReadUInt32(obj.Address + 0xF4);
+            var hadEnabled = (fl & 1) == 0;
             if (hadEnabled == enabled)
                 return;
 
             if (enabled)
-                fl &= ~(uint)1;
+                fl &= ~(uint) 1;
             else
                 fl |= 1;
 
             Memory.WriteUInt32(obj.Address + 0xF4, fl);
         }
-        
+
         private void SetScale(NiAVObject obj, float scale, bool cull)
         {
             if (obj.Parent == null)
                 return;
-            
+
             obj.LocalTransform.Scale = scale;
             obj.Update(0.0f);
         }

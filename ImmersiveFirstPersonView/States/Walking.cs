@@ -1,27 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NetScriptFramework;
 
 namespace IFPV.States
 {
-    class Walking : CameraState
+    internal class Walking : CameraState
     {
-        internal override int Priority
-        {
-            get
-            {
-                return (int)Priorities.Walking;
-            }
-        }
-
-        internal override void OnEntering(CameraUpdate update)
-        {
-            base.OnEntering(update);
-
-            this.AddHeadBobModifier(update);
-        }
+        internal override int Priority => (int) Priorities.Walking;
 
         internal override bool Check(CameraUpdate update)
         {
@@ -35,8 +18,15 @@ namespace IFPV.States
             if (actor == null)
                 return false;
 
-            uint flags = NetScriptFramework.Memory.ReadUInt32(actor.Address + 0xC0) & 0x3FFF;
+            var flags = Memory.ReadUInt32(actor.Address + 0xC0) & 0x3FFF;
             return (flags & 0x1C0) == 0x40;
+        }
+
+        internal override void OnEntering(CameraUpdate update)
+        {
+            base.OnEntering(update);
+
+            AddHeadBobModifier(update);
         }
     }
 }

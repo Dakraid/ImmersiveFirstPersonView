@@ -1,115 +1,77 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace IFPV
 {
     internal abstract class CameraState
     {
-        internal CameraStack Stack
-        {
-            get;
-            private set;
-        }
+        internal readonly List<CameraValueModifier> RemoveModifiersOnLeave = new List<CameraValueModifier>();
 
-        internal bool IsActive
-        {
-            get;
-            private set;
-        }
+        internal bool __wActivate { get; set; }
 
-        internal bool __wActivate
-        {
-            get;
-            set;
-        }
+        internal virtual int Group => 0;
 
-        internal virtual int Priority
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        internal bool IsActive { get; private set; }
 
-        internal virtual int Group
-        {
-            get
-            {
-                return 0;
-            }
-        }
-        
-        internal virtual void OnEntering(CameraUpdate update)
-        {
+        internal virtual int Priority => 0;
 
-        }
-        
-        internal virtual void OnLeaving(CameraUpdate update)
-        {
+        internal CameraStack Stack { get; private set; }
 
-        }
-        
-        internal virtual bool Check(CameraUpdate update)
-        {
-            return true;
-        }
-
-        internal virtual void Update(CameraUpdate update)
-        {
-
-        }
-        
-        internal virtual void Initialize()
-        {
-
-        }
-
-        internal void _init(CameraStack s)
-        {
-            this.Stack = s;
-        }
+        internal void _init(CameraStack s) { Stack = s; }
 
         internal void _set(bool a)
         {
-            this.IsActive = a;
+            IsActive = a;
 
             //NetScriptFramework.Debug.GUI.WriteLine((a ? ">>> " : "<<< ") + this.GetType().Name);
-            
+
             if (!a)
             {
-                foreach (var m in this.RemoveModifiersOnLeave)
+                foreach (var m in RemoveModifiersOnLeave)
                 {
-                    long time = m.AutoRemoveDelay;
+                    var time = m.AutoRemoveDelay;
                     if (time > 0)
                         m.RemoveDelayed(time);
                     else
                         m.Remove();
                 }
-                this.RemoveModifiersOnLeave.Clear();
+
+                RemoveModifiersOnLeave.Clear();
             }
         }
 
-        internal readonly List<CameraValueModifier> RemoveModifiersOnLeave = new List<CameraValueModifier>();
+        internal virtual bool Check(CameraUpdate update) { return true; }
 
-        protected void AddHeadBobModifier(CameraUpdate update, bool forceHeadBob = false, bool forceReducedStabilizeHistory = false, double multiplier = 1.0, long extraDuration = 0)
+        internal virtual void Initialize() { }
+
+        internal virtual void OnEntering(CameraUpdate update) { }
+
+        internal virtual void OnLeaving(CameraUpdate update) { }
+
+        internal virtual void Update(CameraUpdate update) { }
+
+        protected void AddHeadBobModifier(CameraUpdate update,
+                                          bool         forceHeadBob                 = false,
+                                          bool         forceReducedStabilizeHistory = false,
+                                          double       multiplier                   = 1.0,
+                                          long         extraDuration                = 0)
         {
-            bool headBob = forceHeadBob || Settings.Instance.HeadBob;
+            var headBob = forceHeadBob || Settings.Instance.HeadBob;
             if (headBob)
             {
-                double value = 0.5;
-                double amount = (forceHeadBob ? 1.0 : Settings.Instance.HeadBobAmount) * multiplier;
-                if(amount > 0.01)
+                var value  = 0.5;
+                var amount = (forceHeadBob ? 1.0 : Settings.Instance.HeadBobAmount) * multiplier;
+                if (amount > 0.01)
                 {
                     value /= amount;
-                    update.Values.StabilizeIgnorePositionZ.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, value, true, extraDuration);
+                    update.Values.StabilizeIgnorePositionY.AddModifier(
+                        this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, value, true,
+                        extraDuration);
                 }
             }
 
             if (headBob || forceReducedStabilizeHistory)
-                update.Values.StabilizeHistoryDuration.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 100.0, true, extraDuration);
+                update.Values.StabilizeHistoryDuration.AddModifier(
+                    this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 100.0, true, extraDuration);
         }
     }
 }

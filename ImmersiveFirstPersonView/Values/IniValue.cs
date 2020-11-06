@@ -1,59 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NetScriptFramework.SkyrimSE;
+﻿using NetScriptFramework.SkyrimSE;
 
 namespace IFPV.Values
 {
     internal abstract class IniValue : CameraValueBase
     {
-        internal IniValue(string name) : base()
-        {
-            this._name = name;
-            this.Flags |= CameraValueFlags.NoTween;
-        }
-
         private readonly string _name;
+        private          double _def;
 
-        internal override string Name
+        private Setting _setting;
+        private bool    _tried;
+
+        internal IniValue(string name)
         {
-            get
-            {
-                return this._name ?? "unk_ini_value";
-            }
+            _name =  name;
+            Flags |= CameraValueFlags.NoTween;
         }
 
-        internal override double DefaultValue
-        {
-            get
-            {
-                return this._def;
-            }
-        }
-
-        internal override double ChangeSpeed
-        {
-            get
-            {
-                return 1;
-            }
-        }
+        internal override double ChangeSpeed => 1;
 
         internal override double CurrentValue
         {
             get
             {
-                this.init();
-                if (this._setting == null)
+                init();
+                if (_setting == null)
                     return 0;
 
-                switch(this._setting.SettingType)
+                switch (_setting.SettingType)
                 {
-                    case SettingTypes.Float: return this._setting.GetFloat();
+                    case SettingTypes.Float: return _setting.GetFloat();
                     case SettingTypes.Int:
-                    case SettingTypes.UInt: return this._setting.GetInt();
+                    case SettingTypes.UInt: return _setting.GetInt();
                 }
 
                 return 0;
@@ -61,33 +38,37 @@ namespace IFPV.Values
 
             set
             {
-                this.init();
-                if (this._setting == null)
+                init();
+                if (_setting == null)
                     return;
 
-                switch(this._setting.SettingType)
+                switch (_setting.SettingType)
                 {
-                    case SettingTypes.Float: this._setting.SetFloat((float)value); break;
+                    case SettingTypes.Float:
+                        _setting.SetFloat((float) value);
+                        break;
                     case SettingTypes.Int:
-                    case SettingTypes.UInt: this._setting.SetInt((int)value); break;
+                    case SettingTypes.UInt:
+                        _setting.SetInt((int) value);
+                        break;
                 }
             }
         }
 
-        private Setting _setting = null;
-        private double _def = 0;
-        private bool _tried = false;
+        internal override double DefaultValue => _def;
+
+        internal override string Name => _name ?? "unk_ini_value";
 
         private void init()
         {
-            if (this._tried)
+            if (_tried)
                 return;
 
-            this._tried = true;
-            this._setting = Setting.FindSettingByName(this.Name, true, true);
+            _tried   = true;
+            _setting = Setting.FindSettingByName(Name, true, true);
 
-            if (this._setting != null)
-                _def = this.CurrentValue;
+            if (_setting != null)
+                _def = CurrentValue;
         }
     }
 }

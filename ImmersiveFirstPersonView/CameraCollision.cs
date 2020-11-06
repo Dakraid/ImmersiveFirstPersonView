@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NetScriptFramework;
 using NetScriptFramework.SkyrimSE;
 
@@ -10,6 +8,14 @@ namespace IFPV
 {
     internal static class CameraCollision
     {
+        private static MemoryAllocation Allocation;
+        private static ulong            RaycastMask;
+        private static NiPoint3         TempNormal;
+        private static NiPoint3         TempPoint1;
+        private static NiPoint3         TempPoint2;
+        private static NiPoint3         TempSafety;
+        private static NiTransform      TempTransform;
+
         internal static bool Apply(CameraUpdate update, NiTransform transform, NiPoint3 result)
         {
             init();
@@ -21,18 +27,16 @@ namespace IFPV
                 return false;
 
             var actor = update.Target.Actor;
-            if (actor == null)
-                return false;
 
-            var cell = actor.ParentCell;
+            var cell = actor?.ParentCell;
             if (cell == null)
                 return false;
 
-            float safety = (float)(update.Values.NearClip.CurrentValue + 1.0);
+            var safety = (float) (update.Values.NearClip.CurrentValue + 1.0);
             if (safety < 1.0f)
                 safety = 1.0f;
 
-            float safety2 = Math.Max(0.0f, Settings.Instance.CameraCollisionSafety);
+            var safety2 = Math.Max(0.0f, Settings.Instance.CameraCollisionSafety);
 
             var tpos = transform.Position;
 
@@ -51,7 +55,7 @@ namespace IFPV
             TempNormal.Y = tpos.Y - TempPoint1.Y;
             TempNormal.Z = tpos.Z - TempPoint1.Z;
 
-            float len = TempNormal.Length;
+            var len = TempNormal.Length;
             if (len <= 0.0f)
                 return false;
 
@@ -61,20 +65,20 @@ namespace IFPV
             TempPoint2.X = TempPoint1.X + TempNormal.X;
             TempPoint2.Y = TempPoint1.Y + TempNormal.Y;
             TempPoint2.Z = TempPoint1.Z + TempNormal.Z;
-            
-            var ls = TESObjectCELL.RayCast(new RayCastParameters()
+
+            var ls = TESObjectCELL.RayCast(new RayCastParameters
             {
-                Cell = cell,
-                Begin = new float[] { TempPoint1.X, TempPoint1.Y, TempPoint1.Z },
-                End = new float[] { TempPoint2.X, TempPoint2.Y, TempPoint2.Z }
+                Cell  = cell,
+                Begin = new[] {TempPoint1.X, TempPoint1.Y, TempPoint1.Z},
+                End   = new[] {TempPoint2.X, TempPoint2.Y, TempPoint2.Z}
             });
 
             if (ls == null || ls.Count == 0)
                 return false;
 
-            RayCastResult best = null;
-            float bestDist = 0.0f;
-            List<NiAVObject> ignore = new List<NiAVObject>(3);
+            RayCastResult best     = null;
+            var           bestDist = 0.0f;
+            var           ignore   = new List<NiAVObject>(3);
             {
                 var sk = actor.GetSkeletonNode(true);
                 if (sk != null)
@@ -85,31 +89,28 @@ namespace IFPV
                 if (sk != null)
                     ignore.Add(sk);
             }
-            if(update.CachedMounted)
+            if (update.CachedMounted)
             {
                 var mount = actor.GetMount();
-                if(mount != null)
-                {
-                    var sk = mount.GetSkeletonNode(false);
-                    if (sk != null)
-                        ignore.Add(sk);
-                }
+                var sk    = mount?.GetSkeletonNode(false);
+                if (sk != null)
+                    ignore.Add(sk);
             }
-            
+
             foreach (var r in ls)
             {
                 if (!IsValid(r, ignore))
                     continue;
 
-                float dist = r.Fraction;
+                var dist = r.Fraction;
                 if (best == null)
                 {
-                    best = r;
+                    best     = r;
                     bestDist = dist;
                 }
-                else if(dist < bestDist)
+                else if (dist < bestDist)
                 {
-                    best = r;
+                    best     = r;
                     bestDist = dist;
                 }
             }
@@ -117,12 +118,12 @@ namespace IFPV
             if (best == null)
                 return false;
 
-            bestDist *= len + safety + safety2;
+            bestDist *= len    + safety + safety2;
             bestDist -= safety + safety2;
-            bestDist /= len + safety + safety2;
+            bestDist /= len    + safety + safety2;
 
             // Negative is ok!
-            
+
             result.X = (TempPoint2.X - TempPoint1.X) * bestDist + TempPoint1.X;
             result.Y = (TempPoint2.Y - TempPoint1.Y) * bestDist + TempPoint1.Y;
             result.Z = (TempPoint2.Z - TempPoint1.Z) * bestDist + TempPoint1.Z;
@@ -130,62 +131,23 @@ namespace IFPV
             return true;
         }
 
-        private static bool IsValid(RayCastResult r, List<NiAVObject> ignore)
-        {
-            var havokObj = r.HavokObject;
-            if (havokObj != IntPtr.Zero)
-            {
-                uint flags = Memory.ReadUInt32(havokObj + 0x2C) & 0x7F;
-                ulong mask = (ulong)1 << (int)flags;
-                if ((RaycastMask & mask) == 0)
-                    return false;
-            }
-
-            if (ignore != null && ignore.Count != 0)
-            {
-                var obj = r.Object;
-                if (obj != null)
-                {
-                    for (int i = 0; i < ignore.Count; i++)
-                    {
-                        var o = ignore[i];
-                        if (o != null && o.Equals(obj))
-                            return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        private static void SetupRaycastMask(CollisionLayers[] layers)
-        {
-            ulong m = 0;
-            foreach (var l in layers)
-            {
-                ulong fl = (ulong)1 << (int)l;
-                m |= fl;
-            }
-            RaycastMask = m;
-        }
-
         private static void init()
         {
             if (Allocation != null)
                 return;
 
-            Allocation = Memory.Allocate(0x90);
-            TempPoint1 = MemoryObject.FromAddress<NiPoint3>(Allocation.Address);
-            TempPoint2 = MemoryObject.FromAddress<NiPoint3>(Allocation.Address + 0x10);
-            TempNormal = MemoryObject.FromAddress<NiPoint3>(Allocation.Address + 0x20);
-            TempSafety = MemoryObject.FromAddress<NiPoint3>(Allocation.Address + 0x30);
-            TempTransform = MemoryObject.FromAddress<NiTransform>(Allocation.Address + 0x40);
+            Allocation          = Memory.Allocate(0x90);
+            TempPoint1          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address);
+            TempPoint2          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address    + 0x10);
+            TempNormal          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address    + 0x20);
+            TempSafety          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address    + 0x30);
+            TempTransform       = MemoryObject.FromAddress<NiTransform>(Allocation.Address + 0x40);
             TempTransform.Scale = 1.0f;
-            TempSafety.X = 0.0f;
-            TempSafety.Y = 0.0f;
-            TempSafety.Z = 0.0f;
+            TempSafety.X        = 0.0f;
+            TempSafety.Y        = 0.0f;
+            TempSafety.Z        = 0.0f;
 
-            SetupRaycastMask(new CollisionLayers[]
+            SetupRaycastMask(new[]
             {
                 CollisionLayers.AnimStatic,
                 CollisionLayers.Biped,
@@ -198,16 +160,32 @@ namespace IFPV
                 CollisionLayers.Terrain,
                 CollisionLayers.Trap,
                 CollisionLayers.Trees,
-                CollisionLayers.Unidentified,
+                CollisionLayers.Unidentified
             });
         }
 
-        private static MemoryAllocation Allocation = null;
-        private static NiPoint3 TempPoint1 = null;
-        private static NiPoint3 TempPoint2 = null;
-        private static NiPoint3 TempSafety = null;
-        private static NiPoint3 TempNormal = null;
-        private static NiTransform TempTransform = null;
-        private static ulong RaycastMask = 0;
+        private static bool IsValid(RayCastResult r, List<NiAVObject> ignore)
+        {
+            var havokObj = r.HavokObject;
+            if (havokObj != IntPtr.Zero)
+            {
+                var flags = Memory.ReadUInt32(havokObj + 0x2C) & 0x7F;
+                var mask  = (ulong) 1 << (int) flags;
+                if ((RaycastMask & mask) == 0)
+                    return false;
+            }
+
+            if (ignore == null || ignore.Count == 0) return true;
+            var obj = r.Object;
+
+            return obj == null || ignore.All(o => o == null || !o.Equals(obj));
+        }
+
+        private static void SetupRaycastMask(CollisionLayers[] layers)
+        {
+            var m = layers.Select(l => (ulong) 1 << (int) l).Aggregate<ulong, ulong>(0, (current, fl) => current | fl);
+
+            RaycastMask = m;
+        }
     }
 }

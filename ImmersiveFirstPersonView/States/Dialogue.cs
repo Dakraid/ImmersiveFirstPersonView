@@ -1,28 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NetScriptFramework.SkyrimSE;
+﻿using NetScriptFramework.SkyrimSE;
 
 namespace IFPV.States
 {
-    class Dialogue : CameraState
+    internal class Dialogue : CameraState
     {
-        internal override int Priority
-        {
-            get
-            {
-                return (int)Priorities.Dialogue;
-            }
-        }
-
-        internal override void OnEntering(CameraUpdate update)
-        {
-            base.OnEntering(update);
-
-            //update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
-        }
+        internal override int Priority => (int) Priorities.Dialogue;
 
         internal override bool Check(CameraUpdate update)
         {
@@ -34,6 +16,13 @@ namespace IFPV.States
                 return false;
 
             return mm.IsMenuOpen("Dialogue Menu");
+        }
+
+        internal override void OnEntering(CameraUpdate update)
+        {
+            base.OnEntering(update);
+
+            //update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
         }
     }
 }

@@ -1,29 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NetScriptFramework;
+﻿using NetScriptFramework;
 using NetScriptFramework.SkyrimSE;
 
 namespace IFPV.States
 {
-    class Grabbing : CameraState
+    internal class Grabbing : CameraState
     {
-        internal override int Priority
-        {
-            get
-            {
-                return (int)Priorities.Grabbing;
-            }
-        }
-
-        internal override void OnEntering(CameraUpdate update)
-        {
-            base.OnEntering(update);
-
-            update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 1);
-        }
+        internal override int Priority => (int) Priorities.Grabbing;
 
         internal override bool Check(CameraUpdate update)
         {
@@ -34,14 +16,18 @@ namespace IFPV.States
             if (plr == null)
                 return false;
 
-            uint refHandle = Memory.ReadUInt32(plr.Address + 0x8C8);
+            var refHandle = Memory.ReadUInt32(plr.Address + 0x8C8);
             if (refHandle == 0)
                 return false;
 
-            using (var objRef = new ObjectRefHolder(refHandle))
-            {
-                return objRef.IsValid;
-            }
+            using (var objRef = new ObjectRefHolder(refHandle)) { return objRef.IsValid; }
+        }
+
+        internal override void OnEntering(CameraUpdate update)
+        {
+            base.OnEntering(update);
+
+            update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 1);
         }
     }
 }

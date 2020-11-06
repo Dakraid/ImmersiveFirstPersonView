@@ -117,6 +117,10 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy .\IFPV.dll "S:\ModOrganizerSE\mods\Immersive First Person View\NetScriptFramework\Plugins\IFPV.dll"
+copy .\IFPV.pdb "S:\ModOrganizerSE\mods\Immersive First Person View\NetScriptFramework\Plugins\IFPV.pdb"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

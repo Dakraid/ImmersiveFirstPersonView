@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using IFPV.Values;
+﻿using IFPV.Values;
 
 namespace IFPV.Values
 {
@@ -45,14 +40,14 @@ namespace IFPV.Values
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
-        internal readonly RestrictLeft RestrictLeft = new RestrictLeft();
-        internal readonly RestrictRight RestrictRight = new RestrictRight();
-        internal readonly RestrictLeft2 RestrictLeft2 = new RestrictLeft2();
-        internal readonly RestrictRight2 RestrictRight2 = new RestrictRight2();
-        internal readonly RestrictUp RestrictUp = new RestrictUp();
-        internal readonly RestrictDown RestrictDown = new RestrictDown();
+        internal readonly RestrictDown     RestrictDown     = new RestrictDown();
+        internal readonly RestrictLeft     RestrictLeft     = new RestrictLeft();
+        internal readonly RestrictLeft2    RestrictLeft2    = new RestrictLeft2();
+        internal readonly RestrictRight    RestrictRight    = new RestrictRight();
+        internal readonly RestrictRight2   RestrictRight2   = new RestrictRight2();
         internal readonly RestrictSideDown RestrictSideDown = new RestrictSideDown();
+        internal readonly RestrictUp       RestrictUp       = new RestrictUp();
     }
 }

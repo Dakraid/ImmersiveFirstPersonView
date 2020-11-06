@@ -1,28 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NetScriptFramework;
 
 namespace IFPV.States
 {
-    class Running : CameraState
+    internal class Running : CameraState
     {
-        internal override int Priority
-        {
-            get
-            {
-                return (int)Priorities.Running;
-            }
-        }
-
-        internal override void OnEntering(CameraUpdate update)
-        {
-            base.OnEntering(update);
-
-            update.Values.StabilizeIgnoreOffsetY.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 23.0, true, 200);
-            this.AddHeadBobModifier(update);
-        }
+        internal override int Priority => (int) Priorities.Running;
 
         internal override bool Check(CameraUpdate update)
         {
@@ -36,8 +18,17 @@ namespace IFPV.States
             if (actor == null)
                 return false;
 
-            uint flags = NetScriptFramework.Memory.ReadUInt32(actor.Address + 0xC0) & 0x3FFF;
+            var flags = Memory.ReadUInt32(actor.Address + 0xC0) & 0x3FFF;
             return (flags & 0x180) == 0x80;
+        }
+
+        internal override void OnEntering(CameraUpdate update)
+        {
+            base.OnEntering(update);
+
+            update.Values.StabilizeIgnoreOffsetY.AddModifier(
+                this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 23.0, true, 200);
+            AddHeadBobModifier(update);
         }
     }
 }

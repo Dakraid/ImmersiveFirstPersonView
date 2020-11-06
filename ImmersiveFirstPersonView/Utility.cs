@@ -1,73 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using NetScriptFramework;
+using NetScriptFramework.SkyrimSE;
 
 namespace IFPV
 {
     internal static class Utility
     {
-        internal static double RadToDeg(double rad)
-        {
-            return rad * (180.0 / Math.PI);
-        }
-
-        internal static double DegToRad(double deg)
-        {
-            return deg * (Math.PI / 180.0);
-        }
-
-        internal static double ClampToPi(double rad)
-        {
-            double min = -Math.PI;
-            double max = Math.PI;
-            //double min = 0.0;
-            //double max = Math.PI * 2.0;
-            double add = Math.PI * 2.0;
-
-            if(rad < min)
-            {
-                do
-                {
-                    rad += add;
-                }
-                while (rad < min);
-            }
-            else if(rad > max)
-            {
-                do
-                {
-                    rad -= add;
-                } while (rad > max);
-            }
-
-            return rad;
-        }
-
-        internal static uint GetNiAVFlags(NetScriptFramework.SkyrimSE.NiAVObject obj)
-        {
-            return NetScriptFramework.Memory.ReadUInt32(obj.Address + 0xF4);
-        }
-
-        internal static void SetNiAVFlags(NetScriptFramework.SkyrimSE.NiAVObject obj, uint flags)
-        {
-            NetScriptFramework.Memory.WriteUInt32(obj.Address + 0xF4, flags);
-        }
-
-        internal static void ModNiAVFlags(NetScriptFramework.SkyrimSE.NiAVObject obj, uint flags, bool add)
-        {
-            uint ofl = GetNiAVFlags(obj);
-            uint fl = ofl;
-            if (add)
-                fl |= flags;
-            else
-                fl &= ~flags;
-
-            if (ofl != fl)
-                SetNiAVFlags(obj, fl);
-        }
-
         internal static double ApplyFormula(double ratio, TValue.TweenTypes type)
         {
             if (ratio < 0.0)
@@ -75,7 +13,7 @@ namespace IFPV
             if (ratio > 1.0)
                 return 1.0;
 
-            switch(type)
+            switch (type)
             {
                 case TValue.TweenTypes.Linear:
                     return ratio;
@@ -93,23 +31,51 @@ namespace IFPV
                     return ratio;
             }
         }
+
+        internal static double ClampToPi(double rad)
+        {
+            var min = -Math.PI;
+            var max = Math.PI;
+            //double min = 0.0;
+            //double max = Math.PI * 2.0;
+            var add = Math.PI * 2.0;
+
+            if (rad < min)
+                do { rad += add; } while (rad < min);
+            else if (rad > max)
+                do { rad -= add; } while (rad > max);
+
+            return rad;
+        }
+
+        internal static double DegToRad(double deg) { return deg * (Math.PI / 180.0); }
+
+        internal static uint GetNiAVFlags(NiAVObject obj) { return Memory.ReadUInt32(obj.Address + 0xF4); }
+
+        internal static void ModNiAVFlags(NiAVObject obj, uint flags, bool add)
+        {
+            var ofl = GetNiAVFlags(obj);
+            var fl  = ofl;
+            if (add)
+                fl |= flags;
+            else
+                fl &= ~flags;
+
+            if (ofl != fl)
+                SetNiAVFlags(obj, fl);
+        }
+
+        internal static double RadToDeg(double rad) { return rad * (180.0 / Math.PI); }
+
+        internal static void SetNiAVFlags(NiAVObject obj, uint flags) { Memory.WriteUInt32(obj.Address + 0xF4, flags); }
     }
 
     internal static class GameTypeExtensions
     {
-        internal static void CopyFrom(this NetScriptFramework.SkyrimSE.NiPoint3 pt, NetScriptFramework.SkyrimSE.NiPoint3 other)
-        {
-            NetScriptFramework.Memory.Copy(other.Address, pt.Address, 0xC);
-        }
+        internal static void CopyFrom(this NiPoint3 pt, NiPoint3 other) { Memory.Copy(other.Address, pt.Address, 0xC); }
 
-        internal static void CopyFrom(this NetScriptFramework.SkyrimSE.NiTransform pt, NetScriptFramework.SkyrimSE.NiTransform other)
-        {
-            NetScriptFramework.Memory.Copy(other.Address, pt.Address, 0x34);
-        }
+        internal static void CopyFrom(this NiTransform pt, NiTransform other) { Memory.Copy(other.Address, pt.Address, 0x34); }
 
-        internal static void CopyFrom(this NetScriptFramework.SkyrimSE.NiMatrix33 pt, NetScriptFramework.SkyrimSE.NiMatrix33 other)
-        {
-            NetScriptFramework.Memory.Copy(other.Address, pt.Address, 0x24);
-        }
+        internal static void CopyFrom(this NiMatrix33 pt, NiMatrix33 other) { Memory.Copy(other.Address, pt.Address, 0x24); }
     }
 }

@@ -1,27 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NetScriptFramework.SkyrimSE;
 
 namespace IFPV.States
 {
-    class SittingProcess : CameraState
+    internal class SittingProcess : CameraState
     {
-        internal override int Priority
-        {
-            get
-            {
-                return (int)Priorities.SittingProcess;
-            }
-        }
-
-        internal override void OnEntering(CameraUpdate update)
-        {
-            base.OnEntering(update);
-
-            update.Values.RotationFromHead.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 0.2);
-        }
+        internal override int Priority => (int) Priorities.SittingProcess;
 
         internal override bool Check(CameraUpdate update)
         {
@@ -37,14 +20,22 @@ namespace IFPV.States
             if (actor == null)
                 return false;
 
-            switch(actor.SitState)
+            switch (actor.SitState)
             {
-                case NetScriptFramework.SkyrimSE.ActorActionStates.NotAction:
-                case NetScriptFramework.SkyrimSE.ActorActionStates.InProgress:
+                case ActorActionStates.NotAction:
+                case ActorActionStates.InProgress:
                     return false;
             }
-            
+
             return true;
+        }
+
+        internal override void OnEntering(CameraUpdate update)
+        {
+            base.OnEntering(update);
+
+            update.Values.RotationFromHead.AddModifier(
+                this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 0.2);
         }
     }
 }

@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace IFPV.States
+﻿namespace IFPV.States
 {
-    class Weapon : CameraState
+    internal class Weapon : CameraState
     {
-        internal override int Priority
+        internal override int Priority => (int) Priorities.Weapon;
+
+        internal override bool Check(CameraUpdate update)
         {
-            get
-            {
-                return (int)Priorities.Weapon;
-            }
+            if (!update.CameraMain.IsEnabled)
+                return false;
+
+            var actor = update.Target.Actor;
+            return actor != null && actor.IsWeaponDrawn;
         }
 
         internal override void OnEntering(CameraUpdate update)
@@ -27,15 +24,6 @@ namespace IFPV.States
             }
 
             update.Values.ThirdPersonArrowTilt.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 1.5);
-        }
-
-        internal override bool Check(CameraUpdate update)
-        {
-            if (!update.CameraMain.IsEnabled)
-                return false;
-
-            var actor = update.Target.Actor;
-            return actor != null && actor.IsWeaponDrawn;
         }
     }
 }

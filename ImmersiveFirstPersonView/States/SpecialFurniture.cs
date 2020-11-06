@@ -1,38 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NetScriptFramework.SkyrimSE;
+﻿using NetScriptFramework.SkyrimSE;
 
 namespace IFPV.States
 {
-    class SpecialFurniture : CameraState
+    internal class SpecialFurniture : CameraState
     {
-        internal override int Priority
+        private static readonly string[] SpecialKeywords =
         {
-            get
-            {
-                return (int)Priorities.SpecialFurniture;
-            }
-        }
+            // Mining
+            "isPickaxeTable",
+            "isPickaxeWall",
+            "isPickaxeFloor",
 
-        internal override void OnEntering(CameraUpdate update)
-        {
-            base.OnEntering(update);
+            // Other objects
+            "FurnitureWoodChoppingBlock",
+            "FurnitureResourceObjectSawmill",
+            "isCartTravelPlayer"
+        };
 
-            update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
-            Default.CantAutoTurnCounter++;
-            update.Values.NearClip.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 3.0);
-            update.Values.RotationFromHead.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 0.5);
-        }
-
-        internal override void OnLeaving(CameraUpdate update)
-        {
-            base.OnLeaving(update);
-
-            Default.CantAutoTurnCounter--;
-        }
+        internal override int Priority => (int) Priorities.SpecialFurniture;
 
         internal override bool Check(CameraUpdate update)
         {
@@ -51,14 +36,14 @@ namespace IFPV.States
             if (middleHigh == null)
                 return false;
 
-            uint handle = middleHigh.CurrentFurnitureRefHandle;
+            var handle = middleHigh.CurrentFurnitureRefHandle;
             if (handle == 0)
                 return false;
 
             TESObjectREFR obj = null;
             using (var objHandle = new ObjectRefHolder(handle))
             {
-                if(objHandle.IsValid)
+                if (objHandle.IsValid)
                     obj = objHandle.Object;
             }
 
@@ -69,26 +54,30 @@ namespace IFPV.States
             if (baseObj == null)
                 return false;
 
-            foreach(var x in SpecialKeywords)
-            {
+            foreach (var x in SpecialKeywords)
                 if (baseObj.HasKeywordText(x))
                     return true;
-            }
 
             return false;
         }
 
-        private static readonly string[] SpecialKeywords = new string[]
+        internal override void OnEntering(CameraUpdate update)
         {
-            // Mining
-            "isPickaxeTable",
-            "isPickaxeWall",
-            "isPickaxeFloor",
+            base.OnEntering(update);
 
-            // Other objects
-            "FurnitureWoodChoppingBlock",
-            "FurnitureResourceObjectSawmill",
-            "isCartTravelPlayer",
-        };
+            update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
+            Default.CantAutoTurnCounter++;
+            update.Values.NearClip.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis,
+                                               3.0);
+            update.Values.RotationFromHead.AddModifier(
+                this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 0.5);
+        }
+
+        internal override void OnLeaving(CameraUpdate update)
+        {
+            base.OnLeaving(update);
+
+            Default.CantAutoTurnCounter--;
+        }
     }
 }

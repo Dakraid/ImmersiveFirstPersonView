@@ -1,43 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using IFPV.Values;
+﻿using IFPV.Values;
 using NetScriptFramework.SkyrimSE;
 
 namespace IFPV.Values
 {
     internal sealed class InputRotationX : CameraValueBase
     {
-        internal InputRotationX()
-        {
-            this.Flags |= CameraValueFlags.NoTween | CameraValueFlags.NoModifiers;
-        }
+        internal InputRotationX() { Flags |= CameraValueFlags.NoTween | CameraValueFlags.NoModifiers; }
 
-        internal override string Name
-        {
-            get
-            {
-                return "input rotation x";
-            }
-        }
-
-        internal override double ChangeSpeed
-        {
-            get
-            {
-                return 1.0;
-            }
-        }
-
-        internal override double DefaultValue
-        {
-            get
-            {
-                return 0.0;
-            }
-        }
+        internal override double ChangeSpeed => 1.0;
 
         internal override double CurrentValue
         {
@@ -68,17 +38,21 @@ namespace IFPV.Values
                     {
                         var pthird = pstate as ThirdPersonState;
                         if (pthird != null)
-                            pthird.XRotationFromLastResetPoint = (float)value;
+                            pthird.XRotationFromLastResetPoint = (float) value;
                     }
                 }
             }
         }
+
+        internal override double DefaultValue => 0.0;
+
+        internal override string Name => "input rotation x";
     }
 }
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
         internal readonly InputRotationX InputRotationX = new InputRotationX();
     }
@@ -88,34 +62,9 @@ namespace IFPV.Values
 {
     internal sealed class InputRotationY : CameraValueBase
     {
-        internal InputRotationY()
-        {
-            this.Flags |= CameraValueFlags.NoTween | CameraValueFlags.NoModifiers;
-        }
+        internal InputRotationY() { Flags |= CameraValueFlags.NoTween | CameraValueFlags.NoModifiers; }
 
-        internal override string Name
-        {
-            get
-            {
-                return "input rotation y";
-            }
-        }
-
-        internal override double ChangeSpeed
-        {
-            get
-            {
-                return 1.0;
-            }
-        }
-
-        internal override double DefaultValue
-        {
-            get
-            {
-                return 0.0;
-            }
-        }
+        internal override double ChangeSpeed => 1.0;
 
         internal override double CurrentValue
         {
@@ -130,13 +79,13 @@ namespace IFPV.Values
                         var pthird = pstate as ThirdPersonState;
                         if (pthird != null)
                         {
-                            uint refHandle = pcam.TargetRefHandle;
+                            var refHandle = pcam.TargetRefHandle;
                             using (var objRefHolder = new ObjectRefHolder(refHandle))
                             {
-                                float amount = 0.0f;
+                                var amount = 0.0f;
                                 if (objRefHolder.IsValid)
                                     amount = -objRefHolder.Object.Rotation.X;
-                                float offset = pthird.YRotationFromLastResetPoint;
+                                var offset = pthird.YRotationFromLastResetPoint;
                                 return amount + offset;
                             }
                         }
@@ -157,13 +106,13 @@ namespace IFPV.Values
                         var pthird = pstate as ThirdPersonState;
                         if (pthird != null)
                         {
-                            uint refHandle = pcam.TargetRefHandle;
+                            var refHandle = pcam.TargetRefHandle;
                             using (var objRefHolder = new ObjectRefHolder(refHandle))
                             {
-                                float amount = 0.0f;
+                                var amount = 0.0f;
                                 if (objRefHolder.IsValid)
                                     amount = -objRefHolder.Object.Rotation.X;
-                                float offset = (float)(value - amount);
+                                var offset = (float) (value - amount);
                                 pthird.YRotationFromLastResetPoint = offset;
                             }
                         }
@@ -171,12 +120,16 @@ namespace IFPV.Values
                 }
             }
         }
+
+        internal override double DefaultValue => 0.0;
+
+        internal override string Name => "input rotation y";
     }
 }
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
         internal readonly InputRotationY InputRotationY = new InputRotationY();
     }
@@ -192,7 +145,7 @@ namespace IFPV.Values
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
         internal readonly InputRotationXMultiplier InputRotationXMultiplier = new InputRotationXMultiplier();
     }
@@ -208,7 +161,7 @@ namespace IFPV.Values
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
         internal readonly InputRotationYMultiplier InputRotationYMultiplier = new InputRotationYMultiplier();
     }
@@ -218,35 +171,14 @@ namespace IFPV.Values
 {
     internal sealed class ExtraResponsiveControls : CameraValueBase
     {
-        internal ExtraResponsiveControls()
-        {
-            this.Flags |= CameraValueFlags.NoTween | CameraValueFlags.DontUpdateIfDisabled;
-        }
+        private static double _def_value;
 
-        internal override string Name
-        {
-            get
-            {
-                return "extra responsive controls";
-            }
-        }
+        private static bool    _init_d;
+        private static Setting _setting;
 
-        internal override double ChangeSpeed
-        {
-            get
-            {
-                return 1.0;
-            }
-        }
+        internal ExtraResponsiveControls() { Flags |= CameraValueFlags.NoTween | CameraValueFlags.DontUpdateIfDisabled; }
 
-        internal override double DefaultValue
-        {
-            get
-            {
-                init();
-                return _def_value;
-            }
-        }
+        internal override double ChangeSpeed => 1.0;
 
         internal override double CurrentValue
         {
@@ -267,9 +199,16 @@ namespace IFPV.Values
             }
         }
 
-        private static bool _init_d = false;
-        private static Setting _setting = null;
-        private static double _def_value = 0.0;
+        internal override double DefaultValue
+        {
+            get
+            {
+                init();
+                return _def_value;
+            }
+        }
+
+        internal override string Name => "extra responsive controls";
 
         private static void init()
         {
@@ -279,7 +218,7 @@ namespace IFPV.Values
 
             _setting = Setting.FindSettingByName("bDampenPlayerControls:Controls", true, true);
 
-            if(_setting != null)
+            if (_setting != null)
                 _def_value = _setting.GetBool() ? 0.0 : 1.0;
         }
     }
@@ -287,7 +226,7 @@ namespace IFPV.Values
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
         internal readonly ExtraResponsiveControls ExtraResponsiveControls = new ExtraResponsiveControls();
     }

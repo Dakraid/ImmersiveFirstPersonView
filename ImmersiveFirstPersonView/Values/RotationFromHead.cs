@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using IFPV.Values;
+﻿using IFPV.Values;
 
 namespace IFPV.Values
 {
@@ -15,7 +10,7 @@ namespace IFPV.Values
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
         internal readonly RotationFromHead RotationFromHead = new RotationFromHead();
     }

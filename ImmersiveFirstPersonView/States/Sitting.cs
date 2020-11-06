@@ -1,35 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NetScriptFramework.SkyrimSE;
 
 namespace IFPV.States
 {
-    class Sitting : CameraState
+    internal class Sitting : CameraState
     {
-        internal override int Priority
-        {
-            get
-            {
-                return (int)Priorities.Sitting;
-            }
-        }
-
-        internal override void OnEntering(CameraUpdate update)
-        {
-            base.OnEntering(update);
-
-            update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
-            Default.CantAutoTurnCounter++;
-        }
-
-        internal override void OnLeaving(CameraUpdate update)
-        {
-            base.OnLeaving(update);
-
-            Default.CantAutoTurnCounter--;
-        }
+        internal override int Priority => (int) Priorities.Sitting;
 
         internal override bool Check(CameraUpdate update)
         {
@@ -45,10 +20,25 @@ namespace IFPV.States
             if (actor == null)
                 return false;
 
-            if (actor.SitState == NetScriptFramework.SkyrimSE.ActorActionStates.NotAction)
+            if (actor.SitState == ActorActionStates.NotAction)
                 return false;
-            
+
             return true;
+        }
+
+        internal override void OnEntering(CameraUpdate update)
+        {
+            base.OnEntering(update);
+
+            update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
+            Default.CantAutoTurnCounter++;
+        }
+
+        internal override void OnLeaving(CameraUpdate update)
+        {
+            base.OnLeaving(update);
+
+            Default.CantAutoTurnCounter--;
         }
     }
 }

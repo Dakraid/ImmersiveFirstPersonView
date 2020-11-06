@@ -1,28 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NetScriptFramework.SkyrimSE;
 
 namespace IFPV.States
 {
-    class Lich : CameraState
+    internal class Lich : CameraState
     {
-        internal override int Priority
-        {
-            get
-            {
-                return (int)Priorities.Lich;
-            }
-        }
+        internal override int Group => (int) Groups.Beast;
 
-        internal override int Group
+        internal override int Priority => (int) Priorities.Lich;
+
+        internal override bool Check(CameraUpdate update)
         {
-            get
-            {
-                return (int)Groups.Beast;
-            }
+            if (!update.CameraMain.IsEnabled)
+                return false;
+
+            var actor = update.Target.Actor;
+            if (actor == null)
+                return false;
+
+            var want = Settings.Instance.LichRaceName;
+            if (string.IsNullOrEmpty(want))
+                return false;
+
+            var race = actor.Race;
+            if (race == null)
+                return false;
+
+            var name = race.Name;
+            var id   = race.EditorId;
+
+            return !string.IsNullOrEmpty(name) && name.IndexOf(want, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   !string.IsNullOrEmpty(id)   && id.IndexOf(want, StringComparison.OrdinalIgnoreCase)   >= 0;
         }
 
         internal override void OnEntering(CameraUpdate update)
@@ -35,48 +43,30 @@ namespace IFPV.States
             update.Values.HideArms.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0.0);
             update.Values.Show1stPersonArms.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0.0);
         }
+    }
+
+    internal class LichTransform : CameraState
+    {
+        private EffectSetting _effect;
+
+        private bool _t_init;
+
+        internal override int Group => (int) Groups.Beast;
+
+        internal override int Priority => (int) Priorities.LichTransform;
 
         internal override bool Check(CameraUpdate update)
         {
-            if (!update.CameraMain.IsEnabled)
+            init();
+
+            if (_effect == null)
                 return false;
 
             var actor = update.Target.Actor;
             if (actor == null)
                 return false;
 
-            string want = Settings.Instance.LichRaceName;
-            if (string.IsNullOrEmpty(want))
-                return false;
-
-            var race = actor.Race;
-            if (race == null)
-                return false;
-
-            string name = race.Name;
-            string id = race.EditorId;
-
-            return (!string.IsNullOrEmpty(name) && name.IndexOf(want, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                (!string.IsNullOrEmpty(id) && id.IndexOf(want, StringComparison.OrdinalIgnoreCase) >= 0);
-        }
-    }
-
-    class LichTransform : CameraState
-    {
-        internal override int Priority
-        {
-            get
-            {
-                return (int)Priorities.LichTransform;
-            }
-        }
-
-        internal override int Group
-        {
-            get
-            {
-                return (int)Groups.Beast;
-            }
+            return actor.HasMagicEffect(_effect);
         }
 
         internal override void OnEntering(CameraUpdate update)
@@ -93,30 +83,13 @@ namespace IFPV.States
                 return;
             _t_init = true;
 
-            uint id = Settings.Instance.LichTransformationEffectId;
-            string file = Settings.Instance.LichTransformationEffectFile;
+            var id   = Settings.Instance.LichTransformationEffectId;
+            var file = Settings.Instance.LichTransformationEffectFile;
 
             if (id == 0 || string.IsNullOrEmpty(file))
                 return;
 
             _effect = TESForm.LookupFormFromFile(id, file) as EffectSetting;
-        }
-
-        private bool _t_init = false;
-        private EffectSetting _effect = null;
-
-        internal override bool Check(CameraUpdate update)
-        {
-            this.init();
-
-            if (_effect == null)
-                return false;
-
-            var actor = update.Target.Actor;
-            if (actor == null)
-                return false;
-
-            return actor.HasMagicEffect(this._effect);
         }
     }
 }

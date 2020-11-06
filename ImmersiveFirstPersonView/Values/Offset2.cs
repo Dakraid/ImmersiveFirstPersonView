@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using IFPV.Values;
 
 namespace IFPV.Values
@@ -15,7 +11,7 @@ namespace IFPV.Values
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
         internal readonly Offset2PositionX Offset2PositionX = new Offset2PositionX();
     }
@@ -31,7 +27,7 @@ namespace IFPV.Values
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
         internal readonly Offset2PositionY Offset2PositionY = new Offset2PositionY();
     }
@@ -47,7 +43,7 @@ namespace IFPV.Values
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
         internal readonly Offset2PositionZ Offset2PositionZ = new Offset2PositionZ();
     }
@@ -63,7 +59,7 @@ namespace IFPV.Values
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
         internal readonly Offset2RotationX Offset2RotationX = new Offset2RotationX();
     }
@@ -79,7 +75,7 @@ namespace IFPV.Values
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
         internal readonly Offset2RotationY Offset2RotationY = new Offset2RotationY();
     }

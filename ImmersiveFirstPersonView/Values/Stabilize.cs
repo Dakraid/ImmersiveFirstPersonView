@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using IFPV.Values;
 
 namespace IFPV.Values
 {
@@ -38,32 +34,41 @@ namespace IFPV.Values
 
     internal sealed class StabilizeIgnoreOffsetX : CameraValueSimple
     {
-        internal StabilizeIgnoreOffsetX(double value) : base(null, value, 720.0)
-        {
-            this.Formula = TValue.TweenTypes.Decelerating;
-        }
+        internal StabilizeIgnoreOffsetX(double value) : base(null, value, 720.0) { Formula = TValue.TweenTypes.Decelerating; }
     }
 
     internal sealed class StabilizeIgnoreOffsetY : CameraValueSimple
     {
-        internal StabilizeIgnoreOffsetY(double value) : base(null, value, 720.0)
-        {
-            this.Formula = TValue.TweenTypes.Decelerating;
-        }
+        internal StabilizeIgnoreOffsetY(double value) : base(null, value, 720.0) { Formula = TValue.TweenTypes.Decelerating; }
     }
 }
 
 namespace IFPV
 {
-    partial class CameraValueMap
+    internal partial class CameraValueMap
     {
-        internal readonly IFPV.Values.StabilizeHistoryDuration StabilizeHistoryDuration = new Values.StabilizeHistoryDuration(Settings.Instance.StabilizeHistoryDuration * 1000.0f);
-        internal readonly IFPV.Values.StabilizeIgnorePositionX StabilizeIgnorePositionX = new Values.StabilizeIgnorePositionX(Settings.Instance.StabilizeIgnorePositionX);
-        internal readonly IFPV.Values.StabilizeIgnorePositionY StabilizeIgnorePositionY = new Values.StabilizeIgnorePositionY(Settings.Instance.StabilizeIgnorePositionY);
-        internal readonly IFPV.Values.StabilizeIgnorePositionZ StabilizeIgnorePositionZ = new Values.StabilizeIgnorePositionZ(Settings.Instance.StabilizeIgnorePositionZ);
-        internal readonly IFPV.Values.StabilizeIgnoreRotationX StabilizeIgnoreRotationX = new Values.StabilizeIgnoreRotationX(Settings.Instance.StabilizeIgnoreRotationX);
-        internal readonly IFPV.Values.StabilizeIgnoreRotationY StabilizeIgnoreRotationY = new Values.StabilizeIgnoreRotationY(Settings.Instance.StabilizeIgnoreRotationY);
-        internal readonly IFPV.Values.StabilizeIgnoreOffsetX StabilizeIgnoreOffsetX = new Values.StabilizeIgnoreOffsetX(Settings.Instance.StabilizeIgnoreOffsetX);
-        internal readonly IFPV.Values.StabilizeIgnoreOffsetY StabilizeIgnoreOffsetY = new Values.StabilizeIgnoreOffsetY(Settings.Instance.StabilizeIgnoreOffsetY);
+        internal readonly StabilizeHistoryDuration StabilizeHistoryDuration =
+            new StabilizeHistoryDuration(Settings.Instance.StabilizeHistoryDuration * 1000.0f);
+
+        internal readonly StabilizeIgnoreOffsetX StabilizeIgnoreOffsetX =
+            new StabilizeIgnoreOffsetX(Settings.Instance.StabilizeIgnoreOffsetX);
+
+        internal readonly StabilizeIgnoreOffsetY StabilizeIgnoreOffsetY =
+            new StabilizeIgnoreOffsetY(Settings.Instance.StabilizeIgnoreOffsetY);
+
+        internal readonly StabilizeIgnorePositionX StabilizeIgnorePositionX =
+            new StabilizeIgnorePositionX(Settings.Instance.StabilizeIgnorePositionX);
+
+        internal readonly StabilizeIgnorePositionY StabilizeIgnorePositionY =
+            new StabilizeIgnorePositionY(Settings.Instance.StabilizeIgnorePositionY);
+
+        internal readonly StabilizeIgnorePositionZ StabilizeIgnorePositionZ =
+            new StabilizeIgnorePositionZ(Settings.Instance.StabilizeIgnorePositionZ);
+
+        internal readonly StabilizeIgnoreRotationX StabilizeIgnoreRotationX =
+            new StabilizeIgnoreRotationX(Settings.Instance.StabilizeIgnoreRotationX);
+
+        internal readonly StabilizeIgnoreRotationY StabilizeIgnoreRotationY =
+            new StabilizeIgnoreRotationY(Settings.Instance.StabilizeIgnoreRotationY);
     }
 }

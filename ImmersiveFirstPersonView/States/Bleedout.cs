@@ -1,27 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NetScriptFramework.SkyrimSE;
 
 namespace IFPV.States
 {
-    class Bleedout : Passenger
+    internal class Bleedout : Passenger
     {
-        internal override int Priority
-        {
-            get
-            {
-                return (int)Priorities.Bleedout;
-            }
-        }
-        
+        internal override int Priority => (int) Priorities.Bleedout;
+
         internal override bool Check(CameraUpdate update)
         {
             if (!update.CameraMain.IsEnabled)
                 return false;
 
-            return update.GameCameraState.Id == NetScriptFramework.SkyrimSE.TESCameraStates.Bleedout;
+            return update.GameCameraState.Id == TESCameraStates.Bleedout;
         }
     }
 }
