@@ -1,6 +1,4 @@
-﻿using IFPV.Values;
-
-namespace IFPV.Values
+﻿namespace IFPV.Values
 {
     internal sealed class RotationFromHead : CameraValueSimple
     {
@@ -10,6 +8,8 @@ namespace IFPV.Values
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly RotationFromHead RotationFromHead = new RotationFromHead();

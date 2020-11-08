@@ -1,26 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetScriptFramework
+﻿namespace NetScriptFramework
 {
-#region PluginManager class
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Reflection;
+    using System.Text;
+
+    #region PluginManager class
 
     /// <summary>
-    /// This class will load, initialize and shutdown plugins when necessary. You can also query for a plugin or
-    /// get a list of all loaded plugins.
+    ///     This class will load, initialize and shutdown plugins when necessary. You can also query for a plugin or
+    ///     get a list of all loaded plugins.
     /// </summary>
     public static class PluginManager
     {
-    #region PluginManager members
+        #region PluginManager members
 
         /// <summary>
-        /// Gets a plugin by its unique key. The key is not case sensitive. If the plugin was not found then
-        /// it will return null.
+        ///     Gets a plugin by its unique key. The key is not case sensitive. If the plugin was not found then
+        ///     it will return null.
         /// </summary>
         /// <param name="key">The unique key of plugin. This is not case sensitive.</param>
         /// <returns></returns>
@@ -28,12 +27,15 @@ namespace NetScriptFramework
         public static Plugin GetPlugin(string key)
         {
             if (key == null)
+            {
                 throw new ArgumentNullException("key");
+            }
+
             return Plugins.FirstOrDefault(q => q.Key.Equals(key, StringComparison.OrdinalIgnoreCase)).Value;
         }
 
         /// <summary>
-        /// Gets a plugin by type.
+        ///     Gets a plugin by type.
         /// </summary>
         /// <typeparam name="T">Type of plugin to get.</typeparam>
         /// <returns></returns>
@@ -41,40 +43,46 @@ namespace NetScriptFramework
         {
             var t = typeof(T);
             if (t.IsAbstract)
+            {
                 throw new ArgumentException("Can't get an abstract type plugin!", "T");
+            }
 
             return Plugins.FirstOrDefault(q => q is T).Value as T;
         }
 
         /// <summary>
-        /// Gets the plugin by its assembly.
+        ///     Gets the plugin by its assembly.
         /// </summary>
         /// <param name="assembly">The assembly.</param>
         /// <returns></returns>
         internal static Plugin GetPlugin(Assembly assembly)
         {
             if (assembly == null)
+            {
                 return null;
+            }
 
             var pl = Plugins.Where(q => q.Value.Assembly == assembly).ToList();
             if (pl.Count == 1)
+            {
                 return pl[0].Value;
+            }
 
             return null;
         }
 
         /// <summary>
-        /// Gets a list of all the plugins.
+        ///     Gets a list of all the plugins.
         /// </summary>
         /// <returns></returns>
-        public static List<Plugin> GetPlugins() { return Plugins.Select(q => q.Value).ToList(); }
+        public static List<Plugin> GetPlugins() => Plugins.Select(q => q.Value).ToList();
 
-    #endregion
+        #endregion
 
-    #region Internal members
+        #region Internal members
 
         /// <summary>
-        /// Initializes this instance and all the plugins.
+        ///     Initializes this instance and all the plugins.
         /// </summary>
         internal static void Initialize()
         {
@@ -84,7 +92,9 @@ namespace NetScriptFramework
             {
                 var v = Main.Config.GetValue(Main._Config_Plugin_Path);
                 if (v != null)
+                {
                     pluginPath = v.ToString();
+                }
             }
 
             Main.Log.AppendLine("Path to plugins: \"" + pluginPath + "\".");
@@ -94,16 +104,20 @@ namespace NetScriptFramework
             else
             {
                 var plugins = new Dictionary<string, Plugin>(StringComparer.OrdinalIgnoreCase);
-                var files   = dir.GetFiles("*.dll", SearchOption.TopDirectoryOnly);
+                var files = dir.GetFiles("*.dll", SearchOption.TopDirectoryOnly);
                 foreach (var f in files)
                     // Process all files.
+                {
                     try { ProcessFile(f, plugins); }
                     catch (Exception e) { Main.Log.Append(e); }
+                }
 
                 var loadedOrder = new List<KeyValuePair<string, Plugin>>();
-                var processing  = plugins.ToList();
+                var processing = plugins.ToList();
                 foreach (var x in plugins)
+                {
                     Plugins.Add(x);
+                }
 
                 Main._is_initializing_plugin++;
 
@@ -120,17 +134,23 @@ namespace NetScriptFramework
                         catch (FileNotFoundException ex)
                         {
                             r = -1;
-                            Main.Log.AppendLine("Exception occurred while trying to initialize plugin " + p.Value.GetInternalString() + ":");
+                            Main.Log.AppendLine("Exception occurred while trying to initialize plugin " +
+                                                p.Value.GetInternalString() + ":");
                             Main.Log.Append(ex);
                             if (ex.Message != null && ex.Message.Contains("'NetScriptFramework.Skyrim,"))
                                 //Main.Log.AppendLine("This exception appears to be due to plugin " + p.Value.GetInternalString() + " using old format of the framework! This plugin must be updated before it can be used.");
-                                throw new ArgumentException("Plugin " + p.Value.GetInternalString() + " is using old format of framework and must be updated!");
+                            {
+                                throw new ArgumentException("Plugin " + p.Value.GetInternalString() +
+                                                            " is using old format of framework and must be updated!");
+                            }
+
                             throw;
                         }
                         catch (Exception ex)
                         {
                             r = -1;
-                            Main.Log.AppendLine("Exception occurred while trying to initialize plugin " + p.Value.GetInternalString() + ":");
+                            Main.Log.AppendLine("Exception occurred while trying to initialize plugin " +
+                                                p.Value.GetInternalString() + ":");
                             Main.Log.Append(ex);
                             throw;
                         }
@@ -156,13 +176,19 @@ namespace NetScriptFramework
                         for (var i = 0; i < processing.Count; i++)
                         {
                             if (i > 0)
+                            {
                                 str.Append(", ");
+                            }
+
                             str.Append(processing[i].Value.GetInternalString());
                         }
 
                         if (processing.Count == 1)
-                            throw new InvalidOperationException("The following plugin refused to initialize: " + str.ToString());
-                        throw new InvalidOperationException("All the following plugins refused to initialize: " + str.ToString());
+                        {
+                            throw new InvalidOperationException("The following plugin refused to initialize: " + str);
+                        }
+
+                        throw new InvalidOperationException("All the following plugins refused to initialize: " + str);
                     }
 
                     lastLoaded = nowLoaded;
@@ -174,11 +200,12 @@ namespace NetScriptFramework
                 Plugins.AddRange(loadedOrder);
             }
 
-            Main.Log.AppendLine("Finished loading " + Plugins.Count + " plugin" + (Plugins.Count == 1 ? "" : "s") + ".");
+            Main.Log.AppendLine("Finished loading " + Plugins.Count + " plugin" + (Plugins.Count == 1 ? "" : "s") +
+                                ".");
         }
 
         /// <summary>
-        /// Processes the file for plugin loading.
+        ///     Processes the file for plugin loading.
         /// </summary>
         /// <param name="file">The file.</param>
         /// <param name="plugins">The plugins.</param>
@@ -194,15 +221,19 @@ namespace NetScriptFramework
             Assembly assembly = null;
             Loader.Load(file, ref assembly);
             if (assembly == null)
+            {
                 throw new InvalidOperationException("Assembly failed to load and no exception was thrown!");
+            }
 
-            var types      = assembly.GetTypes();
+            var types = assembly.GetTypes();
             var totalFound = 0;
-            var found      = new List<Type>[7];
-            var foundCis   = new List<ConstructorInfo>();
+            var found = new List<Type>[7];
+            var foundCis = new List<ConstructorInfo>();
 
             for (var i = 0; i < found.Length; i++)
+            {
                 found[i] = new List<Type>();
+            }
 
             foreach (var t in types)
             {
@@ -246,14 +277,21 @@ namespace NetScriptFramework
                     continue;
                 }
 
-                var             constructors = t.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-                ConstructorInfo ci           = null;
+                var constructors =
+                    t.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                ConstructorInfo ci = null;
                 foreach (var c in constructors)
 
+                {
                     if (ci == null)
+                    {
                         ci = c;
+                    }
                     else if (c.GetParameters().Length == 0)
+                    {
                         ci = c;
+                    }
+                }
 
                 if (ci == null)
                 {
@@ -275,38 +313,56 @@ namespace NetScriptFramework
             }
 
             if (totalFound == 0)
+            {
                 throw new InvalidOperationException("Failed to load (" + file.Name +
                                                     ")! Plugin header info type was missing. If this is a dependency then place it in the libraries folder.");
+            }
 
             if (found[0].Count > 1)
+            {
                 throw new InvalidOperationException("Found more than one valid plugin header type!");
+            }
 
             if (found[0].Count == 0)
             {
                 if (found[5].Count != 0)
+                {
                     throw new InvalidOperationException("Found plugin header type but invalid constructor arguments!");
+                }
 
                 if (found[4].Count != 0)
+                {
                     throw new InvalidOperationException("Found plugin header type but no constructor!");
+                }
 
                 if (found[3].Count != 0)
+                {
                     throw new InvalidOperationException("Found plugin header type but it's marked abstract!");
+                }
 
                 if (found[2].Count != 0)
+                {
                     throw new InvalidOperationException(
                         "Found plugin header type but inherited from an incompatible type! If this is a plugin module then try recompiling plugin.");
+                }
 
                 if (found[1].Count != 0)
-                    throw new InvalidOperationException("Found plugin header type but it is not inherited from expected header type!");
+                {
+                    throw new InvalidOperationException(
+                        "Found plugin header type but it is not inherited from expected header type!");
+                }
 
                 if (found[6].Count != 0)
-                    throw new InvalidOperationException("Found plugin header type but it does not inherit directly from it!");
+                {
+                    throw new InvalidOperationException(
+                        "Found plugin header type but it does not inherit directly from it!");
+                }
 
                 throw new NotImplementedException();
             }
 
             CreatingPlugin = 1;
-            var pluginInstance = (Plugin) foundCis[0].Invoke(new object[0]);
+            var pluginInstance = (Plugin)foundCis[0].Invoke(new object[0]);
             pluginInstance.Assembly = assembly;
 
             var key = pluginInstance.InternalKey;
@@ -315,29 +371,40 @@ namespace NetScriptFramework
             pluginInstance.InternalIndex = ++HighPluginIndex;
 
             if (key == null)
-                throw new NullReferenceException("Plugin " + pluginInstance.GetInternalString() + " returned (null) as key!");
+            {
+                throw new NullReferenceException("Plugin " + pluginInstance.GetInternalString() +
+                                                 " returned (null) as key!");
+            }
 
             if (key.Length == 0)
+            {
                 throw new FormatException("Plugin " + pluginInstance.GetInternalString() + " returned empty key!");
+            }
 
             var reqFramework = pluginInstance.RequiredFrameworkVersion;
             if (reqFramework > Main.FrameworkVersion)
+            {
                 throw new ArgumentException("Plugin " + pluginInstance.GetInternalString() +
                                             " requires a newer version of framework API! The .NET Framework must be updated before this plugin can be used.");
+            }
 
             var reqLibrary = pluginInstance.RequiredLibraryVersion;
             var hasLibrary = Main.Game != null ? Main.Game.LibraryVersion : 0;
             if (reqLibrary > hasLibrary)
-                throw new ArgumentException("Plugin " + pluginInstance.GetInternalString() + " requires a newer version of game library (" + reqLibrary +
+            {
+                throw new ArgumentException("Plugin " + pluginInstance.GetInternalString() +
+                                            " requires a newer version of game library (" + reqLibrary +
                                             ")! The .NET Framework must be updated before this plugin can be used.");
+            }
 
             {
                 Plugin d = null;
                 if (plugins.TryGetValue(key, out d))
                 {
                     var prev = d.GetInternalString();
-                    var cur  = pluginInstance.GetInternalString();
-                    throw new InvalidOperationException("Plugin " + cur + " returned \"" + key + "\" as key! This is a duplicate of plugin " + prev +
+                    var cur = pluginInstance.GetInternalString();
+                    throw new InvalidOperationException("Plugin " + cur + " returned \"" + key +
+                                                        "\" as key! This is a duplicate of plugin " + prev +
                                                         "! Multiple plugins with same key is not allowed.");
                 }
             }
@@ -348,12 +415,12 @@ namespace NetScriptFramework
         }
 
         /// <summary>
-        /// The high plugin index.
+        ///     The high plugin index.
         /// </summary>
-        private static int HighPluginIndex = 0;
+        private static int HighPluginIndex;
 
         /// <summary>
-        /// Shutdowns this instance and all the plugins.
+        ///     Shutdowns this instance and all the plugins.
         /// </summary>
         internal static void Shutdown()
         {
@@ -361,52 +428,56 @@ namespace NetScriptFramework
 
             foreach (var x in Plugins)
             {
-            #if !DEBUG
+#if !DEBUG
                 try
                 {
-            #endif
+#endif
                 x.Value._shutdown();
-            #if !DEBUG
+#if !DEBUG
                 }
                 catch (Exception e)
                 {
                     Main.Log.AppendLine("Plugin " + x.Value.GetInternalString() + " threw an exception on shutdown!");
                     Main.Log.Append(e);
                 }
-            #endif
+#endif
             }
         }
 
         /// <summary>
-        /// Detaches from the thread.
+        ///     Detaches from the thread.
         /// </summary>
         internal static void DetachThread()
         {
             foreach (var x in Plugins)
+            {
                 x.Value._onDetachThread();
+            }
         }
 
         /// <summary>
-        /// Attaches to the thread.
+        ///     Attaches to the thread.
         /// </summary>
         internal static void AttachThread()
         {
             foreach (var x in Plugins)
+            {
                 x.Value._onAttachThread();
+            }
         }
 
         /// <summary>
-        /// The plugins list.
+        ///     The plugins list.
         /// </summary>
         private static readonly List<KeyValuePair<string, Plugin>> Plugins = new List<KeyValuePair<string, Plugin>>();
 
         /// <summary>
-        /// Allow creating plugin now.
+        ///     Allow creating plugin now.
         /// </summary>
-        internal static int CreatingPlugin = 0;
+        internal static int CreatingPlugin;
 
-    #endregion
+        #endregion
     }
 
-#endregion
+    #endregion
 }

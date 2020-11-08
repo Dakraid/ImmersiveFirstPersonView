@@ -1,6 +1,4 @@
-﻿using IFPV.Values;
-
-namespace IFPV.Values
+﻿namespace IFPV.Values
 {
     internal sealed class StabilizeHistoryDuration : CameraValueSimple
     {
@@ -34,17 +32,21 @@ namespace IFPV.Values
 
     internal sealed class StabilizeIgnoreOffsetX : CameraValueSimple
     {
-        internal StabilizeIgnoreOffsetX(double value) : base(null, value, 720.0) { Formula = TValue.TweenTypes.Decelerating; }
+        internal StabilizeIgnoreOffsetX(double value) : base(null, value, 720.0) =>
+            this.Formula = TValue.TweenTypes.Decelerating;
     }
 
     internal sealed class StabilizeIgnoreOffsetY : CameraValueSimple
     {
-        internal StabilizeIgnoreOffsetY(double value) : base(null, value, 720.0) { Formula = TValue.TweenTypes.Decelerating; }
+        internal StabilizeIgnoreOffsetY(double value) : base(null, value, 720.0) =>
+            this.Formula = TValue.TweenTypes.Decelerating;
     }
 }
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly StabilizeHistoryDuration StabilizeHistoryDuration =

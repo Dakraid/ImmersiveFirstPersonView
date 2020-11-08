@@ -2,12 +2,14 @@
 {
     internal class Mounted : CameraState
     {
-        internal override int Priority => (int) Priorities.Mounted;
+        internal override int Priority => (int)Priorities.Mounted;
 
         internal override bool Check(CameraUpdate update)
         {
             if (!update.CameraMain.IsEnabled)
+            {
                 return false;
+            }
 
             return update.CachedMounted;
         }

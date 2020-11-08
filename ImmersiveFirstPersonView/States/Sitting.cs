@@ -1,27 +1,35 @@
-﻿using NetScriptFramework.SkyrimSE;
-
-namespace IFPV.States
+﻿namespace IFPV.States
 {
+    using NetScriptFramework.SkyrimSE;
+
     internal class Sitting : CameraState
     {
-        internal override int Priority => (int) Priorities.Sitting;
+        internal override int Priority => (int)Priorities.Sitting;
 
         internal override bool Check(CameraUpdate update)
         {
             if (!update.CameraMain.IsEnabled)
+            {
                 return false;
+            }
 
             if (update.CachedMounted)
+            {
                 return false;
+            }
 
             // Also triggers on some crafting benches but it should be fine
 
             var actor = update.Target.Actor;
             if (actor == null)
+            {
                 return false;
+            }
 
             if (actor.SitState == ActorActionStates.NotAction)
+            {
                 return false;
+            }
 
             return true;
         }

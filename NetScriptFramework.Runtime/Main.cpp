@@ -53,20 +53,20 @@ int64 _qpc_offset64 = 0;
 bool is64Bit = false;
 int initState = 0;
 
-auto show_error(const std::string& name = nullptr) -> void
+auto show_error(const std::string &name = nullptr) -> void
 {
-	std::ofstream fLog("netruntime.log");;
+	std::ofstream fLog("netruntime.log");
 	{
-		if (!fLog.is_open())
-		{
-			MessageBox(nullptr, L"Could not open netruntime.log", L".NET Script Framework - Runtime", MB_ICONINFORMATION | MB_OK);
+		if (!fLog.is_open()) {
+			MessageBox(nullptr, L"Could not open netruntime.log",
+			           L".NET Script Framework - Runtime",
+			           MB_ICONINFORMATION | MB_OK);
 		}
 	}
 
-	if (!name.empty())
-	{
+	if (!name.empty()) {
 		if (fLog.good())
-			fLog  << name << "\n";
+			fLog << name << "\n";
 
 		return;
 	}
@@ -75,17 +75,16 @@ auto show_error(const std::string& name = nullptr) -> void
 
 	// Translate ErrorCode to String.
 	LPTSTR error = nullptr;
-	if (::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		nullptr,
-		err,
-		0,
-		reinterpret_cast<LPTSTR>(&error),
-		0,
-		nullptr) == 0)
-	{
-		if (error)
-		{
-			::LocalFree(error);
+	if (::FormatMessage(
+		    FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		    nullptr,
+		    err,
+		    0,
+		    reinterpret_cast<LPTSTR>(&error),
+		    0,
+		    nullptr) == 0) {
+		if (error) {
+			LocalFree(error);
 			error = nullptr;
 		}
 
@@ -96,39 +95,43 @@ auto show_error(const std::string& name = nullptr) -> void
 		fLog << "Encountered error: " << error << "\n";
 
 	// Display message.
-	MessageBox(nullptr, error, L".NET Script Framework - Runtime", MB_ICONINFORMATION | MB_OK);
+	MessageBox(nullptr, error, L".NET Script Framework - Runtime",
+	           MB_ICONINFORMATION | MB_OK);
 
 	// Free the buffer.
-	if (error)
-	{
-		::LocalFree(error);
+	if (error) {
+		LocalFree(error);
 		error = nullptr;
 	}
 }
 
-void _CriticalFail_NoLog(const char * msg)
+void _CriticalFail_NoLog(const char *msg)
 {
-	auto method = NetScriptFramework::Main::typeid->GetMethod("_CriticalException_NoLog", System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Static);
-	array<System::Object^>^ p = gcnew array<System::Object^>(2);
+	auto method = NetScriptFramework::Main::typeid->GetMethod(
+		"_CriticalException_NoLog",
+		System::Reflection::BindingFlags::NonPublic |
+		System::Reflection::BindingFlags::Static);
+	array<System::Object ^> ^p = gcnew array<System::Object ^>(2);
 	p[0] = gcnew System::String(msg);
 	p[1] = true;
 	method->Invoke(nullptr, p);
 }
 
-void _CriticalFail(const char * msg)
+void _CriticalFail(const char *msg)
 {
-	NetScriptFramework::Main::CriticalException(gcnew System::String(msg), true);
+	NetScriptFramework::Main::CriticalException(
+		gcnew System::String(msg), true);
 }
 
 #pragma managed(push, off)
-void * AddPtr(void * ptr, int offset)
+void *AddPtr(void *ptr, int offset)
 {
 	Pointer value = (Pointer)ptr;
 	value += offset;
-	return (void*)value;
+	return (void *)value;
 }
 
-void CriticalFail(const char * fmt, ...)
+void CriticalFail(const char *fmt, ...)
 {
 	char msg[4096];
 	va_list args;
@@ -139,7 +142,7 @@ void CriticalFail(const char * fmt, ...)
 	_CriticalFail(msg);
 }
 
-void CriticalFailNoLog(const char * fmt, ...)
+void CriticalFailNoLog(const char *fmt, ...)
 {
 	char msg[4096];
 	va_list args;
@@ -158,49 +161,61 @@ bool IsFrameworkOk()
 
 delegate void DoActionDelegate(System::IntPtr data, System::Int32 pass);
 
-private ref class ManagedHook sealed abstract
-{
+private ref class ManagedHook sealed abstract {
 public:
 	static bool Prepare()
 	{
-		auto method = NetScriptFramework::Memory::typeid->GetMethod("DoAction", System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Static);
-		if (method == nullptr)
-		{
-			CriticalFail("Initialization failed! Memory::DoAction method was not found in NetScriptFramework.dll");
+		auto method = NetScriptFramework::Memory::typeid->GetMethod(
+			"DoAction",
+			System::Reflection::BindingFlags::NonPublic |
+			System::Reflection::BindingFlags::Static);
+		if (method == nullptr) {
+			CriticalFail(
+				"Initialization failed! Memory::DoAction method was not found in NetScriptFramework.dll");
 			return false;
 		}
 
 		_funcPtr = method;
-		_funcDel = safe_cast<DoActionDelegate^>(_funcPtr->CreateDelegate(DoActionDelegate::typeid, nullptr));
+		_funcDel = safe_cast<DoActionDelegate ^>(_funcPtr->
+			CreateDelegate(DoActionDelegate::typeid, nullptr));
 
-		if (_funcDel == nullptr)
-		{
-			CriticalFail("Initialization failed! Memory::DoAction method failed to create delegate");
+		if (_funcDel == nullptr) {
+			CriticalFail(
+				"Initialization failed! Memory::DoAction method failed to create delegate");
 			return false;
 		}
 
-		method = NetScriptFramework::Main::typeid->GetMethod("UnhandledExceptionFilter", System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Static);
-		if (method == nullptr)
-		{
-			CriticalFail("Initialization failed! Main::UnhandledExceptionFilter method was not found in NetScriptFramework.dll");
+		method = NetScriptFramework::Main::typeid->GetMethod(
+			"UnhandledExceptionFilter",
+			System::Reflection::BindingFlags::NonPublic |
+			System::Reflection::BindingFlags::Static);
+		if (method == nullptr) {
+			CriticalFail(
+				"Initialization failed! Main::UnhandledExceptionFilter method was not found in NetScriptFramework.dll");
 			return false;
 		}
 
 		_exceptionPtr = method;
 
-		method = NetScriptFramework::Main::typeid->GetMethod("OnDetachThread", System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Static);
-		if (method == nullptr)
-		{
-			CriticalFail("Initialization failed! Main::OnDetachThread method was not found in NetScriptFramework.dll");
+		method = NetScriptFramework::Main::typeid->GetMethod(
+			"OnDetachThread",
+			System::Reflection::BindingFlags::NonPublic |
+			System::Reflection::BindingFlags::Static);
+		if (method == nullptr) {
+			CriticalFail(
+				"Initialization failed! Main::OnDetachThread method was not found in NetScriptFramework.dll");
 			return false;
 		}
 
 		_detachPtr = method;
 
-		method = NetScriptFramework::Main::typeid->GetMethod("OnAttachThread", System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Static);
-		if (method == nullptr)
-		{
-			CriticalFail("Initialization failed! Main::OnAttachThread method was not found in NetScriptFramework.dll");
+		method = NetScriptFramework::Main::typeid->GetMethod(
+			"OnAttachThread",
+			System::Reflection::BindingFlags::NonPublic |
+			System::Reflection::BindingFlags::Static);
+		if (method == nullptr) {
+			CriticalFail(
+				"Initialization failed! Main::OnAttachThread method was not found in NetScriptFramework.dll");
 			return false;
 		}
 
@@ -208,30 +223,30 @@ public:
 		return true;
 	}
 
-	static System::Reflection::MethodInfo^ _funcPtr = nullptr;
-	static System::Reflection::MethodInfo^ _exceptionPtr = nullptr;
-	static System::Reflection::MethodInfo^ _detachPtr = nullptr;
-	static System::Reflection::MethodInfo^ _attachPtr = nullptr;
-	static DoActionDelegate^ _funcDel = nullptr;
+	static System::Reflection::MethodInfo ^_funcPtr = nullptr;
+	static System::Reflection::MethodInfo ^_exceptionPtr = nullptr;
+	static System::Reflection::MethodInfo ^_detachPtr = nullptr;
+	static System::Reflection::MethodInfo ^_attachPtr = nullptr;
+	static DoActionDelegate ^_funcDel = nullptr;
 };
 
-void * DoAction(void * data, unsigned int pass)
+void *DoAction(void *data, unsigned int pass)
 {
 	pass &= 0x7F;
 
-	ManagedHook::_funcDel(System::IntPtr(data), (int)pass);
+	ManagedHook::_funcDel(System::IntPtr(data), static_cast<int>(pass));
 	return data;
 }
 
 void DetachThread()
 {
-	array<System::Object^>^ args = gcnew array<System::Object^>(0);
+	array<System::Object ^> ^args = gcnew array<System::Object ^>(0);
 	ManagedHook::_detachPtr->Invoke(nullptr, args);
 }
 
 void AttachThread()
 {
-	array<System::Object^>^ args = gcnew array<System::Object^>(0);
+	array<System::Object ^> ^args = gcnew array<System::Object ^>(0);
 	ManagedHook::_attachPtr->Invoke(nullptr, args);
 }
 
@@ -239,22 +254,25 @@ void AttachThread()
 
 void HookAllocateFailed()
 {
-	CriticalFail("Failed to allocate hook execution context due to limit of %d reached on thread %d. Possible recusion error?", HOOK_MAX_CALLS, GetCurrentThreadId());
+	CriticalFail(
+		"Failed to allocate hook execution context due to limit of %d reached on thread %d. Possible recusion error?",
+		HOOK_MAX_CALLS, GetCurrentThreadId());
 }
 
 void HookVerifyError()
 {
-	CriticalFail("Failed hook integrity check on thread %d!", GetCurrentThreadId());
+	CriticalFail("Failed hook integrity check on thread %d!",
+	             GetCurrentThreadId());
 }
 
 static DWORD dwTlsIndex = 0;
 
-Pointer * GetExceptionDepthPointer()
+Pointer *GetExceptionDepthPointer()
 {
-	Pointer * depth = NULL;
+	Pointer *depth = nullptr;
 	{
-		auto tls = (Pointer*)TlsGetValue(dwTlsIndex);
-		if (tls != NULL)
+		auto tls = static_cast<Pointer *>(TlsGetValue(dwTlsIndex));
+		if (tls != nullptr)
 			depth = &tls[TLS_STORAGE_EXCEPTION_DEPTH];
 	}
 	return depth;
@@ -336,536 +354,945 @@ void _FinishPerformanceMonitor()
 	delete f;
 }*/
 
-extern "C"
+extern "C" {
+EXPORT int64 GetTickCount64_Accurate()
 {
-	EXPORT int64 GetTickCount64_Accurate()
-	{
-		if (_qpc_frequency <= 0)
-			return (int64)GetTickCount64();
+	if (_qpc_frequency <= 0)
+		return static_cast<int64>(GetTickCount64());
 
-		LARGE_INTEGER li;
-		QueryPerformanceCounter(&li);
+	LARGE_INTEGER li;
+	QueryPerformanceCounter(&li);
 
-		int64 value = (int64)li.QuadPart / _qpc_frequency;
-		value += _qpc_offset64;
-		return value;
-	}
+	int64 value = static_cast<int64>(li.QuadPart) / _qpc_frequency;
+	value += _qpc_offset64;
+	return value;
+}
 
-	EXPORT int GetTickCount32_Accurate()
-	{
-		if (_qpc_frequency <= 0)
-			return GetTickCount();
+EXPORT int GetTickCount32_Accurate()
+{
+	if (_qpc_frequency <= 0)
+		return GetTickCount();
 
-		LARGE_INTEGER li;
-		QueryPerformanceCounter(&li);
+	LARGE_INTEGER li;
+	QueryPerformanceCounter(&li);
 
-		int64 value = (int64)li.QuadPart / _qpc_frequency;
-		value += _qpc_offset32;
-		return (int)((unsigned long long)value & 0xFFFFFFFF);
-	}
+	int64 value = static_cast<int64>(li.QuadPart) / _qpc_frequency;
+	value += _qpc_offset32;
+	return static_cast<int>(static_cast<unsigned long long>(value) &
+	                        0xFFFFFFFF);
+}
 
-	EXPORT void * GetTickCount64_Accurate_Address()
-	{
-		return GetTickCount64_Accurate;
-	}
+EXPORT void *GetTickCount64_Accurate_Address()
+{
+	return GetTickCount64_Accurate;
+}
 
-	EXPORT void * GetTickCount32_Accurate_Address()
-	{
-		return GetTickCount32_Accurate;
-	}
+EXPORT void *GetTickCount32_Accurate_Address()
+{
+	return GetTickCount32_Accurate;
+}
 
-	EXPORT void IncIgnoreException()
-	{
-		const auto depth = GetExceptionDepthPointer();
-		if (depth != nullptr)
-			*depth = *depth + 1;
-	}
+EXPORT void IncIgnoreException()
+{
+	const auto depth = GetExceptionDepthPointer();
+	if (depth != nullptr)
+		*depth = *depth + 1;
+}
 
-	EXPORT void DecIgnoreException()
-	{
-		const auto depth = GetExceptionDepthPointer();
-		if (depth != nullptr)
-			*depth = *depth - 1;
-	}
-
-	#pragma optimize( "", off )
-	EXPORT void * __stdcall InvokeThisCall(void * thisAddress, void * funcAddress, void * argCount, void * argData)
-	{
-		// This function body will be replaced at runtime.
-		int64 result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return reinterpret_cast<void*>(result);
-	}
-	#pragma optimize( "", on )
-
-	#pragma optimize( "", off )
-	EXPORT void * __stdcall InvokeThisCallF(void * thisAddress, void * funcAddress, void * argCount, void * argData)
-	{
-		// This function body will be replaced at runtime.
-		int64 result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return reinterpret_cast<void*>(result);
-	}
-	#pragma optimize( "", on )
+EXPORT void DecIgnoreException()
+{
+	const auto depth = GetExceptionDepthPointer();
+	if (depth != nullptr)
+		*depth = *depth - 1;
+}
 
 #pragma optimize( "", off )
-	EXPORT void * __stdcall InvokeThisCallD(void * thisAddress, void * funcAddress, void * argCount, void * argData)
-	{
-		// This function body will be replaced at runtime.
-		int64 result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return reinterpret_cast<void*>(result);
-	}
-#pragma optimize( "", on )
-
-	EXPORT void * __stdcall InvokeStdCall(void * funcAddress, void * argCount, void * argData)
-	{
-		return InvokeThisCall(0, funcAddress, argCount, argData);
-	}
-
-	EXPORT void * __stdcall InvokeStdCallF(void * funcAddress, void * argCount, void * argData)
-	{
-		return InvokeThisCallF(0, funcAddress, argCount, argData);
-	}
-
-	EXPORT void * __stdcall InvokeStdCallD(void * funcAddress, void * argCount, void * argData)
-	{
-		return InvokeThisCallF(0, funcAddress, argCount, argData);
-	}
-
-	#pragma optimize( "", off )
-	EXPORT void * __stdcall InvokeCdecl(void * funcAddress, void * argCount, void * argData)
-	{
-		// This function body will be replaced at runtime.
-		int64 result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return (void*)result;
-	}
-	#pragma optimize( "", on )
-
-	EXPORT void * __stdcall InvokeCdecl_addr()
-	{
-		return InvokeCdecl;
-	}
-
-	#pragma optimize( "", off )
-	EXPORT void * __stdcall InvokeCdeclF(void * funcAddress, void * argCount, void * argData)
-	{
-		// This function body will be replaced at runtime.
-		int64 result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return (void*)result;
-	}
-	#pragma optimize( "", on )
-
-	EXPORT void * __stdcall InvokeCdeclF_addr()
-	{
-		return InvokeCdeclF;
-	}
-
-#pragma optimize( "", off )
-	EXPORT void * __stdcall InvokeCdeclD(void * funcAddress, void * argCount, void * argData)
-	{
-		// This function body will be replaced at runtime.
-		int64 result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return (void*)result;
-	}
-#pragma optimize( "", on )
-
-	EXPORT void * __stdcall InvokeCdeclD_addr()
-	{
-		return InvokeCdeclD;
-	}
-
-#pragma optimize( "", off )
-	EXPORT void __stdcall ReadDQFrom(void * source, void * dest)
-	{
-		// This function body will be replaced at runtime.
-		int64 result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return;
-	}
+EXPORT void * __stdcall InvokeThisCall(void *thisAddress, void *funcAddress,
+                                       void *argCount, void *argData)
+{
+	// This function body will be replaced at runtime.
+	int64 result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	return reinterpret_cast<void *>(result);
+}
 #pragma optimize( "", on )
 
 #pragma optimize( "", off )
-	EXPORT void __stdcall WriteDQTo(void * source, void * dest)
-	{
-		// This function body will be replaced at runtime.
-		int64 result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return;
-	}
+EXPORT void * __stdcall InvokeThisCallF(void *thisAddress, void *funcAddress,
+                                        void *argCount, void *argData)
+{
+	// This function body will be replaced at runtime.
+	int64 result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	return reinterpret_cast<void *>(result);
+}
 #pragma optimize( "", on )
 
 #pragma optimize( "", off )
-	EXPORT void __stdcall ReadFQFrom(void * source, void * dest)
-	{
-		// This function body will be replaced at runtime.
-		int64 result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return;
-	}
+EXPORT void * __stdcall InvokeThisCallD(void *thisAddress, void *funcAddress,
+                                        void *argCount, void *argData)
+{
+	// This function body will be replaced at runtime.
+	int64 result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	return reinterpret_cast<void *>(result);
+}
+#pragma optimize( "", on )
+
+EXPORT void * __stdcall InvokeStdCall(void *funcAddress, void *argCount,
+                                      void *argData)
+{
+	return InvokeThisCall(nullptr, funcAddress, argCount, argData);
+}
+
+EXPORT void * __stdcall InvokeStdCallF(void *funcAddress, void *argCount,
+                                       void *argData)
+{
+	return InvokeThisCallF(nullptr, funcAddress, argCount, argData);
+}
+
+EXPORT void * __stdcall InvokeStdCallD(void *funcAddress, void *argCount,
+                                       void *argData)
+{
+	return InvokeThisCallF(nullptr, funcAddress, argCount, argData);
+}
+
+#pragma optimize( "", off )
+EXPORT void * __stdcall InvokeCdecl(void *funcAddress, void *argCount,
+                                    void *argData)
+{
+	// This function body will be replaced at runtime.
+	int64 result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	return (void *)result;
+}
+#pragma optimize( "", on )
+
+EXPORT void * __stdcall InvokeCdecl_addr()
+{
+	return InvokeCdecl;
+}
+
+#pragma optimize( "", off )
+EXPORT void * __stdcall InvokeCdeclF(void *funcAddress, void *argCount,
+                                     void *argData)
+{
+	// This function body will be replaced at runtime.
+	int64 result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	return (void *)result;
+}
+#pragma optimize( "", on )
+
+EXPORT void * __stdcall InvokeCdeclF_addr()
+{
+	return InvokeCdeclF;
+}
+
+#pragma optimize( "", off )
+EXPORT void * __stdcall InvokeCdeclD(void *funcAddress, void *argCount,
+                                     void *argData)
+{
+	// This function body will be replaced at runtime.
+	int64 result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	return (void *)result;
+}
+#pragma optimize( "", on )
+
+EXPORT void * __stdcall InvokeCdeclD_addr()
+{
+	return InvokeCdeclD;
+}
+
+#pragma optimize( "", off )
+EXPORT void __stdcall ReadDQFrom(void *source, void *dest)
+{
+	// This function body will be replaced at runtime.
+	int64 result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+}
 #pragma optimize( "", on )
 
 #pragma optimize( "", off )
-	EXPORT void __stdcall WriteFQTo(void * source, void * dest)
-	{
-		// This function body will be replaced at runtime.
-		int64 result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return;
-	}
+EXPORT void __stdcall WriteDQTo(void *source, void *dest)
+{
+	// This function body will be replaced at runtime.
+	int64 result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+}
 #pragma optimize( "", on )
 
-	EXPORT void * __stdcall AllocateC(int size, int align)
-	{
-		if (align != 0)
-			return _aligned_malloc(size, align);
-		return malloc(size);
-	}
+#pragma optimize( "", off )
+EXPORT void __stdcall ReadFQFrom(void *source, void *dest)
+{
+	// This function body will be replaced at runtime.
+	int64 result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+}
+#pragma optimize( "", on )
 
-	EXPORT void __stdcall FreeC(void * buf, bool align)
-	{
-		if (align)
-			_aligned_free(buf);
-		else
-			free(buf);
-	}
+#pragma optimize( "", off )
+EXPORT void __stdcall WriteFQTo(void *source, void *dest)
+{
+	// This function body will be replaced at runtime.
+	int64 result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+	result = 0;
+}
+#pragma optimize( "", on )
 
-	EXPORT void * __stdcall GetDoActionAddress()
-	{
-		return DoAction;
-	}
+EXPORT void * __stdcall AllocateC(int size, int align)
+{
+	if (align != 0)
+		return _aligned_malloc(size, align);
+	return malloc(size);
+}
+
+EXPORT void __stdcall FreeC(void *buf, bool align)
+{
+	if (align)
+		_aligned_free(buf);
+	else
+		free(buf);
+}
+
+EXPORT void * __stdcall GetDoActionAddress()
+{
+	return DoAction;
+}
 
 #define CALC_OFFSET(a) (int)((Pointer)a - (Pointer)&ctx)
-	EXPORT int __stdcall GetContextOffset(int index)
-	{
-		CONTEXT ctx;
+EXPORT int __stdcall GetContextOffset(int index)
+{
+	CONTEXT ctx;
 
-		switch (index)
-		{
-		case 0: return sizeof(CONTEXT);
+	switch (index) {
+	case 0:
+		return sizeof(CONTEXT);
 #ifdef _WIN64
-		case 1: return CALC_OFFSET(&ctx.Rax);
-		case 2: return CALC_OFFSET(&ctx.Rbx);
-		case 3: return CALC_OFFSET(&ctx.Rcx);
-		case 4: return CALC_OFFSET(&ctx.Rdx);
-		case 5: return CALC_OFFSET(&ctx.Rsi);
-		case 6: return CALC_OFFSET(&ctx.Rdi);
-		case 7: return CALC_OFFSET(&ctx.Rsp);
-		case 8: return CALC_OFFSET(&ctx.Rip);
-		case 9: return CALC_OFFSET(&ctx.EFlags);
-		case 10: return CALC_OFFSET(&ctx.R8);
-		case 11: return CALC_OFFSET(&ctx.R9);
-		case 12: return CALC_OFFSET(&ctx.R10);
-		case 13: return CALC_OFFSET(&ctx.R11);
-		case 14: return CALC_OFFSET(&ctx.R12);
-		case 15: return CALC_OFFSET(&ctx.R13);
-		case 16: return CALC_OFFSET(&ctx.R14);
-		case 17: return CALC_OFFSET(&ctx.R15);
-		case 18: return CALC_OFFSET(&ctx.Xmm0);
-		case 19: return CALC_OFFSET(&ctx.Xmm1);
-		case 20: return CALC_OFFSET(&ctx.Xmm2);
-		case 21: return CALC_OFFSET(&ctx.Xmm3);
-		case 22: return CALC_OFFSET(&ctx.Xmm4);
-		case 23: return CALC_OFFSET(&ctx.Xmm5);
-		case 24: return CALC_OFFSET(&ctx.Xmm6);
-		case 25: return CALC_OFFSET(&ctx.Xmm7);
-		case 26: return CALC_OFFSET(&ctx.Xmm8);
-		case 27: return CALC_OFFSET(&ctx.Xmm9);
-		case 28: return CALC_OFFSET(&ctx.Xmm10);
-		case 29: return CALC_OFFSET(&ctx.Xmm11);
-		case 30: return CALC_OFFSET(&ctx.Xmm12);
-		case 31: return CALC_OFFSET(&ctx.Xmm13);
-		case 32: return CALC_OFFSET(&ctx.Xmm14);
-		case 33: return CALC_OFFSET(&ctx.Xmm15);
-		case 34: return HOOK_CONTEXT_SIZE - sizeof(Pointer);
-		case 35: return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 2;
-		case 36: return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 3;
-		case 37: return CALC_OFFSET(&ctx.Rbp);
-		case 38: return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 4;
-		case 39: return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 5;
-		case 40: return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 6;
+	case 1:
+		return CALC_OFFSET(&ctx.Rax);
+	case 2:
+		return CALC_OFFSET(&ctx.Rbx);
+	case 3:
+		return CALC_OFFSET(&ctx.Rcx);
+	case 4:
+		return CALC_OFFSET(&ctx.Rdx);
+	case 5:
+		return CALC_OFFSET(&ctx.Rsi);
+	case 6:
+		return CALC_OFFSET(&ctx.Rdi);
+	case 7:
+		return CALC_OFFSET(&ctx.Rsp);
+	case 8:
+		return CALC_OFFSET(&ctx.Rip);
+	case 9:
+		return CALC_OFFSET(&ctx.EFlags);
+	case 10:
+		return CALC_OFFSET(&ctx.R8);
+	case 11:
+		return CALC_OFFSET(&ctx.R9);
+	case 12:
+		return CALC_OFFSET(&ctx.R10);
+	case 13:
+		return CALC_OFFSET(&ctx.R11);
+	case 14:
+		return CALC_OFFSET(&ctx.R12);
+	case 15:
+		return CALC_OFFSET(&ctx.R13);
+	case 16:
+		return CALC_OFFSET(&ctx.R14);
+	case 17:
+		return CALC_OFFSET(&ctx.R15);
+	case 18:
+		return CALC_OFFSET(&ctx.Xmm0);
+	case 19:
+		return CALC_OFFSET(&ctx.Xmm1);
+	case 20:
+		return CALC_OFFSET(&ctx.Xmm2);
+	case 21:
+		return CALC_OFFSET(&ctx.Xmm3);
+	case 22:
+		return CALC_OFFSET(&ctx.Xmm4);
+	case 23:
+		return CALC_OFFSET(&ctx.Xmm5);
+	case 24:
+		return CALC_OFFSET(&ctx.Xmm6);
+	case 25:
+		return CALC_OFFSET(&ctx.Xmm7);
+	case 26:
+		return CALC_OFFSET(&ctx.Xmm8);
+	case 27:
+		return CALC_OFFSET(&ctx.Xmm9);
+	case 28:
+		return CALC_OFFSET(&ctx.Xmm10);
+	case 29:
+		return CALC_OFFSET(&ctx.Xmm11);
+	case 30:
+		return CALC_OFFSET(&ctx.Xmm12);
+	case 31:
+		return CALC_OFFSET(&ctx.Xmm13);
+	case 32:
+		return CALC_OFFSET(&ctx.Xmm14);
+	case 33:
+		return CALC_OFFSET(&ctx.Xmm15);
+	case 34:
+		return HOOK_CONTEXT_SIZE - sizeof(Pointer);
+	case 35:
+		return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 2;
+	case 36:
+		return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 3;
+	case 37:
+		return CALC_OFFSET(&ctx.Rbp);
+	case 38:
+		return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 4;
+	case 39:
+		return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 5;
+	case 40:
+		return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 6;
 #endif
-		default: return -1;
-		}
-	}
-#undef CALC_OFFSET
-
-	EXPORT int __stdcall GetTLSIndex()
-	{
-		return dwTlsIndex;
-	}
-
-	EXPORT int __stdcall GetHookMaxCalls()
-	{
-		return HOOK_MAX_CALLS;
-	}
-
-	EXPORT int __stdcall GetHookContextSize()
-	{
-		return HOOK_CONTEXT_SIZE;
-	}
-
-	EXPORT void * __stdcall GetHookAllocateFail()
-	{
-		return HookAllocateFailed;
-	}
-
-	EXPORT void * __stdcall GetHookIntegrityFailed()
-	{
-		return HookVerifyError;
-	}
-
-	EXPORT void * __stdcall GetRtlCaptureContextAddress()
-	{
-		return RtlCaptureContext;
-	}
-
-	EXPORT void * __stdcall GetRtlRestoreContextAddress()
-	{
-		return RtlRestoreContext;
-	}
-
-	EXPORT void * __stdcall GetCurrentTLSValue()
-	{
-		return TlsGetValue(dwTlsIndex);
-	}
-
-	EXPORT int __stdcall MemoryCopy(unsigned char * source, int sourceIndex, unsigned char * destination, int destinationIndex, int length)
-	{
-		if (length <= 0)
-			return length;
-
-		if (sourceIndex != 0)
-			source = (unsigned char*)(((Pointer)source) + sourceIndex);
-
-		if (destinationIndex != 0)
-			destination = (unsigned char*)(((Pointer)destination) + destinationIndex);
-
-		int result = 0;
-		__try
-		{
-			memcpy(destination, source, length);
-			result = length;
-		}
-		__except (1)
-		{
-		}
-
-		return result;
-	}
-
-	EXPORT int __stdcall MemoryReadInterlocked32(unsigned char * source, unsigned char * destination)
-	{
-		int result = 0;
-		__try
-		{
-			*((unsigned int*)destination) = InterlockedCompareExchange((volatile unsigned int*)source, 0, 0);
-			result = 4;
-		}
-		__except (1)
-		{
-
-		}
-		return result;
-	}
-
-	EXPORT int __stdcall MemoryWriteInterlocked32(unsigned char * source, unsigned char * destination)
-	{
-		int result = 0;
-		__try
-		{
-			*((unsigned int*)source) = InterlockedExchange((volatile unsigned int*)destination, *((unsigned int*)source));
-			result = 4;
-		}
-		__except (1)
-		{
-
-		}
-		return result;
-	}
-
-	EXPORT int __stdcall MemoryReadInterlocked64(unsigned char * source, unsigned char * destination)
-	{
-		int result = 0;
-		__try
-		{
-			*((LONG64*)destination) = InterlockedCompareExchange64((volatile LONG64*)source, 0, 0);
-			result = 8;
-		}
-		__except (1)
-		{
-
-		}
-		return result;
-	}
-
-	EXPORT int __stdcall MemoryWriteInterlocked64(unsigned char * source, unsigned char * destination)
-	{
-		int result = 0;
-		__try
-		{
-			*((LONG64*)source) = InterlockedExchange64((volatile LONG64*)destination, *((LONG64*)source));
-			result = 8;
-		}
-		__except (1)
-		{
-
-		}
-		return result;
-	}
-
-	EXPORT int __stdcall MemoryIncrementInterlocked32(unsigned char * source, unsigned char * destination)
-	{
-		int result = 0;
-		__try
-		{
-			*((unsigned int*)source) = InterlockedIncrement((volatile unsigned int*)destination);
-			result = 4;
-		}
-		__except (1)
-		{
-
-		}
-		return result;
-	}
-
-	EXPORT int __stdcall MemoryDecrementInterlocked32(unsigned char * source, unsigned char * destination)
-	{
-		int result = 0;
-		__try
-		{
-			*((unsigned int*)source) = InterlockedDecrement((volatile unsigned int*)destination);
-			result = 4;
-		}
-		__except (1)
-		{
-
-		}
-		return result;
-	}
-
-	EXPORT int __stdcall MemoryIncrementInterlocked64(unsigned char * source, unsigned char * destination)
-	{
-		int result = 0;
-		__try
-		{
-			*((LONG64*)source) = InterlockedIncrement64((volatile LONG64*)destination);
-			result = 8;
-		}
-		__except (1)
-		{
-
-		}
-		return result;
-	}
-
-	EXPORT int __stdcall MemoryDecrementInterlocked64(unsigned char * source, unsigned char * destination)
-	{
-		int result = 0;
-		__try
-		{
-			*((LONG64*)source) = InterlockedDecrement64((volatile LONG64*)destination);
-			result = 8;
-		}
-		__except (1)
-		{
-
-		}
-		return result;
-	}
-
-	EXPORT int __stdcall GetMemoryInfo(void * address, Pointer * resultBegin, Pointer * resultEnd, Pointer * moduleBase)
-	{
-		MEMORY_BASIC_INFORMATION info;
-		if (VirtualQuery(address, &info, sizeof(info)) != sizeof(info))
-			return 1;
-
-		void * baseAddress = info.AllocationBase;
-		if (baseAddress == NULL)
-			return 2;
-
-		IMAGE_NT_HEADERS * header = ImageNtHeader(baseAddress);
-		if (header == NULL)
-			return 3;
-
-		Pointer compareAddress = (Pointer)address;
-
-		IMAGE_SECTION_HEADER * section = (IMAGE_SECTION_HEADER*)(header + 1);
-		for (WORD i = 0; i < header->FileHeader.NumberOfSections; i++)
-		{
-			if (memcmp(section->Name, ".text", 5) == 0 || memcmp(section->Name, "il2cpp", 6) == 0)
-			{
-				Pointer beginAddress = (Pointer)baseAddress + (Pointer)section->VirtualAddress;
-				Pointer endAddress = beginAddress + (Pointer)section->Misc.VirtualSize;
-
-				if (compareAddress >= beginAddress && compareAddress < endAddress)
-				{
-					*resultBegin = beginAddress;
-					*resultEnd = endAddress;
-					*moduleBase = (Pointer)baseAddress;
-					return 0;
-				}
-			}
-			section++;
-		}
-
+	default:
 		return -1;
 	}
+}
+#undef CALC_OFFSET
 
-	EXPORT void * __stdcall Custom_RTTI_Cast(void * obj, unsigned int target, void * moduleBase)
-	{
-		return crtti__RTDynamicCast(obj, target, moduleBase);
+EXPORT int __stdcall GetTLSIndex()
+{
+	return dwTlsIndex;
+}
+
+EXPORT int __stdcall GetHookMaxCalls()
+{
+	return HOOK_MAX_CALLS;
+}
+
+EXPORT int __stdcall GetHookContextSize()
+{
+	return HOOK_CONTEXT_SIZE;
+}
+
+EXPORT void * __stdcall GetHookAllocateFail()
+{
+	return HookAllocateFailed;
+}
+
+EXPORT void * __stdcall GetHookIntegrityFailed()
+{
+	return HookVerifyError;
+}
+
+EXPORT void * __stdcall GetRtlCaptureContextAddress()
+{
+	return RtlCaptureContext;
+}
+
+EXPORT void * __stdcall GetRtlRestoreContextAddress()
+{
+	return RtlRestoreContext;
+}
+
+EXPORT void * __stdcall GetCurrentTLSValue()
+{
+	return TlsGetValue(dwTlsIndex);
+}
+
+EXPORT int __stdcall MemoryCopy(unsigned char *source, int sourceIndex,
+                                unsigned char *destination,
+                                int destinationIndex, int length)
+{
+	if (length <= 0)
+		return length;
+
+	if (sourceIndex != 0)
+		source = (unsigned char *)(((Pointer)source) + sourceIndex);
+
+	if (destinationIndex != 0)
+		destination = (unsigned char *)(
+			((Pointer)destination) + destinationIndex);
+
+	int result = 0;
+	__try {
+		memcpy(destination, source, length);
+		result = length;
+	} __except (1) {
 	}
 
-	EXPORT void __stdcall Explore_RTTI(void * obj, Pointer* baseObj, Pointer * data, int dataMaxCount, void * moduleBase)
-	{
-		crtti__Explore(obj, baseObj, data, dataMaxCount, moduleBase);
+	return result;
+}
+
+EXPORT int __stdcall MemoryReadInterlocked32(unsigned char *source,
+                                             unsigned char *destination)
+{
+	int result = 0;
+	__try {
+		*((unsigned int *)destination) = InterlockedCompareExchange(
+			(volatile unsigned int *)source, 0, 0);
+		result = 4;
+	} __except (1) {
+
 	}
+	return result;
+}
+
+EXPORT int __stdcall MemoryWriteInterlocked32(unsigned char *source,
+                                              unsigned char *destination)
+{
+	int result = 0;
+	__try {
+		*((unsigned int *)source) = InterlockedExchange(
+			(volatile unsigned int *)destination,
+			*((unsigned int *)source));
+		result = 4;
+	} __except (1) {
+
+	}
+	return result;
+}
+
+EXPORT int __stdcall MemoryReadInterlocked64(unsigned char *source,
+                                             unsigned char *destination)
+{
+	int result = 0;
+	__try {
+		*((LONG64 *)destination) = InterlockedCompareExchange64(
+			(volatile LONG64 *)source, 0, 0);
+		result = 8;
+	} __except (1) {
+
+	}
+	return result;
+}
+
+EXPORT int __stdcall MemoryWriteInterlocked64(unsigned char *source,
+                                              unsigned char *destination)
+{
+	int result = 0;
+	__try {
+		*((LONG64 *)source) = InterlockedExchange64(
+			(volatile LONG64 *)destination, *((LONG64 *)source));
+		result = 8;
+	} __except (1) {
+
+	}
+	return result;
+}
+
+EXPORT int __stdcall MemoryIncrementInterlocked32(
+	unsigned char *source, unsigned char *destination)
+{
+	int result = 0;
+	__try {
+		*((unsigned int *)source) = InterlockedIncrement(
+			(volatile unsigned int *)destination);
+		result = 4;
+	} __except (1) {
+
+	}
+	return result;
+}
+
+EXPORT int __stdcall MemoryDecrementInterlocked32(
+	unsigned char *source, unsigned char *destination)
+{
+	int result = 0;
+	__try {
+		*((unsigned int *)source) = InterlockedDecrement(
+			(volatile unsigned int *)destination);
+		result = 4;
+	} __except (1) {
+
+	}
+	return result;
+}
+
+EXPORT int __stdcall MemoryIncrementInterlocked64(
+	unsigned char *source, unsigned char *destination)
+{
+	int result = 0;
+	__try {
+		*((LONG64 *)source) = InterlockedIncrement64(
+			(volatile LONG64 *)destination);
+		result = 8;
+	} __except (1) {
+
+	}
+	return result;
+}
+
+EXPORT int __stdcall MemoryDecrementInterlocked64(
+	unsigned char *source, unsigned char *destination)
+{
+	int result = 0;
+	__try {
+		*((LONG64 *)source) = InterlockedDecrement64(
+			(volatile LONG64 *)destination);
+		result = 8;
+	} __except (1) {
+
+	}
+	return result;
+}
+
+EXPORT int __stdcall GetMemoryInfo(void *address, Pointer *resultBegin,
+                                   Pointer *resultEnd, Pointer *moduleBase)
+{
+	MEMORY_BASIC_INFORMATION info;
+	if (VirtualQuery(address, &info, sizeof(info)) != sizeof(info))
+		return 1;
+
+	void *baseAddress = info.AllocationBase;
+	if (baseAddress == nullptr)
+		return 2;
+
+	IMAGE_NT_HEADERS *header = ImageNtHeader(baseAddress);
+	if (header == nullptr)
+		return 3;
+
+	Pointer compareAddress = (Pointer)address;
+
+	IMAGE_SECTION_HEADER *section = (IMAGE_SECTION_HEADER *)(header + 1);
+	for (WORD i = 0; i < header->FileHeader.NumberOfSections; i++) {
+		if (memcmp(section->Name, ".text", 5) == 0 || memcmp(
+			    section->Name, "il2cpp", 6) == 0) {
+			Pointer beginAddress =
+				(Pointer)baseAddress + static_cast<Pointer>(
+					section->VirtualAddress);
+			Pointer endAddress =
+				beginAddress + static_cast<Pointer>(section->
+					Misc.VirtualSize);
+
+			if (compareAddress >= beginAddress && compareAddress <
+			    endAddress) {
+				*resultBegin = beginAddress;
+				*resultEnd = endAddress;
+				*moduleBase = (Pointer)baseAddress;
+				return 0;
+			}
+		}
+		section++;
+	}
+
+	return -1;
+}
+
+EXPORT void * __stdcall Custom_RTTI_Cast(void *obj, unsigned int target,
+                                         void *moduleBase)
+{
+	return crtti__RTDynamicCast(obj, target, moduleBase);
+}
+
+EXPORT void __stdcall Explore_RTTI(void *obj, Pointer *baseObj, Pointer *data,
+                                   int dataMaxCount, void *moduleBase)
+{
+	crtti__Explore(obj, baseObj, data, dataMaxCount, moduleBase);
+}
 }
 
 void _ThreadStartTLS(bool allowEnterCLR)
 {
-	Pointer * mainStorage = (Pointer*)AllocateC(TLS_STORAGE_SIZE * sizeof(Pointer), 0);
+	Pointer *mainStorage = static_cast<Pointer *>(AllocateC(
+		TLS_STORAGE_SIZE * sizeof(Pointer), 0));
 	mainStorage[TLS_STORAGE_HOOK_CALL_COUNT] = 0;
 
-	void * contextBlock = AllocateC(HOOK_CONTEXT_SIZE * (HOOK_MAX_CALLS + 1), 0);
-	for (Pointer i = 0; i < (HOOK_MAX_CALLS + 1); i++)
-	{
-		void * contextIndex = AddPtr(contextBlock, ((int)i + 1) * HOOK_CONTEXT_SIZE - sizeof(Pointer));
-		*((Pointer*)contextIndex) = i;
+	void *contextBlock = AllocateC(
+		HOOK_CONTEXT_SIZE * (HOOK_MAX_CALLS + 1), 0);
+	for (Pointer i = 0; i < (HOOK_MAX_CALLS + 1); i++) {
+		void *contextIndex = AddPtr(contextBlock,
+		                            (static_cast<int>(i) + 1) *
+		                            HOOK_CONTEXT_SIZE - sizeof(Pointer
+		                            ));
+		*static_cast<Pointer *>(contextIndex) = i;
 	}
 
 	mainStorage[TLS_STORAGE_HOOK_CONTEXT_BLOCK] = (Pointer)contextBlock;
@@ -881,30 +1308,31 @@ void _ThreadStartTLS(bool allowEnterCLR)
 
 void _ThreadStopTLS(bool allowEnterCLR)
 {
-	if(allowEnterCLR)
+	if (allowEnterCLR)
 		DetachThread();
 
-	Pointer * mainStorage = (Pointer*)TlsGetValue(dwTlsIndex);
-	if (mainStorage != NULL)
-	{
-		void * contextBlock = (void*)mainStorage[TLS_STORAGE_HOOK_CONTEXT_BLOCK];
-		if (contextBlock != NULL)
+	Pointer *mainStorage = static_cast<Pointer *>(TlsGetValue(dwTlsIndex));
+	if (mainStorage != nullptr) {
+		void *contextBlock = (void *)mainStorage[
+			TLS_STORAGE_HOOK_CONTEXT_BLOCK];
+		if (contextBlock != nullptr)
 			FreeC(contextBlock, false);
 	}
 }
 
 #pragma managed(pop)
 
-private ref class FResolveHelper
-{
+private ref class FResolveHelper {
 private:
-	static System::Reflection::Assembly^ _loaded = nullptr;
+	static System::Reflection::Assembly ^_loaded = nullptr;
 public:
-	static System::Reflection::Assembly^ _ResolveFramework(System::Object^ sender, System::ResolveEventArgs^ args)
+	static System::Reflection::Assembly ^_ResolveFramework(
+		Object ^sender, System::ResolveEventArgs ^args)
 	{
-		System::String^ fileName = args->Name;
+		System::String ^fileName = args->Name;
 		if (fileName->Contains(","))
-			fileName = fileName->Substring(0, fileName->IndexOf(","));
+			fileName = fileName->Substring(
+				0, fileName->IndexOf(","));
 
 		if (fileName != "NetScriptFramework")
 			return nullptr;
@@ -912,50 +1340,63 @@ public:
 		if (_loaded != nullptr)
 			return _loaded;
 
-		array<System::Byte>^ fileBytes = nullptr;
-		array<System::Byte>^ debugBytes = nullptr;
+		array<System::Byte> ^fileBytes = nullptr;
+		array<System::Byte> ^debugBytes = nullptr;
 
 		{
-			System::IO::FileInfo^ fileInfo = gcnew System::IO::FileInfo(FRAMEWORK_PATH "\\NetScriptFramework.dll");
+			System::IO::FileInfo ^fileInfo = gcnew
+				System::IO::FileInfo(
+					FRAMEWORK_PATH
+					"\\NetScriptFramework.dll");
 			if (!fileInfo->Exists)
 				return nullptr;
 
-			System::IO::FileStream^ fileStream = nullptr;
-			try
-			{
+			System::IO::FileStream ^fileStream = nullptr;
+			try {
 				fileStream = fileInfo->OpenRead();
-				fileBytes = gcnew array<System::Byte>((int)fileStream->Length);
-				if (fileStream->Read(fileBytes, 0, fileBytes->Length) != fileBytes->Length)
-					throw gcnew System::InvalidOperationException();
-			}
-			finally
-			{
+				fileBytes = gcnew array<System::Byte>(
+					static_cast<int>(fileStream->Length));
+				if (fileStream->Read(
+					    fileBytes, 0, fileBytes->Length) !=
+				    fileBytes->Length)
+					throw gcnew
+						System::InvalidOperationException();
+			} finally {
 				if (fileStream != nullptr)
 					fileStream->Close();
 			}
 		}
 
 		{
-			System::IO::FileInfo^ fileInfo = gcnew System::IO::FileInfo(FRAMEWORK_PATH "\\NetScriptFramework.pdb");
-			if (fileInfo->Exists)
-			{
-				System::IO::FileStream^ fileStream = nullptr;
-				try
-				{
+			System::IO::FileInfo ^fileInfo = gcnew
+				System::IO::FileInfo(
+					FRAMEWORK_PATH
+					"\\NetScriptFramework.pdb");
+			if (fileInfo->Exists) {
+				System::IO::FileStream ^fileStream = nullptr;
+				try {
 					fileStream = fileInfo->OpenRead();
-					debugBytes = gcnew array<System::Byte>((int)fileStream->Length);
-					if (fileStream->Read(debugBytes, 0, debugBytes->Length) != debugBytes->Length)
-						throw gcnew System::InvalidOperationException();
-				}
-				finally
-				{
+					debugBytes = gcnew array<System::Byte>(
+						static_cast<int>(fileStream->
+							Length));
+					if (fileStream->Read(
+						    debugBytes, 0,
+						    debugBytes->Length) !=
+					    debugBytes->Length)
+						throw gcnew
+							System::InvalidOperationException();
+				} finally {
 					if (fileStream != nullptr)
 						fileStream->Close();
 				}
 			}
 		}
 
-		_loaded = debugBytes == nullptr ? System::Reflection::Assembly::Load(fileBytes) : System::Reflection::Assembly::Load(fileBytes, debugBytes);
+		_loaded = debugBytes == nullptr ?
+			          System::Reflection::Assembly::Load(
+				          fileBytes) :
+			          System::Reflection::Assembly::Load(
+				          fileBytes, debugBytes);
 		return _loaded;
 	}
 };
@@ -971,16 +1412,18 @@ void InitializeEnvironment()
 	{
 		LARGE_INTEGER temp;
 		QueryPerformanceFrequency(&temp);
-		_qpc_frequency = (int64)temp.QuadPart / 1000;
+		_qpc_frequency = static_cast<int64>(temp.QuadPart) / 1000;
 
 		QueryPerformanceCounter(&temp);
-		_qpc_offset64 = -((int64)temp.QuadPart / _qpc_frequency);
+		_qpc_offset64 = -(
+			static_cast<int64>(temp.QuadPart) / _qpc_frequency);
 		_qpc_offset32 = _qpc_offset64;
-		_qpc_offset64 += (int64)GetTickCount64();
+		_qpc_offset64 += static_cast<int64>(GetTickCount64());
 		_qpc_offset32 += GetTickCount();
 	}
 
-	System::AppDomain::CurrentDomain->AssemblyResolve += gcnew System::ResolveEventHandler(FResolveHelper::_ResolveFramework);
+	System::AppDomain::CurrentDomain->AssemblyResolve += gcnew
+		System::ResolveEventHandler(FResolveHelper::_ResolveFramework);
 }
 
 bool PrepareHook()
@@ -990,39 +1433,45 @@ bool PrepareHook()
 
 bool InitializeFramework()
 {
-	if (initState != 1)
-	{
-		CriticalFail("Initialization failed! State of runtime is incorrect (%d).", initState);
+	if (initState != 1) {
+		CriticalFail(
+			"Initialization failed! State of runtime is incorrect (%d).",
+			initState);
 		return false;
 	}
 
-	auto method = NetScriptFramework::Main::typeid->GetMethod("Initialize", System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Static);
-	if (method == nullptr)
-	{
-		CriticalFail("Initialization failed! Main::Initialize method was not found in NetScriptFramework.dll");
+	auto method = NetScriptFramework::Main::typeid->GetMethod(
+		"Initialize",
+		System::Reflection::BindingFlags::NonPublic |
+		System::Reflection::BindingFlags::Static);
+	if (method == nullptr) {
+		CriticalFail(
+			"Initialization failed! Main::Initialize method was not found in NetScriptFramework.dll");
 		return false;
 	}
 
 	initState = 2;
-	auto fnArg = gcnew array<System::Object^>(1);
-	auto pr = gcnew NetScriptFramework::Main::FrameworkInitializationParameters();
+	auto fnArg = gcnew array<System::Object ^>(1);
+	auto pr = gcnew
+		NetScriptFramework::Main::FrameworkInitializationParameters();
 	fnArg[0] = pr;
 	pr->FrameworkPath = gcnew System::String(FRAMEWORK_PATH);
 	pr->DelayedInitialize = 0;
-	System::Object^ rsObj = method->Invoke(nullptr, fnArg);
-	if (!System::Object::ReferenceEquals(rsObj, nullptr))
-	{
-		System::String^ rsMessage = safe_cast<System::String^>(rsObj);
-		if (rsMessage != nullptr)
-		{
-			auto strPtr = System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(rsMessage);
-			try
-			{
-				CriticalFailNoLog("Initialization failed! Main::Initialize threw an exception. See `NetScriptFramework.log.txt` file for more information. Message returned was: %s", (const char*)strPtr.ToPointer());
-			}
-			finally
-			{
-				System::Runtime::InteropServices::Marshal::FreeHGlobal(strPtr);
+	System::Object ^rsObj = method->Invoke(nullptr, fnArg);
+	if (!System::Object::ReferenceEquals(rsObj, nullptr)) {
+		System::String ^rsMessage = safe_cast<System::String ^>(rsObj);
+		if (rsMessage != nullptr) {
+			auto strPtr =
+				System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(
+					rsMessage);
+			try {
+				CriticalFailNoLog(
+					"Initialization failed! Main::Initialize threw an exception. See `NetScriptFramework.log.txt` file for more information. Message returned was: %s",
+					static_cast<const char *>(strPtr.
+						ToPointer()));
+			} finally {
+				System::Runtime::InteropServices::Marshal::FreeHGlobal(
+					strPtr);
 			}
 		}
 		return false;
@@ -1036,15 +1485,18 @@ bool _ShutdownFramework()
 	if (initState != 2)
 		return false;
 
-	auto method = NetScriptFramework::Main::typeid->GetMethod("Shutdown", System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Static);
-	if (method == nullptr)
-	{
-		CriticalFail("Shutdown failed! Main::Shutdown method was not found in NetScriptFramework.dll");
+	auto method = NetScriptFramework::Main::typeid->GetMethod(
+		"Shutdown",
+		System::Reflection::BindingFlags::NonPublic |
+		System::Reflection::BindingFlags::Static);
+	if (method == nullptr) {
+		CriticalFail(
+			"Shutdown failed! Main::Shutdown method was not found in NetScriptFramework.dll");
 		return false;
 	}
 
 	initState = 3;
-	method->Invoke(nullptr, gcnew array<System::Object^>(0));
+	method->Invoke(nullptr, gcnew array<System::Object ^>(0));
 	return true;
 }
 
@@ -1058,11 +1510,10 @@ bool ShutdownFramework()
 	return _ShutdownFramework();
 }
 
-bool ReplaceMethod(void * target, unsigned char * data, int length)
+bool ReplaceMethod(void *target, unsigned char *data, int length)
 {
 	DWORD tFlags = 0;
-	if (VirtualProtect(target, length, PAGE_EXECUTE_READWRITE, &tFlags))
-	{
+	if (VirtualProtect(target, length, PAGE_EXECUTE_READWRITE, &tFlags)) {
 		memcpy(target, data, length);
 		if (VirtualProtect(target, length, tFlags, &tFlags))
 			return true;
@@ -1171,12 +1622,41 @@ bool ReplaceMethods()
 		*/
 		{
 			static unsigned char data[] = {
-				0x4C, 0x89, 0x64, 0x24, 0x08, 0x4C, 0x89, 0x6C, 0x24, 0x10, 0x4C, 0x89, 0x74, 0x24, 0x18, 0x4C, 0x89, 0x7C, 0x24, 0x20, 0x48, 0x89, 0xC8, 0x48, 0x81, 0xEC, 0x08, 0x01, 0x00, 0x00, 0x48, 0x89, 0x04, 0x24, 0x48, 0x31, 0xC0, 0x49, 0x89, 0xD5, 0x49, 0xC1, 0xE5, 0x04, 0x4D, 0x01, 0xC5, 0x4D, 0x89, 0xC4, 0x4D, 0x39, 0xEC, 0x0F, 0x83, 0x8A, 0x00, 0x00, 0x00, 0x4D, 0x8B, 0x34, 0x24, 0x4D, 0x8B, 0x7C, 0x24, 0x08, 0x49, 0x83, 0xC4, 0x10, 0x41, 0xFF, 0xE6, 0x4D, 0x39, 0xEC, 0x73, 0x75, 0x48, 0xFF, 0xC0, 0x4D, 0x8B, 0x34, 0x24, 0x4D, 0x8B, 0x7C, 0x24, 0x08, 0x49, 0x83, 0xC4, 0x10, 0x41, 0xFF, 0xE6, 0x4C, 0x89, 0xF9, 0xEB, 0xE3, 0xF3, 0x41, 0x0F, 0x10, 0x44, 0x24, 0xF8, 0xEB, 0xDA, 0xF2, 0x41, 0x0F, 0x10, 0x44, 0x24, 0xF8, 0xEB, 0xD1, 0x4C, 0x89, 0xFA, 0xEB, 0xCC, 0xF3, 0x41, 0x0F, 0x10, 0x4C, 0x24, 0xF8, 0xEB, 0xC3, 0xF2, 0x41, 0x0F, 0x10, 0x4C, 0x24, 0xF8, 0xEB, 0xBA, 0x4D, 0x89, 0xF8, 0xEB, 0xB5, 0xF3, 0x41, 0x0F, 0x10, 0x54, 0x24, 0xF8, 0xEB, 0xAC, 0xF2, 0x41, 0x0F, 0x10, 0x54, 0x24, 0xF8, 0xEB, 0xA3, 0x4D, 0x89, 0xF9, 0xEB, 0x9E, 0xF3, 0x41, 0x0F, 0x10, 0x5C, 0x24, 0xF8, 0xEB, 0x95, 0xF2, 0x41, 0x0F, 0x10, 0x5C, 0x24, 0xF8, 0xEB, 0x8C, 0x4C, 0x89, 0x3C, 0xC4, 0xEB, 0x86, 0x48, 0x8B, 0x04, 0x24, 0xFF, 0xD0, 0x48, 0x81, 0xC4, 0x08, 0x01, 0x00, 0x00, 0x4C, 0x8B, 0x64, 0x24, 0x08, 0x4C, 0x8B, 0x6C, 0x24, 0x10, 0x4C, 0x8B, 0x74, 0x24, 0x18, 0x4C, 0x8B, 0x7C, 0x24, 0x20, 0xC3
+				0x4C, 0x89, 0x64, 0x24, 0x08, 0x4C, 0x89, 0x6C,
+				0x24, 0x10, 0x4C, 0x89, 0x74, 0x24, 0x18, 0x4C,
+				0x89, 0x7C, 0x24, 0x20, 0x48, 0x89, 0xC8, 0x48,
+				0x81, 0xEC, 0x08, 0x01, 0x00, 0x00, 0x48, 0x89,
+				0x04, 0x24, 0x48, 0x31, 0xC0, 0x49, 0x89, 0xD5,
+				0x49, 0xC1, 0xE5, 0x04, 0x4D, 0x01, 0xC5, 0x4D,
+				0x89, 0xC4, 0x4D, 0x39, 0xEC, 0x0F, 0x83, 0x8A,
+				0x00, 0x00, 0x00, 0x4D, 0x8B, 0x34, 0x24, 0x4D,
+				0x8B, 0x7C, 0x24, 0x08, 0x49, 0x83, 0xC4, 0x10,
+				0x41, 0xFF, 0xE6, 0x4D, 0x39, 0xEC, 0x73, 0x75,
+				0x48, 0xFF, 0xC0, 0x4D, 0x8B, 0x34, 0x24, 0x4D,
+				0x8B, 0x7C, 0x24, 0x08, 0x49, 0x83, 0xC4, 0x10,
+				0x41, 0xFF, 0xE6, 0x4C, 0x89, 0xF9, 0xEB, 0xE3,
+				0xF3, 0x41, 0x0F, 0x10, 0x44, 0x24, 0xF8, 0xEB,
+				0xDA, 0xF2, 0x41, 0x0F, 0x10, 0x44, 0x24, 0xF8,
+				0xEB, 0xD1, 0x4C, 0x89, 0xFA, 0xEB, 0xCC, 0xF3,
+				0x41, 0x0F, 0x10, 0x4C, 0x24, 0xF8, 0xEB, 0xC3,
+				0xF2, 0x41, 0x0F, 0x10, 0x4C, 0x24, 0xF8, 0xEB,
+				0xBA, 0x4D, 0x89, 0xF8, 0xEB, 0xB5, 0xF3, 0x41,
+				0x0F, 0x10, 0x54, 0x24, 0xF8, 0xEB, 0xAC, 0xF2,
+				0x41, 0x0F, 0x10, 0x54, 0x24, 0xF8, 0xEB, 0xA3,
+				0x4D, 0x89, 0xF9, 0xEB, 0x9E, 0xF3, 0x41, 0x0F,
+				0x10, 0x5C, 0x24, 0xF8, 0xEB, 0x95, 0xF2, 0x41,
+				0x0F, 0x10, 0x5C, 0x24, 0xF8, 0xEB, 0x8C, 0x4C,
+				0x89, 0x3C, 0xC4, 0xEB, 0x86, 0x48, 0x8B, 0x04,
+				0x24, 0xFF, 0xD0, 0x48, 0x81, 0xC4, 0x08, 0x01,
+				0x00, 0x00, 0x4C, 0x8B, 0x64, 0x24, 0x08, 0x4C,
+				0x8B, 0x6C, 0x24, 0x10, 0x4C, 0x8B, 0x74, 0x24,
+				0x18, 0x4C, 0x8B, 0x7C, 0x24, 0x20, 0xC3
 			};
 
-			if (!ReplaceMethod((void*)InvokeCdecl, data, sizeof(data)))
-			{
-				CriticalFail("Initialization failed! Failed to replace InvokeCdecl method.");
+			if (!ReplaceMethod(static_cast<void *>(InvokeCdecl),
+			                   data, sizeof(data))) {
+				CriticalFail(
+					"Initialization failed! Failed to replace InvokeCdecl method.");
 				return false;
 			}
 		}
@@ -1279,21 +1759,51 @@ bool ReplaceMethods()
 		*/
 		{
 			static unsigned char data[] = {
-				0x4C, 0x89, 0x64, 0x24, 0x08, 0x4C, 0x89, 0x6C, 0x24, 0x10, 0x4C, 0x89, 0x74, 0x24, 0x18, 0x4C, 0x89, 0x7C, 0x24, 0x20, 0x48, 0x89, 0xC8, 0x48, 0x81,
-				0xEC, 0x08, 0x01, 0x00, 0x00, 0x48, 0x89, 0x04, 0x24, 0x48, 0x31, 0xC0, 0x49, 0x89, 0xD5, 0x49, 0xC1, 0xE5, 0x04, 0x4D, 0x01, 0xC5, 0x4D, 0x89, 0xC4,
-				0x4D, 0x39, 0xEC, 0x0F, 0x8D, 0x8A, 0x00, 0x00, 0x00, 0x4D, 0x8B, 0x34, 0x24, 0x4D, 0x8B, 0x7C, 0x24, 0x08, 0x49, 0x83, 0xC4, 0x10, 0x41, 0xFF, 0xE6,
-				0x4D, 0x39, 0xEC, 0x7D, 0x75, 0x48, 0xFF, 0xC0, 0x4D, 0x8B, 0x34, 0x24, 0x4D, 0x8B, 0x7C, 0x24, 0x08, 0x49, 0x83, 0xC4, 0x10, 0x41, 0xFF, 0xE6, 0x4C,
-				0x89, 0xF9, 0xEB, 0xE3, 0xF3, 0x41, 0x0F, 0x10, 0x44, 0x24, 0xF8, 0xEB, 0xDA, 0xF2, 0x41, 0x0F, 0x10, 0x44, 0x24, 0xF8, 0xEB, 0xD1, 0x4C, 0x89, 0xFA,
-				0xEB, 0xCC, 0xF3, 0x41, 0x0F, 0x10, 0x4C, 0x24, 0xF8, 0xEB, 0xC3, 0xF2, 0x41, 0x0F, 0x10, 0x4C, 0x24, 0xF8, 0xEB, 0xBA, 0x4D, 0x89, 0xF8, 0xEB, 0xB5,
-				0xF3, 0x41, 0x0F, 0x10, 0x54, 0x24, 0xF8, 0xEB, 0xAC, 0xF2, 0x41, 0x0F, 0x10, 0x54, 0x24, 0xF8, 0xEB, 0xA3, 0x4D, 0x89, 0xF9, 0xEB, 0x9E, 0xF3, 0x41,
-				0x0F, 0x10, 0x5C, 0x24, 0xF8, 0xEB, 0x95, 0xF2, 0x41, 0x0F, 0x10, 0x5C, 0x24, 0xF8, 0xEB, 0x8C, 0x4C, 0x89, 0x3C, 0xC4, 0xEB, 0x86, 0x48, 0x8B, 0x04,
-				0x24, 0xFF, 0xD0, 0x48, 0x81, 0xC4, 0x08, 0x01, 0x00, 0x00, 0x4C, 0x8B, 0x64, 0x24, 0x08, 0x4C, 0x8B, 0x6C, 0x24, 0x10, 0x4C, 0x8B, 0x74, 0x24, 0x18,
-				0x4C, 0x8B, 0x7C, 0x24, 0x20, 0xF3, 0x0F, 0x11, 0x44, 0x24, 0x08, 0x48, 0x8B, 0x44, 0x24, 0x08, 0xC3
+				0x4C, 0x89, 0x64, 0x24, 0x08, 0x4C, 0x89, 0x6C,
+				0x24, 0x10, 0x4C, 0x89, 0x74, 0x24, 0x18, 0x4C,
+				0x89, 0x7C, 0x24, 0x20, 0x48, 0x89, 0xC8, 0x48,
+				0x81,
+				0xEC, 0x08, 0x01, 0x00, 0x00, 0x48, 0x89, 0x04,
+				0x24, 0x48, 0x31, 0xC0, 0x49, 0x89, 0xD5, 0x49,
+				0xC1, 0xE5, 0x04, 0x4D, 0x01, 0xC5, 0x4D, 0x89,
+				0xC4,
+				0x4D, 0x39, 0xEC, 0x0F, 0x8D, 0x8A, 0x00, 0x00,
+				0x00, 0x4D, 0x8B, 0x34, 0x24, 0x4D, 0x8B, 0x7C,
+				0x24, 0x08, 0x49, 0x83, 0xC4, 0x10, 0x41, 0xFF,
+				0xE6,
+				0x4D, 0x39, 0xEC, 0x7D, 0x75, 0x48, 0xFF, 0xC0,
+				0x4D, 0x8B, 0x34, 0x24, 0x4D, 0x8B, 0x7C, 0x24,
+				0x08, 0x49, 0x83, 0xC4, 0x10, 0x41, 0xFF, 0xE6,
+				0x4C,
+				0x89, 0xF9, 0xEB, 0xE3, 0xF3, 0x41, 0x0F, 0x10,
+				0x44, 0x24, 0xF8, 0xEB, 0xDA, 0xF2, 0x41, 0x0F,
+				0x10, 0x44, 0x24, 0xF8, 0xEB, 0xD1, 0x4C, 0x89,
+				0xFA,
+				0xEB, 0xCC, 0xF3, 0x41, 0x0F, 0x10, 0x4C, 0x24,
+				0xF8, 0xEB, 0xC3, 0xF2, 0x41, 0x0F, 0x10, 0x4C,
+				0x24, 0xF8, 0xEB, 0xBA, 0x4D, 0x89, 0xF8, 0xEB,
+				0xB5,
+				0xF3, 0x41, 0x0F, 0x10, 0x54, 0x24, 0xF8, 0xEB,
+				0xAC, 0xF2, 0x41, 0x0F, 0x10, 0x54, 0x24, 0xF8,
+				0xEB, 0xA3, 0x4D, 0x89, 0xF9, 0xEB, 0x9E, 0xF3,
+				0x41,
+				0x0F, 0x10, 0x5C, 0x24, 0xF8, 0xEB, 0x95, 0xF2,
+				0x41, 0x0F, 0x10, 0x5C, 0x24, 0xF8, 0xEB, 0x8C,
+				0x4C, 0x89, 0x3C, 0xC4, 0xEB, 0x86, 0x48, 0x8B,
+				0x04,
+				0x24, 0xFF, 0xD0, 0x48, 0x81, 0xC4, 0x08, 0x01,
+				0x00, 0x00, 0x4C, 0x8B, 0x64, 0x24, 0x08, 0x4C,
+				0x8B, 0x6C, 0x24, 0x10, 0x4C, 0x8B, 0x74, 0x24,
+				0x18,
+				0x4C, 0x8B, 0x7C, 0x24, 0x20, 0xF3, 0x0F, 0x11,
+				0x44, 0x24, 0x08, 0x48, 0x8B, 0x44, 0x24, 0x08,
+				0xC3
 			};
 
-			if(!ReplaceMethod((void*)InvokeCdeclF, data, sizeof(data)))
-			{
-				CriticalFail("Initialization failed! Failed to replace InvokeCdeclF method.");
+			if (!ReplaceMethod(static_cast<void *>(InvokeCdeclF),
+			                   data, sizeof(data))) {
+				CriticalFail(
+					"Initialization failed! Failed to replace InvokeCdeclF method.");
 				return false;
 			}
 		}
@@ -1396,21 +1906,50 @@ bool ReplaceMethods()
 		*/
 		{
 			static unsigned char data[] = {
-				0x4C, 0x89, 0x64, 0x24, 0x08, 0x4C, 0x89, 0x6C, 0x24, 0x10, 0x4C, 0x89, 0x74, 0x24, 0x18, 0x4C, 0x89, 0x7C, 0x24, 0x20, 0x48, 0x89, 0xC8, 0x48, 0x81,
-				0xEC, 0x08, 0x01, 0x00, 0x00, 0x48, 0x89, 0x04, 0x24, 0x48, 0x31, 0xC0, 0x49, 0x89, 0xD5, 0x49, 0xC1, 0xE5, 0x04, 0x4D, 0x01, 0xC5, 0x4D, 0x89, 0xC4,
-				0x4D, 0x39, 0xEC, 0x0F, 0x8D, 0x8A, 0x00, 0x00, 0x00, 0x4D, 0x8B, 0x34, 0x24, 0x4D, 0x8B, 0x7C, 0x24, 0x08, 0x49, 0x83, 0xC4, 0x10, 0x41, 0xFF, 0xE6,
-				0x4D, 0x39, 0xEC, 0x7D, 0x75, 0x48, 0xFF, 0xC0, 0x4D, 0x8B, 0x34, 0x24, 0x4D, 0x8B, 0x7C, 0x24, 0x08, 0x49, 0x83, 0xC4, 0x10, 0x41, 0xFF, 0xE6, 0x4C,
-				0x89, 0xF9, 0xEB, 0xE3, 0xF3, 0x41, 0x0F, 0x10, 0x44, 0x24, 0xF8, 0xEB, 0xDA, 0xF2, 0x41, 0x0F, 0x10, 0x44, 0x24, 0xF8, 0xEB, 0xD1, 0x4C, 0x89, 0xFA,
-				0xEB, 0xCC, 0xF3, 0x41, 0x0F, 0x10, 0x4C, 0x24, 0xF8, 0xEB, 0xC3, 0xF2, 0x41, 0x0F, 0x10, 0x4C, 0x24, 0xF8, 0xEB, 0xBA, 0x4D, 0x89, 0xF8, 0xEB, 0xB5,
-				0xF3, 0x41, 0x0F, 0x10, 0x54, 0x24, 0xF8, 0xEB, 0xAC, 0xF2, 0x41, 0x0F, 0x10, 0x54, 0x24, 0xF8, 0xEB, 0xA3, 0x4D, 0x89, 0xF9, 0xEB, 0x9E, 0xF3, 0x41,
-				0x0F, 0x10, 0x5C, 0x24, 0xF8, 0xEB, 0x95, 0xF2, 0x41, 0x0F, 0x10, 0x5C, 0x24, 0xF8, 0xEB, 0x8C, 0x4C, 0x89, 0x3C, 0xC4, 0xEB, 0x86, 0x48, 0x8B, 0x04,
-				0x24, 0xFF, 0xD0, 0x48, 0x81, 0xC4, 0x08, 0x01, 0x00, 0x00, 0x4C, 0x8B, 0x64, 0x24, 0x08, 0x4C, 0x8B, 0x6C, 0x24, 0x10, 0x4C, 0x8B, 0x74, 0x24, 0x18,
-				0x4C, 0x8B, 0x7C, 0x24, 0x20, 0xF2, 0x0F, 0x11, 0x44, 0x24, 0x08, 0x48, 0x8B, 0x44, 0x24, 0x08
+				0x4C, 0x89, 0x64, 0x24, 0x08, 0x4C, 0x89, 0x6C,
+				0x24, 0x10, 0x4C, 0x89, 0x74, 0x24, 0x18, 0x4C,
+				0x89, 0x7C, 0x24, 0x20, 0x48, 0x89, 0xC8, 0x48,
+				0x81,
+				0xEC, 0x08, 0x01, 0x00, 0x00, 0x48, 0x89, 0x04,
+				0x24, 0x48, 0x31, 0xC0, 0x49, 0x89, 0xD5, 0x49,
+				0xC1, 0xE5, 0x04, 0x4D, 0x01, 0xC5, 0x4D, 0x89,
+				0xC4,
+				0x4D, 0x39, 0xEC, 0x0F, 0x8D, 0x8A, 0x00, 0x00,
+				0x00, 0x4D, 0x8B, 0x34, 0x24, 0x4D, 0x8B, 0x7C,
+				0x24, 0x08, 0x49, 0x83, 0xC4, 0x10, 0x41, 0xFF,
+				0xE6,
+				0x4D, 0x39, 0xEC, 0x7D, 0x75, 0x48, 0xFF, 0xC0,
+				0x4D, 0x8B, 0x34, 0x24, 0x4D, 0x8B, 0x7C, 0x24,
+				0x08, 0x49, 0x83, 0xC4, 0x10, 0x41, 0xFF, 0xE6,
+				0x4C,
+				0x89, 0xF9, 0xEB, 0xE3, 0xF3, 0x41, 0x0F, 0x10,
+				0x44, 0x24, 0xF8, 0xEB, 0xDA, 0xF2, 0x41, 0x0F,
+				0x10, 0x44, 0x24, 0xF8, 0xEB, 0xD1, 0x4C, 0x89,
+				0xFA,
+				0xEB, 0xCC, 0xF3, 0x41, 0x0F, 0x10, 0x4C, 0x24,
+				0xF8, 0xEB, 0xC3, 0xF2, 0x41, 0x0F, 0x10, 0x4C,
+				0x24, 0xF8, 0xEB, 0xBA, 0x4D, 0x89, 0xF8, 0xEB,
+				0xB5,
+				0xF3, 0x41, 0x0F, 0x10, 0x54, 0x24, 0xF8, 0xEB,
+				0xAC, 0xF2, 0x41, 0x0F, 0x10, 0x54, 0x24, 0xF8,
+				0xEB, 0xA3, 0x4D, 0x89, 0xF9, 0xEB, 0x9E, 0xF3,
+				0x41,
+				0x0F, 0x10, 0x5C, 0x24, 0xF8, 0xEB, 0x95, 0xF2,
+				0x41, 0x0F, 0x10, 0x5C, 0x24, 0xF8, 0xEB, 0x8C,
+				0x4C, 0x89, 0x3C, 0xC4, 0xEB, 0x86, 0x48, 0x8B,
+				0x04,
+				0x24, 0xFF, 0xD0, 0x48, 0x81, 0xC4, 0x08, 0x01,
+				0x00, 0x00, 0x4C, 0x8B, 0x64, 0x24, 0x08, 0x4C,
+				0x8B, 0x6C, 0x24, 0x10, 0x4C, 0x8B, 0x74, 0x24,
+				0x18,
+				0x4C, 0x8B, 0x7C, 0x24, 0x20, 0xF2, 0x0F, 0x11,
+				0x44, 0x24, 0x08, 0x48, 0x8B, 0x44, 0x24, 0x08
 			};
 
-			if (!ReplaceMethod((void*)InvokeCdeclD, data, sizeof(data)))
-			{
-				CriticalFail("Initialization failed! Failed to replace InvokeCdeclD method.");
+			if (!ReplaceMethod(static_cast<void *>(InvokeCdeclD),
+			                   data, sizeof(data))) {
+				CriticalFail(
+					"Initialization failed! Failed to replace InvokeCdeclD method.");
 				return false;
 			}
 		}
@@ -1423,12 +1962,14 @@ bool ReplaceMethods()
 		*/
 		{
 			static unsigned char data[] = {
-				0xF3, 0x0F, 0x6F, 0x01, 0xF2, 0x0F, 0x11, 0x02, 0xC3
+				0xF3, 0x0F, 0x6F, 0x01, 0xF2, 0x0F, 0x11, 0x02,
+				0xC3
 			};
 
-			if(!ReplaceMethod((void*)ReadDQFrom, data, sizeof(data)))
-			{
-				CriticalFail("Initialization failed! Failed to replace ReadDQFrom method.");
+			if (!ReplaceMethod(static_cast<void *>(ReadDQFrom),
+			                   data, sizeof(data))) {
+				CriticalFail(
+					"Initialization failed! Failed to replace ReadDQFrom method.");
 				return false;
 			}
 		}
@@ -1441,12 +1982,14 @@ bool ReplaceMethods()
 		*/
 		{
 			static unsigned char data[] = {
-				0xF2, 0x0F, 0x10, 0x01, 0xF3, 0x0F, 0x7F, 0x02, 0xC3
+				0xF2, 0x0F, 0x10, 0x01, 0xF3, 0x0F, 0x7F, 0x02,
+				0xC3
 			};
 
-			if(!ReplaceMethod((void*)WriteDQTo, data, sizeof(data)))
-			{
-				CriticalFail("Initialization failed! Failed to replace WriteDQTo method.");
+			if (!ReplaceMethod(static_cast<void *>(WriteDQTo), data,
+			                   sizeof(data))) {
+				CriticalFail(
+					"Initialization failed! Failed to replace WriteDQTo method.");
 				return false;
 			}
 		}
@@ -1459,12 +2002,14 @@ bool ReplaceMethods()
 		*/
 		{
 			static unsigned char data[] = {
-				0xF3, 0x0F, 0x6F, 0x01, 0xF3, 0x0F, 0x11, 0x02, 0xC3
+				0xF3, 0x0F, 0x6F, 0x01, 0xF3, 0x0F, 0x11, 0x02,
+				0xC3
 			};
 
-			if (!ReplaceMethod((void*)ReadFQFrom, data, sizeof(data)))
-			{
-				CriticalFail("Initialization failed! Failed to replace ReadFQFrom method.");
+			if (!ReplaceMethod(static_cast<void *>(ReadFQFrom),
+			                   data, sizeof(data))) {
+				CriticalFail(
+					"Initialization failed! Failed to replace ReadFQFrom method.");
 				return false;
 			}
 		}
@@ -1477,12 +2022,14 @@ bool ReplaceMethods()
 		*/
 		{
 			static unsigned char data[] = {
-				0xF3, 0x0F, 0x10, 0x01, 0xF3, 0x0F, 0x7F, 0x02, 0xC3
+				0xF3, 0x0F, 0x10, 0x01, 0xF3, 0x0F, 0x7F, 0x02,
+				0xC3
 			};
 
-			if (!ReplaceMethod((void*)WriteFQTo, data, sizeof(data)))
-			{
-				CriticalFail("Initialization failed! Failed to replace WriteFQTo method.");
+			if (!ReplaceMethod(static_cast<void *>(WriteFQTo), data,
+			                   sizeof(data))) {
+				CriticalFail(
+					"Initialization failed! Failed to replace WriteFQTo method.");
 				return false;
 			}
 		}
@@ -1587,23 +2134,25 @@ bool ReplaceMethods()
 }
 #pragma managed(pop)
 
-bool handle_crash(EXCEPTION_POINTERS * ep)
+bool handle_crash(EXCEPTION_POINTERS *ep)
 {
 	if (ManagedHook::_exceptionPtr == nullptr)
 		return false;
 
-	auto cpu = NetScriptFramework::Tools::_Internal::RTHandler::_Allocate(System::IntPtr((void*)ep->ContextRecord));
+	auto cpu = NetScriptFramework::Tools::_Internal::RTHandler::_Allocate(
+		System::IntPtr(static_cast<void *>(ep->ContextRecord)));
 
-	auto args = gcnew array<System::Object^>(1);
+	auto args = gcnew array<System::Object ^>(1);
 	args[0] = cpu;
-	bool try_continue = safe_cast<bool>(ManagedHook::_exceptionPtr->Invoke(nullptr, args));
+	bool try_continue = safe_cast<bool>(ManagedHook::_exceptionPtr->Invoke(
+		nullptr, args));
 
 	NetScriptFramework::Tools::_Internal::RTHandler::_Free(cpu);
 
 	return try_continue;
 }
 
-void DEBUG_Write(const char * msg)
+void DEBUG_Write(const char *msg)
 {
 	auto str = gcnew System::String(msg);
 	NetScriptFramework::Main::Log->AppendLine(str);
@@ -1612,11 +2161,9 @@ void DEBUG_Write(const char * msg)
 #pragma managed(push, off)
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
-	switch (fdwReason)
-	{
+	switch (fdwReason) {
 	case DLL_PROCESS_ATTACH:
-		if ((dwTlsIndex = TlsAlloc()) == TLS_OUT_OF_INDEXES)
-		{
+		if ((dwTlsIndex = TlsAlloc()) == TLS_OUT_OF_INDEXES) {
 			return FALSE;
 		}
 		_ThreadStartTLS(false);
@@ -1646,7 +2193,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 	return TRUE;
 }
 
-bool try_handle_crash(EXCEPTION_POINTERS * info)
+bool try_handle_crash(EXCEPTION_POINTERS *info)
 {
 	bool shouldContinue = false;
 	//__try
@@ -1661,18 +2208,16 @@ bool try_handle_crash(EXCEPTION_POINTERS * info)
 	return shouldContinue;
 }
 
-LPTOP_LEVEL_EXCEPTION_FILTER _original_exception_filter = NULL;
+LPTOP_LEVEL_EXCEPTION_FILTER _original_exception_filter = nullptr;
 
-LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS * info)
+LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS *info)
 {
-	Pointer * depth = GetExceptionDepthPointer();
+	Pointer *depth = GetExceptionDepthPointer();
 
 	bool handled = false;
-	if (depth != NULL)
-	{
+	if (depth != nullptr) {
 		Pointer vdep = *depth;
-		if (vdep == 0)
-		{
+		if (vdep == 0) {
 			*depth = *depth + 1;
 			handled = try_handle_crash(info);
 			*depth = *depth - 1;
@@ -1682,55 +2227,51 @@ LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS * info)
 	if (handled)
 		return EXCEPTION_CONTINUE_EXECUTION;
 
-	if (_original_exception_filter != NULL)
+	if (_original_exception_filter != nullptr)
 		return _original_exception_filter(info);
 
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 
-LONG WINAPI CheckFilter(EXCEPTION_POINTERS * info)
+LONG WINAPI CheckFilter(EXCEPTION_POINTERS *info)
 {
 	auto prev = SetUnhandledExceptionFilter(ExceptionFilter);
-	if (prev == NULL)
-		_original_exception_filter = NULL;
+	if (prev == nullptr)
+		_original_exception_filter = nullptr;
 	else if (prev != ExceptionFilter)
 		_original_exception_filter = prev;
 
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 
-extern "C"
+extern "C" {
+EXPORT void __cdecl Initialize()
 {
-	EXPORT void __cdecl Initialize()
-	{
-		// Initialize environment info.
-		InitializeEnvironment();
+	// Initialize environment info.
+	InitializeEnvironment();
 
-		// Prepare managed code hooking.
-		if (!PrepareHook())
-		{
-			return;
-		}
-
-		// Replace invoke methods.
-		if (!ReplaceMethods())
-		{
-			return;
-		}
-
-		// Initialize the managed framework.
-		if (!InitializeFramework())
-		{
-			return;
-		}
-
-		// Set up exception handler after framework has initialized.
-		AddVectoredExceptionHandler(1, CheckFilter);
+	// Prepare managed code hooking.
+	if (!PrepareHook()) {
+		return;
 	}
 
-	EXPORT int __stdcall GetRuntimeVersion()
-	{
-		return RUNTIME_VERSION;
+	// Replace invoke methods.
+	if (!ReplaceMethods()) {
+		return;
 	}
+
+	// Initialize the managed framework.
+	if (!InitializeFramework()) {
+		return;
+	}
+
+	// Set up exception handler after framework has initialized.
+	AddVectoredExceptionHandler(1, CheckFilter);
+}
+
+EXPORT int __stdcall GetRuntimeVersion()
+{
+	return RUNTIME_VERSION;
+}
 }
 #pragma managed(pop)

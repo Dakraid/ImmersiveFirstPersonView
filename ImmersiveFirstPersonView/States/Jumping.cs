@@ -1,19 +1,24 @@
-﻿using NetScriptFramework.SkyrimSE;
-
-namespace IFPV.States
+﻿namespace IFPV.States
 {
+    using NetScriptFramework.SkyrimSE;
+
     internal class Jumping : CameraState
     {
-        internal override int Priority => (int) Priorities.Jumping;
+        internal override int Priority => (int)Priorities.Jumping;
 
         internal override bool Check(CameraUpdate update)
         {
             if (!update.CameraMain.IsEnabled)
+            {
                 return false;
+            }
 
             var actor = update.Target.Actor;
             if (actor == null)
+            {
                 return false;
+            }
+
             var state = actor.MovementState;
             return state == bhkCharacterStateTypes.Jumping || state == bhkCharacterStateTypes.InAir;
         }

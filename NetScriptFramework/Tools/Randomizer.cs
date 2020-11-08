@@ -1,22 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetScriptFramework.Tools
+﻿namespace NetScriptFramework.Tools
 {
-#region Randomizer class
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
+    #region Randomizer class
 
     /// <summary>
-    /// Random number generator. Thread safe.
+    ///     Random number generator. Thread safe.
     /// </summary>
     public static class Randomizer
     {
-    #region Randomizer members
+        #region Randomizer members
 
         /// <summary>
-        /// Generate a double between 0 and 1.
+        ///     Generate a double between 0 and 1.
         /// </summary>
         /// <returns></returns>
         public static double NextDouble()
@@ -26,7 +24,7 @@ namespace NetScriptFramework.Tools
         }
 
         /// <summary>
-        /// Generate an integer, max is exclusive.
+        ///     Generate an integer, max is exclusive.
         /// </summary>
         /// <param name="min">Inclusive minimum value.</param>
         /// <param name="max">Exclusive maximum value.</param>
@@ -38,21 +36,27 @@ namespace NetScriptFramework.Tools
         }
 
         /// <summary>
-        /// Roll chance. Chance must be between 0 and 1.
+        ///     Roll chance. Chance must be between 0 and 1.
         /// </summary>
         /// <param name="chance">Chance to roll.</param>
         /// <returns></returns>
         public static bool Roll(double chance)
         {
             if (chance <= 0.0)
+            {
                 return false;
+            }
+
             if (chance >= 1.0)
+            {
                 return true;
+            }
+
             return NextDouble() <= chance;
         }
 
         /// <summary>
-        /// Get random entry from a list and remove that entry from the list.
+        ///     Get random entry from a list and remove that entry from the list.
         /// </summary>
         /// <typeparam name="T">Type of variable.</typeparam>
         /// <param name="list">List to get from.</param>
@@ -63,24 +67,33 @@ namespace NetScriptFramework.Tools
         public static T NextEntry<T>(IList<T> list, bool remove = true)
         {
             if (list == null)
+            {
                 throw new ArgumentNullException("list");
+            }
+
             if (list.Count == 0)
+            {
                 throw new ArgumentOutOfRangeException("list");
+            }
 
             var chosen = 0;
             if (list.Count != 1)
+            {
                 chosen = NextInt(0, list.Count);
+            }
 
             var obj = list[chosen];
             if (remove)
+            {
                 list.RemoveAt(chosen);
+            }
 
             return obj;
         }
 
         /// <summary>
-        /// Get random entry from a list and remove that entry from the list. This is roulette
-        /// wheel selection where double is the weight of entry.
+        ///     Get random entry from a list and remove that entry from the list. This is roulette
+        ///     wheel selection where double is the weight of entry.
         /// </summary>
         /// <typeparam name="T">Type of variable.</typeparam>
         /// <param name="list">List to get from.</param>
@@ -91,17 +104,22 @@ namespace NetScriptFramework.Tools
         public static T NextEntry<T>(IList<KeyValuePair<T, double>> list, bool remove = true)
         {
             if (list == null)
+            {
                 throw new ArgumentNullException("list");
+            }
+
             if (list.Count == 0)
+            {
                 throw new ArgumentOutOfRangeException("list");
+            }
 
             var max = list.Sum(q => q.Value);
-            return NextEntry<T>(list, ref max, remove);
+            return NextEntry(list, ref max, remove);
         }
 
         /// <summary>
-        /// Get random entry from a list and remove that entry from the list. This is roulette
-        /// wheel selection where double is the weight of entry.
+        ///     Get random entry from a list and remove that entry from the list. This is roulette
+        ///     wheel selection where double is the weight of entry.
         /// </summary>
         /// <typeparam name="T">Type of variable.</typeparam>
         /// <param name="list">List to get from.</param>
@@ -113,9 +131,14 @@ namespace NetScriptFramework.Tools
         public static T NextEntry<T>(IList<KeyValuePair<T, double>> list, ref double max, bool remove = true)
         {
             if (list == null)
+            {
                 throw new ArgumentNullException("list");
+            }
+
             if (list.Count == 0)
+            {
                 throw new ArgumentOutOfRangeException("list");
+            }
 
             var chooseValue = max * NextDouble();
 
@@ -123,9 +146,11 @@ namespace NetScriptFramework.Tools
             for (var i = 0; i < list.Count; i++)
             {
                 if (list[i].Value <= 0.0)
+                {
                     continue;
+                }
 
-                chosen      =  i;
+                chosen = i;
                 chooseValue -= list[i].Value;
                 if (chooseValue < 0.0)
                 {
@@ -135,18 +160,22 @@ namespace NetScriptFramework.Tools
             }
 
             if (chosen == -1)
+            {
                 chosen = 0;
+            }
 
             var obj = list[chosen].Key;
             if (remove)
+            {
                 list.RemoveAt(chosen);
+            }
 
             return obj;
         }
 
         /// <summary>
-        /// Get random entry from a list and remove that entry from the list. This is roulette
-        /// wheel selection where double is the weight of entry.
+        ///     Get random entry from a list and remove that entry from the list. This is roulette
+        ///     wheel selection where double is the weight of entry.
         /// </summary>
         /// <typeparam name="T">Type of variable.</typeparam>
         /// <param name="list">List to get from.</param>
@@ -159,9 +188,14 @@ namespace NetScriptFramework.Tools
         public static T NextEntry<T>(IList<T> list, Func<T, double> weightSelector, ref double max, bool remove = true)
         {
             if (list == null)
+            {
                 throw new ArgumentNullException("list");
+            }
+
             if (list.Count == 0)
+            {
                 throw new ArgumentOutOfRangeException("list");
+            }
 
             var chooseValue = max * NextDouble();
 
@@ -170,9 +204,11 @@ namespace NetScriptFramework.Tools
             {
                 var w = weightSelector(list[i]);
                 if (w <= 0.0)
+                {
                     continue;
+                }
 
-                chosen      =  i;
+                chosen = i;
                 chooseValue -= w;
                 if (chooseValue < 0.0)
                 {
@@ -182,47 +218,53 @@ namespace NetScriptFramework.Tools
             }
 
             if (chosen == -1)
+            {
                 chosen = 0;
+            }
 
             var obj = list[chosen];
             if (remove)
+            {
                 list.RemoveAt(chosen);
+            }
 
             return obj;
         }
 
-    #endregion
+        #endregion
 
-    #region Internal members
+        #region Internal members
 
         /// <summary>
-        /// Make sure generator is initialize for current thread.
+        ///     Make sure generator is initialize for current thread.
         /// </summary>
         private static void Init()
         {
             if (RNG != null)
+            {
                 return;
+            }
 
             lock (Locker) { RNG = new Random(Generator.Next(0, int.MaxValue)); }
         }
 
         /// <summary>
-        /// RNG for current thread.
+        ///     RNG for current thread.
         /// </summary>
-        [ThreadStatic] private static Random RNG = null;
+        [ThreadStatic] private static Random RNG;
 
         /// <summary>
-        /// Locker for generating a generator.
+        ///     Locker for generating a generator.
         /// </summary>
         private static readonly object Locker = new object();
 
         /// <summary>
-        /// Seed generator.
+        ///     Seed generator.
         /// </summary>
         private static readonly Random Generator = new Random();
 
-    #endregion
+        #endregion
     }
 
-#endregion
+    #endregion
 }

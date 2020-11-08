@@ -1,11 +1,10 @@
-﻿using IFPV.Values;
-using NetScriptFramework.SkyrimSE;
-
-namespace IFPV.Values
+﻿namespace IFPV.Values
 {
+    using NetScriptFramework.SkyrimSE;
+
     internal sealed class HeadTrackEnabled : CameraValueBase
     {
-        internal HeadTrackEnabled() { Flags |= CameraValueFlags.NoTween | CameraValueFlags.DontUpdateIfDisabled; }
+        internal HeadTrackEnabled() => this.Flags |= CameraValueFlags.NoTween | CameraValueFlags.DontUpdateIfDisabled;
 
         internal override double ChangeSpeed => 1.0;
 
@@ -15,7 +14,10 @@ namespace IFPV.Values
             {
                 var plr = PlayerCharacter.Instance;
                 if (plr != null)
+                {
                     return plr.IsHeadTrackingEnabled ? 1 : 0;
+                }
+
                 return 0;
             }
 
@@ -23,7 +25,9 @@ namespace IFPV.Values
             {
                 var plr = PlayerCharacter.Instance;
                 if (plr != null)
+                {
                     plr.IsHeadTrackingEnabled = value > 0.0;
+                }
             }
         }
 
@@ -35,6 +39,8 @@ namespace IFPV.Values
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly HeadTrackEnabled HeadTrackEnabled = new HeadTrackEnabled();

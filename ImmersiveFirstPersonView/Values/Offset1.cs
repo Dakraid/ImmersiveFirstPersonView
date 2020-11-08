@@ -1,7 +1,4 @@
-﻿using System;
-using IFPV.Values;
-
-namespace IFPV.Values
+﻿namespace IFPV.Values
 {
     internal sealed class Offset1PositionX : CameraValueSimple
     {
@@ -11,6 +8,8 @@ namespace IFPV.Values
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly Offset1PositionX Offset1PositionX = new Offset1PositionX();
@@ -27,6 +26,8 @@ namespace IFPV.Values
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly Offset1PositionY Offset1PositionY = new Offset1PositionY();
@@ -43,6 +44,8 @@ namespace IFPV.Values
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly Offset1PositionZ Offset1PositionZ = new Offset1PositionZ();
@@ -51,6 +54,8 @@ namespace IFPV
 
 namespace IFPV.Values
 {
+    using System;
+
     internal sealed class Offset1RotationX : CameraValueSimple
     {
         internal Offset1RotationX() : base(null, 0.0, Math.PI * 0.5) { }
@@ -59,6 +64,8 @@ namespace IFPV.Values
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly Offset1RotationX Offset1RotationX = new Offset1RotationX();
@@ -67,6 +74,8 @@ namespace IFPV
 
 namespace IFPV.Values
 {
+    using System;
+
     internal sealed class Offset1RotationY : CameraValueSimple
     {
         internal Offset1RotationY() : base(null, 0.0, Math.PI * 0.5) { }
@@ -75,6 +84,8 @@ namespace IFPV.Values
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly Offset1RotationY Offset1RotationY = new Offset1RotationY();

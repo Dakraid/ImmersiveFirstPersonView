@@ -2,15 +2,19 @@
 {
     internal class Sneak : CameraState
     {
-        internal override int Priority => (int) Priorities.Sneaking;
+        internal override int Priority => (int)Priorities.Sneaking;
 
         internal override bool Check(CameraUpdate update)
         {
             if (!update.CameraMain.IsEnabled)
+            {
                 return false;
+            }
 
             if (update.CachedMounted)
+            {
                 return false;
+            }
 
             var actor = update.Target.Actor;
             return actor != null && actor.IsSneaking;

@@ -1,22 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetScriptFramework
+﻿namespace NetScriptFramework
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Reflection;
+    using System.Runtime.InteropServices;
+
     /// <summary>
-    /// Helper class for assembly loading.
+    ///     Helper class for assembly loading.
     /// </summary>
     public static class Loader
     {
         /// <summary>
-        /// Loads the specified file as assembly. This will throw exception if there are problems. It's possible that the assembly was loaded anyway.
-        /// Loading a file with same name again will attempt to return same assembly even if the file versions are different.
+        ///     The locker for loading.
+        /// </summary>
+        private static readonly object Locker = new object();
+
+        /// <summary>
+        ///     The loaded assembly list.
+        /// </summary>
+        private static readonly List<AssemblyLoadResult> Loaded = new List<AssemblyLoadResult>();
+
+        /// <summary>
+        ///     Loads the specified file as assembly. This will throw exception if there are problems. It's possible that the
+        ///     assembly was loaded anyway.
+        ///     Loading a file with same name again will attempt to return same assembly even if the file versions are different.
         /// </summary>
         /// <param name="file">The file to load from.</param>
         /// <param name="result">The result is set here. Result may be set even when an exception is thrown.</param>
@@ -29,19 +38,24 @@ namespace NetScriptFramework
                 {
                     result = r.Assembly;
                     if (r.Exception != null)
+                    {
                         throw r.Exception;
+                    }
+
                     return;
                 }
 
                 if (!file.Exists)
+                {
                     throw new FileNotFoundException("Specified assembly file was not found!", file.FullName);
+                }
 
                 // Must use LoadFile instead of LoadFrom or the load context will not allow types to match up.
                 var a = Assembly.LoadFile(file.FullName);
 
-                r           = new AssemblyLoadResult();
-                r.Assembly  = a;
-                r.FileName  = file.Name;
+                r = new AssemblyLoadResult();
+                r.Assembly = a;
+                r.FileName = file.Name;
                 r.Exception = null;
 
                 Loaded.Add(r);
@@ -50,21 +64,27 @@ namespace NetScriptFramework
         }
 
         /// <summary>
-        /// Tries the load assembly by its short name. For example TryLoadAssembly("NetScriptFramework") would try to load
-        /// the core framework assembly.
+        ///     Tries the load assembly by its short name. For example TryLoadAssembly("NetScriptFramework") would try to load
+        ///     the core framework assembly.
         /// </summary>
         /// <param name="name">The name of assembly to load.</param>
         /// <returns></returns>
         public static Assembly TryLoadAssembly(string name)
         {
             if (name == Main.FrameworkName)
+            {
                 return Assembly.GetExecutingAssembly();
+            }
 
             lock (Locker)
             {
                 foreach (var a in Loaded)
+                {
                     if (a.Assembly != null && a.Assembly.GetName().Name == name)
+                    {
                         return a.Assembly;
+                    }
+                }
 
                 var paths = new string[3];
                 paths[0] = null;
@@ -74,20 +94,26 @@ namespace NetScriptFramework
                 {
                     var plugin = Main.Config.GetValue(Main._Config_Plugin_Path);
                     if (plugin != null)
+                    {
                         paths[0] = plugin.ToString();
+                    }
                 }
 
                 {
                     var plugin = Main.Config.GetValue(Main._Config_Plugin_Lib_Path);
                     if (plugin != null)
+                    {
                         paths[1] = plugin.ToString();
+                    }
                 }
 
                 for (var i = 0; i < paths.Length; i++)
                 {
                     var p = paths[i];
                     if (p == null)
+                    {
                         continue;
+                    }
 
                     var fileName = Path.Combine(p, name + ".dll");
                     var fileInfo = new FileInfo(fileName);
@@ -96,14 +122,18 @@ namespace NetScriptFramework
                         fileName = Path.Combine(p, name + ".exe");
                         fileInfo = new FileInfo(fileName);
                         if (!fileInfo.Exists)
+                        {
                             continue;
+                        }
                     }
 
                     Assembly a = null;
                     Load(fileInfo, ref a);
 
                     if (a != null)
+                    {
                         return a;
+                    }
                 }
             }
 
@@ -111,29 +141,33 @@ namespace NetScriptFramework
         }
 
         /// <summary>
-        /// Called when trying to resolve an assembly.
+        ///     Called when trying to resolve an assembly.
         /// </summary>
         /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="ResolveEventArgs"/> instance containing the event data.</param>
+        /// <param name="e">The <see cref="ResolveEventArgs" /> instance containing the event data.</param>
         /// <returns></returns>
         private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs e)
         {
             // Get name for custom loading.
             var name = e.Name;
             if (name != null && name.Contains(","))
+            {
                 name = name.Substring(0, name.IndexOf(","));
+            }
 
             // Try to use our method of loading.
             var result = TryLoadAssembly(name);
             if (result != null)
+            {
                 return result;
+            }
 
             // Pass to regular loader if wasn't one of our assemblies.
             return null;
         }
 
         /// <summary>
-        /// Initializes the assembly loader.
+        ///     Initializes the assembly loader.
         /// </summary>
         internal static void Initialize()
         {
@@ -146,6 +180,7 @@ namespace NetScriptFramework
             {
                 var pString = path.ToString();
                 if (!string.IsNullOrEmpty(pString) && pString != ".")
+                {
                     try { AddDLLSearchPath(pString); }
                     catch (Exception ex)
                     {
@@ -155,62 +190,57 @@ namespace NetScriptFramework
                             Main.Log.Append(ex);
                         }
                     }
+                }
             }
         }
 
         private static void AddDLLSearchPath(string path)
         {
             if (string.IsNullOrEmpty(path) || path == ".")
+            {
                 return;
+            }
 
             var fullPath = Path.GetFullPath(path);
 
             //SetDllDirectory(fullPath);
 
             if (!Path.IsPathRooted(path))
+            {
                 path = Path.GetFullPath(path);
+            }
 
             var pathVar = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
             Environment.SetEnvironmentVariable("PATH", pathVar + ";" + path);
         }
 
         /// <summary>
-        /// Sets the DLL directory. Internal API call.
+        ///     Sets the DLL directory. Internal API call.
         /// </summary>
         /// <param name="lpPathName">Path.</param>
         /// <returns></returns>
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern bool SetDllDirectory(string lpPathName);
-
-        /// <summary>
-        /// The locker for loading.
-        /// </summary>
-        private static object Locker = new object();
-
-        /// <summary>
-        /// The loaded assembly list.
-        /// </summary>
-        private static readonly List<AssemblyLoadResult> Loaded = new List<AssemblyLoadResult>();
     }
 
     /// <summary>
-    /// Internal class for storing loaded assembly info.
+    ///     Internal class for storing loaded assembly info.
     /// </summary>
     internal sealed class AssemblyLoadResult
     {
         /// <summary>
-        /// The file name.
-        /// </summary>
-        internal string FileName;
-
-        /// <summary>
-        /// The assembly that was loaded.
+        ///     The assembly that was loaded.
         /// </summary>
         internal Assembly Assembly;
 
         /// <summary>
-        /// The exception if any was thrown.
+        ///     The exception if any was thrown.
         /// </summary>
         internal Exception Exception;
+
+        /// <summary>
+        ///     The file name.
+        /// </summary>
+        internal string FileName;
     }
 }

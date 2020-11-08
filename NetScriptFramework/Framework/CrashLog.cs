@@ -1,134 +1,184 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NetScriptFramework.Tools;
-
-#pragma warning disable 414
+﻿#pragma warning disable 414
 
 namespace NetScriptFramework
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.IO;
+    using System.Linq;
+    using System.Runtime.InteropServices;
+    using System.Text;
+    using Tools;
+
     /// <summary>
-    /// Event arguments for a crash log event.
+    ///     Event arguments for a crash log event.
     /// </summary>
     /// <seealso cref="System.EventArgs" />
     public class CrashLogEventArgs : EventArgs
     {
         /// <summary>
-        /// Gets the crash log instance.
+        ///     Gets the crash log instance.
         /// </summary>
         public CrashLog Log { get; internal set; }
 
         /// <summary>
-        /// Gets the output. This is what will be written to file after all is finished.
+        ///     Gets the output. This is what will be written to file after all is finished.
         /// </summary>
         public StringBuilder Output { get; internal set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether crash log should skip writing to file. If this is set to true
-        /// then the file will not be written.
+        ///     Gets or sets a value indicating whether crash log should skip writing to file. If this is set to true
+        ///     then the file will not be written.
         /// </summary>
         public bool Skip { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the crash is handled and game should try to continue executing. Default
-        /// is false meaning the game will close after writing the crash log. This is only used for native exceptions.
+        ///     Gets or sets a value indicating whether the crash is handled and game should try to continue executing. Default
+        ///     is false meaning the game will close after writing the crash log. This is only used for native exceptions.
         /// </summary>
         public bool Handled { get; set; }
     }
 
     /// <summary>
-    /// This is used to generate a crash log.
+    ///     This is used to generate a crash log.
     /// </summary>
     public abstract class CrashLog : IArgument
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CrashLog"/> class.
-        /// </summary>
-        internal CrashLog() { }
-
-        /// <summary>
-        /// Occurs before writing the crash log.
+        ///     Occurs before writing the crash log.
         /// </summary>
         public static readonly Event<CrashLogEventArgs> OnBeforeWrite = new Event<CrashLogEventArgs>("OnBeforeWrite");
 
         /// <summary>
-        /// Occurs after writing the crash log.
+        ///     Occurs after writing the crash log.
         /// </summary>
         public static readonly Event<CrashLogEventArgs> OnAfterWrite = new Event<CrashLogEventArgs>("OnAfterWrite");
 
         /// <summary>
-        /// Gets the modules collection.
-        /// </summary>
-        public System.Diagnostics.ProcessModuleCollection Modules { get; internal set; }
-
-        /// <summary>
-        /// Gets the main module of process.
-        /// </summary>
-        public System.Diagnostics.ProcessModule MainModule { get; internal set; }
-
-        /// <summary>
-        /// The culture to use for formatting.
-        /// </summary>
-        public System.Globalization.CultureInfo Culture { get; internal set; }
-
-        /// <summary>
-        /// Are we starting on a new line right now?
-        /// </summary>
-        private bool IsNewLine = true;
-
-        /// <summary>
-        /// The tab count to write.
-        /// </summary>
-        protected internal int TabCount = 0;
-
-        /// <summary>
-        /// The tab character.
-        /// </summary>
-        protected internal string TabCharacter = "  ";
-
-        /// <summary>
-        /// The builder.
+        ///     The builder.
         /// </summary>
         private readonly StringBuilder Builder = new StringBuilder(65536);
 
         /// <summary>
-        /// Gets a value indicating whether this <see cref="CrashLog"/> is skipped.
+        ///     Are we starting on a new line right now?
         /// </summary>
-        /// <value>
-        ///   <c>true</c> if skipped; otherwise, <c>false</c>.
-        /// </value>
-        internal bool Skipped { get; private set; }
+        private bool IsNewLine = true;
 
         /// <summary>
-        /// The remembered location for interesting objects.
+        ///     The remembered location for interesting objects.
         /// </summary>
         private int RememberedLocationForInterestingObjects = -1;
 
         /// <summary>
-        /// Begins the group.
+        ///     The tab character.
+        /// </summary>
+        protected internal string TabCharacter = "  ";
+
+        /// <summary>
+        ///     The tab count to write.
+        /// </summary>
+        protected internal int TabCount;
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="CrashLog" /> class.
+        /// </summary>
+        internal CrashLog() { }
+
+        /// <summary>
+        ///     Gets the modules collection.
+        /// </summary>
+        public ProcessModuleCollection Modules { get; internal set; }
+
+        /// <summary>
+        ///     Gets the main module of process.
+        /// </summary>
+        public ProcessModule MainModule { get; internal set; }
+
+        /// <summary>
+        ///     The culture to use for formatting.
+        /// </summary>
+        public CultureInfo Culture { get; internal set; }
+
+        /// <summary>
+        ///     Gets a value indicating whether this <see cref="CrashLog" /> is skipped.
+        /// </summary>
+        /// <value>
+        ///     <c>true</c> if skipped; otherwise, <c>false</c>.
+        /// </value>
+        internal bool Skipped { get; private set; }
+
+        /// <summary>
+        ///     Gets the average maximum expected width of the line in log.
+        /// </summary>
+        /// <value>
+        ///     The width of the page.
+        /// </value>
+        protected internal virtual int PageWidth => 140;
+
+        /// <summary>
+        ///     Parse an argument from this object.
+        /// </summary>
+        /// <param name="key">Keyword for argument.</param>
+        /// <param name="message">Message to parse for.</param>
+        /// <param name="parser">Parser that is currently processing message.</param>
+        /// <returns></returns>
+        public virtual IArgument ParseArgument(string key, Message message, Parser parser) => null;
+
+        /// <summary>
+        ///     Parse a variable from this object.
+        /// </summary>
+        /// <param name="key">Keyword for variable.</param>
+        /// <param name="message">Message to parse for.</param>
+        /// <param name="parser">Parser that is currently processing message.</param>
+        /// <returns></returns>
+        public virtual string ParseVariable(string key, Message message, Parser parser)
+        {
+            if (key.Equals("IsSkipped", StringComparison.OrdinalIgnoreCase))
+            {
+                return this.Skipped ? "1" : "0";
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     Parse a function from this object.
+        /// </summary>
+        /// <param name="key">Keyword for function.</param>
+        /// <param name="args">Arguments for function.</param>
+        /// <param name="message">Message to parse for.</param>
+        /// <param name="parser">Parser that is currently processing message.</param>
+        /// <returns></returns>
+        public virtual string ParseFunction(string key, string[] args, Message message, Parser parser) => null;
+
+        /// <summary>
+        ///     Begins the group.
         /// </summary>
         /// <param name="name">The name.</param>
         protected internal void BeginGroup(string name)
         {
             if (!string.IsNullOrEmpty(name))
-                WriteLine(name);
-            WriteLine("{");
-            TabCount++;
+            {
+                this.WriteLine(name);
+            }
+
+            this.WriteLine("{");
+            this.TabCount++;
         }
 
         /// <summary>
-        /// Ends the group.
+        ///     Ends the group.
         /// </summary>
         protected internal void EndGroup()
         {
-            TabCount--;
-            WriteLine("}");
+            this.TabCount--;
+            this.WriteLine("}");
         }
 
         /// <summary>
-        /// Writes the crash log to file.
+        ///     Writes the crash log to file.
         /// </summary>
         internal int Write(bool allowToFile = true, string overwritePath = null, bool forceAppend = false)
         {
@@ -136,122 +186,156 @@ namespace NetScriptFramework
 
             if (allowToFile && Main.Config != null)
             {
-                var vl      = Main.Config.GetValue(Main._Config_Debug_CrashLog_Enabled);
+                var vl = Main.Config.GetValue(Main._Config_Debug_CrashLog_Enabled);
                 var enabled = 0;
                 if (vl == null || !vl.TryToInt32(out enabled) || enabled <= 0) { }
                 else { writeToFile = true; }
             }
 
-            var    now        = DateTime.Now;
-            string dirPath    = null;
-            string filePath   = null;
-            string fileBase   = null;
-            var    append     = false;
-            var    stackCount = 128;
+            var now = DateTime.Now;
+            string dirPath = null;
+            string filePath = null;
+            string fileBase = null;
+            var append = false;
+            var stackCount = 128;
 
             if (writeToFile)
             {
                 var vl = Main.Config.GetValue(Main._Config_Debug_CrashLog_Path);
                 if (vl == null || string.IsNullOrEmpty(dirPath = vl.ToString()))
-                    dirPath = System.IO.Path.Combine(Main.Config.Path, "Crash");
+                {
+                    dirPath = Path.Combine(Main.Config.Path, "Crash");
+                }
             }
 
             if (writeToFile)
             {
                 var vl = Main.Config.GetValue(Main._Config_Debug_CrashLog_Append);
-                var r  = 0;
+                var r = 0;
                 if (vl == null || !vl.TryToInt32(out r))
+                {
                     r = 0;
+                }
+
                 append = r > 0;
 
                 if (append)
+                {
                     fileBase = "Crash";
+                }
                 else
-                    fileBase = "Crash_" + now.Year + "_" + now.Month + "_" + now.Day + "_" + now.Hour + "-" + now.Minute + "-" + now.Second;
+                {
+                    fileBase = "Crash_" + now.Year + "_" + now.Month + "_" + now.Day + "_" + now.Hour + "-" +
+                               now.Minute + "-" + now.Second;
+                }
             }
 
             if (this is NativeCrashLog)
             {
                 var vl = Main.Config.GetValue(Main._Config_Debug_CrashLog_StackCount);
                 if (vl != null && !vl.TryToInt32(out stackCount))
+                {
                     stackCount = 128;
+                }
 
                 if (stackCount < 4)
+                {
                     stackCount = 4;
+                }
             }
 
-            System.IO.FileInfo file = null;
+            FileInfo file = null;
 
             if (forceAppend)
+            {
                 append = true;
+            }
 
             if (writeToFile)
             {
                 if (!string.IsNullOrEmpty(overwritePath))
                 {
-                    file = new System.IO.FileInfo(overwritePath);
+                    file = new FileInfo(overwritePath);
                     if (!file.Directory.Exists)
+                    {
                         file.Directory.Create();
+                    }
                 }
                 else
                 {
-                    var dir = new System.IO.DirectoryInfo(dirPath);
+                    var dir = new DirectoryInfo(dirPath);
                     if (!dir.Exists)
+                    {
                         dir.Create();
+                    }
 
                     var tries = 0;
                     while (tries++ < 30)
                     {
                         var ext = ".txt";
                         if (tries > 1)
+                        {
                             ext = "(" + tries + ")" + ext;
-                        filePath = System.IO.Path.Combine(dir.FullName, fileBase + ext);
-                        file     = new System.IO.FileInfo(filePath);
+                        }
+
+                        filePath = Path.Combine(dir.FullName, fileBase + ext);
+                        file = new FileInfo(filePath);
 
                         if (append || !file.Exists)
+                        {
                             break;
+                        }
                     }
                 }
 
                 if (!append && file.Exists)
+                {
                     throw new InvalidOperationException("File for crash log already exists!");
+                }
             }
 
-            Initialize(stackCount);
+            this.Initialize(stackCount);
 
             var handled = 0;
-            var args    = OnBeforeWrite.Raise(() => new CrashLogEventArgs() {Log = this, Output = Builder, Skip = false, Handled = handled > 0});
+            var args = OnBeforeWrite.Raise(() =>
+                new CrashLogEventArgs {Log = this, Output = this.Builder, Skip = false, Handled = handled > 0});
             if (args != null)
             {
                 handled = args.Handled ? 1 : -1;
                 if (args.Skip)
                 {
-                    Skipped = true;
+                    this.Skipped = true;
                     return handled;
                 }
             }
 
-            DoWrite(now, append);
+            this.DoWrite(now, append);
 
-            args = OnAfterWrite.Raise(() => new CrashLogEventArgs() {Log = this, Output = Builder, Skip = false, Handled = handled > 0});
+            args = OnAfterWrite.Raise(() =>
+                new CrashLogEventArgs {Log = this, Output = this.Builder, Skip = false, Handled = handled > 0});
             if (args != null)
             {
                 handled = args.Handled ? 1 : -1;
                 if (args.Skip)
                 {
-                    Skipped = true;
+                    this.Skipped = true;
                     return handled;
                 }
             }
 
             if (writeToFile && file != null)
-                using (var stream = append ? file.AppendText() : file.CreateText()) { stream.Write(Builder.ToString()); }
+            {
+                using (var stream = append ? file.AppendText() : file.CreateText())
+                {
+                    stream.Write(this.Builder.ToString());
+                }
+            }
 
             return handled;
         }
 
         /// <summary>
-        /// Does the write.
+        ///     Does the write.
         /// </summary>
         /// <param name="now"></param>
         /// <param name="append"></param>
@@ -259,44 +343,77 @@ namespace NetScriptFramework
         {
             if (this is NativeCrashLog)
             {
-                if (WriteInfo())
-                    WriteDelimiter(false);
-                if (WriteHeader(now))
-                    WriteDelimiter(false);
-                RememberedLocationForInterestingObjects = Builder.Length;
-                if (WriteCallStack())
-                    WriteDelimiter(false);
-                if (WriteRegisters())
-                    WriteDelimiter(false);
-                if (WriteFullStack())
-                    WriteDelimiter(false);
-                if (WriteModules())
-                    WriteDelimiter(false);
-                if (WritePlugins())
-                    WriteDelimiter(false);
-                WriteExtraInfo();
+                if (this.WriteInfo())
+                {
+                    this.WriteDelimiter(false);
+                }
+
+                if (this.WriteHeader(now))
+                {
+                    this.WriteDelimiter(false);
+                }
+
+                this.RememberedLocationForInterestingObjects = this.Builder.Length;
+                if (this.WriteCallStack())
+                {
+                    this.WriteDelimiter(false);
+                }
+
+                if (this.WriteRegisters())
+                {
+                    this.WriteDelimiter(false);
+                }
+
+                if (this.WriteFullStack())
+                {
+                    this.WriteDelimiter(false);
+                }
+
+                if (this.WriteModules())
+                {
+                    this.WriteDelimiter(false);
+                }
+
+                if (this.WritePlugins())
+                {
+                    this.WriteDelimiter(false);
+                }
+
+                this.WriteExtraInfo();
 
                 {
-                    var extraAdd = Builder.ToString().Substring(RememberedLocationForInterestingObjects, Builder.Length - RememberedLocationForInterestingObjects);
-                    Builder.Remove(RememberedLocationForInterestingObjects, Builder.Length - RememberedLocationForInterestingObjects);
-                    if (WriteInterestingObjects())
-                        WriteDelimiter(false);
-                    Builder.Append(extraAdd);
+                    var extraAdd = this.Builder.ToString().Substring(this.RememberedLocationForInterestingObjects,
+                        this.Builder.Length - this.RememberedLocationForInterestingObjects);
+                    this.Builder.Remove(this.RememberedLocationForInterestingObjects,
+                        this.Builder.Length - this.RememberedLocationForInterestingObjects);
+                    if (this.WriteInterestingObjects())
+                    {
+                        this.WriteDelimiter(false);
+                    }
+
+                    this.Builder.Append(extraAdd);
                 }
 
                 if (append)
-                    WriteDelimiter(true);
+                {
+                    this.WriteDelimiter(true);
+                }
             }
             else
             {
-                if (WriteInfo())
-                    WriteDelimiter(false);
-                if (WriteHeader(now))
-                    WriteDelimiter(false);
+                if (this.WriteInfo())
+                {
+                    this.WriteDelimiter(false);
+                }
 
-                var mc  = (ManagedCrashLog) this;
+                if (this.WriteHeader(now))
+                {
+                    this.WriteDelimiter(false);
+                }
+
+                var mc = (ManagedCrashLog)this;
                 var exs = new List<Exception>();
-                var e   = mc.OriginalException;
+                var e = mc.OriginalException;
                 while (e != null)
                 {
                     exs.Add(e);
@@ -310,328 +427,386 @@ namespace NetScriptFramework
                     mc.CurrentException = exs[i];
 
                     if (i > 0)
-                        WriteLine();
+                    {
+                        this.WriteLine();
+                    }
 
                     var header = i == exs.Count - 1 ? "Exception" : "Inner Exception";
                     header += " (" + mc.CurrentException.GetType().Name + "): ";
-                    var hlen = Math.Min(header.Length, PageWidth / 2);
-                    var spl  = ConfigEntry.Wrap(mc.CurrentException.Message, PageWidth - hlen, hlen);
-                    Write(header);
+                    var hlen = Math.Min(header.Length, this.PageWidth / 2);
+                    var spl = ConfigEntry.Wrap(mc.CurrentException.Message, this.PageWidth - hlen, hlen);
+                    this.Write(header);
                     foreach (var x in spl)
-                        WriteLine(x);
-
-                    BeginGroup(null);
                     {
-                        WriteCallStack();
+                        this.WriteLine(x);
                     }
-                    EndGroup();
+
+                    this.BeginGroup(null);
+                    {
+                        this.WriteCallStack();
+                    }
+                    this.EndGroup();
                 }
 
                 if (exs.Count != 0)
-                    WriteDelimiter(false);
+                {
+                    this.WriteDelimiter(false);
+                }
 
-                if (WriteModules())
-                    WriteDelimiter(false);
+                if (this.WriteModules())
+                {
+                    this.WriteDelimiter(false);
+                }
 
-                if (WritePlugins())
-                    WriteDelimiter(false);
+                if (this.WritePlugins())
+                {
+                    this.WriteDelimiter(false);
+                }
 
-                WriteExtraInfo();
+                this.WriteExtraInfo();
 
                 if (append)
-                    WriteDelimiter(true);
+                {
+                    this.WriteDelimiter(true);
+                }
             }
         }
 
         /// <summary>
-        /// Initializes this instance for log writing.
+        ///     Initializes this instance for log writing.
         /// </summary>
         /// <param name="stackCount">Stack pointer count.</param>
         protected internal virtual void Initialize(int stackCount)
         {
-            Culture    = System.Globalization.CultureInfo.InvariantCulture;
-            MainModule = System.Diagnostics.Process.GetCurrentProcess().MainModule;
-            Modules    = System.Diagnostics.Process.GetCurrentProcess().Modules;
+            this.Culture = CultureInfo.InvariantCulture;
+            this.MainModule = Process.GetCurrentProcess().MainModule;
+            this.Modules = Process.GetCurrentProcess().Modules;
         }
 
         /// <summary>
-        /// Writes the line of text to log.
+        ///     Writes the line of text to log.
         /// </summary>
         /// <param name="line">The line.</param>
         protected internal void WriteLine(string line = "")
         {
-            Write(line);
-            Builder.Append("\r\n");
-            IsNewLine = true;
+            this.Write(line);
+            this.Builder.Append("\r\n");
+            this.IsNewLine = true;
         }
 
         /// <summary>
-        /// Writes the specified text to log without a newline.
+        ///     Writes the specified text to log without a newline.
         /// </summary>
         /// <param name="text">The text.</param>
         protected internal void Write(string text)
         {
             if (string.IsNullOrEmpty(text))
+            {
                 return;
+            }
 
             text = text.Replace("\r\n", "\n").Replace("\r", "\n");
             if (!text.Contains('\n'))
             {
                 if (text.Length == 0)
-                    return;
-
-                if (IsNewLine)
                 {
-                    for (var i = 0; i < TabCount; i++)
-                        Builder.Append(TabCharacter);
-
-                    IsNewLine = false;
+                    return;
                 }
 
-                Builder.Append(text);
+                if (this.IsNewLine)
+                {
+                    for (var i = 0; i < this.TabCount; i++)
+                    {
+                        this.Builder.Append(this.TabCharacter);
+                    }
+
+                    this.IsNewLine = false;
+                }
+
+                this.Builder.Append(text);
                 return;
             }
 
             var spl = text.Split(new[] {'\n'}, StringSplitOptions.None);
             if (spl.Length == 0)
+            {
                 return;
+            }
 
             for (var i = 0; i < spl.Length - 1; i++)
-                WriteLine(spl[i]);
+            {
+                this.WriteLine(spl[i]);
+            }
 
             text = spl[spl.Length - 1];
-            Write(text);
+            this.Write(text);
         }
 
         /// <summary>
-        /// Gets the average maximum expected width of the line in log.
-        /// </summary>
-        /// <value>
-        /// The width of the page.
-        /// </value>
-        protected internal virtual int PageWidth => 140;
-
-        /// <summary>
-        /// Writes the delimiter to log.
+        ///     Writes the delimiter to log.
         /// </summary>
         /// <param name="file">if set to <c>true</c> then delimit with another log, otherwise delimit section.</param>
         protected internal virtual void WriteDelimiter(bool file)
         {
             if (file)
             {
-                WriteLine();
-                WriteLine(new string('=', PageWidth));
-                WriteLine();
+                this.WriteLine();
+                this.WriteLine(new string('=', this.PageWidth));
+                this.WriteLine();
             }
-            else { WriteLine(); }
+            else
+            {
+                this.WriteLine();
+            }
         }
 
         /// <summary>
-        /// Writes the information line of crash. This is the same line that goes to main log.
+        ///     Writes the information line of crash. This is the same line that goes to main log.
         /// </summary>
         /// <returns></returns>
         protected internal abstract bool WriteInfo();
 
         /// <summary>
-        /// Writes the header information.
+        ///     Writes the header information.
         /// </summary>
         /// <param name="now">Time of crash.</param>
         /// <returns></returns>
         protected internal virtual bool WriteHeader(DateTime now)
         {
-            WriteLine("FrameworkName: "         + Main.FrameworkName);
-            WriteLine("FrameworkVersion: "      + Main.FrameworkVersion);
-            WriteLine("FrameworkArchitecture: " + (Main.Is64Bit ? "x64" : "x32"));
-            WriteLine("GameLibrary: "           + (Main.Game != null ? Main.Game.ShortName : "(null)"));
-            WriteLine("GameLibraryVersion: "    + (Main.Game != null ? Main.Game.LibraryVersion.ToString(Culture) : "-1"));
+            this.WriteLine("FrameworkName: " + Main.FrameworkName);
+            this.WriteLine("FrameworkVersion: " + Main.FrameworkVersion);
+            this.WriteLine("FrameworkArchitecture: " + (Main.Is64Bit ? "x64" : "x32"));
+            this.WriteLine("GameLibrary: " + (Main.Game != null ? Main.Game.ShortName : "(null)"));
+            this.WriteLine("GameLibraryVersion: " +
+                           (Main.Game != null ? Main.Game.LibraryVersion.ToString(this.Culture) : "-1"));
             {
-                WriteLine("ApplicationName: " + System.IO.Path.GetFileName(MainModule.FileName));
+                this.WriteLine("ApplicationName: " + Path.GetFileName(this.MainModule.FileName));
                 var appVer = Memory.GetMainModuleVersion();
-                WriteLine("ApplicationVersion: " + appVer[0].ToString(Culture) + "." + appVer[1].ToString(Culture) + "." + appVer[2].ToString(Culture) + "." +
-                          appVer[3].ToString(Culture));
+                this.WriteLine("ApplicationVersion: " + appVer[0].ToString(this.Culture) + "." +
+                               appVer[1].ToString(this.Culture) + "." + appVer[2].ToString(this.Culture) + "." +
+                               appVer[3].ToString(this.Culture));
             }
             {
                 if (Main.GameInfo != null)
-                    WriteLine("VersionInfo: Successfully loaded");
+                {
+                    this.WriteLine("VersionInfo: Successfully loaded");
+                }
                 else if (!string.IsNullOrEmpty(Main.VersionLibraryError))
-                    WriteLine("VersionInfo: " + Main.VersionLibraryError);
+                {
+                    this.WriteLine("VersionInfo: " + Main.VersionLibraryError);
+                }
                 else
-                    WriteLine("VersionInfo: Unknown error (possibly not loaded at this stage of initialization)");
+                {
+                    this.WriteLine("VersionInfo: Unknown error (possibly not loaded at this stage of initialization)");
+                }
             }
-            WriteLine("Time: " + DateTimeStringConverter.ToLogTimestampString(now));
+            this.WriteLine("Time: " + now.ToLogTimestampString());
             return true;
         }
 
         /// <summary>
-        /// Writes the call stack.
+        ///     Writes the call stack.
         /// </summary>
         /// <returns></returns>
         protected internal abstract bool WriteCallStack();
 
         /// <summary>
-        /// Writes the interesting objects.
+        ///     Writes the interesting objects.
         /// </summary>
         /// <returns></returns>
-        protected internal virtual bool WriteInterestingObjects() { return false; }
+        protected internal virtual bool WriteInterestingObjects() => false;
 
         /// <summary>
-        /// Writes the registers. This is only valid for native exception.
+        ///     Writes the registers. This is only valid for native exception.
         /// </summary>
         /// <returns></returns>
-        protected internal virtual bool WriteRegisters() { throw new NotImplementedException(); }
+        protected internal virtual bool WriteRegisters() => throw new NotImplementedException();
 
         /// <summary>
-        /// Writes the full stack. This is only valid for native exception.
+        ///     Writes the full stack. This is only valid for native exception.
         /// </summary>
         /// <returns></returns>
-        protected internal virtual bool WriteFullStack() { throw new NotImplementedException(); }
+        protected internal virtual bool WriteFullStack() => throw new NotImplementedException();
 
         /// <summary>
-        /// Writes the modules list.
+        ///     Writes the modules list.
         /// </summary>
         /// <returns></returns>
         protected internal virtual bool WriteModules()
         {
-            var vl  = Main.Config.GetValue(Main._Config_Debug_CrashLog_Modules);
+            var vl = Main.Config.GetValue(Main._Config_Debug_CrashLog_Modules);
             var inc = true;
             if (vl != null && vl.TryToBoolean(out inc) && !inc)
-                return false;
-
-            BeginGroup("Modules");
             {
-                for (var i = 0; i < Modules.Count; i++)
+                return false;
+            }
+
+            this.BeginGroup("Modules");
+            {
+                for (var i = 0; i < this.Modules.Count; i++)
                 {
-                    var m = Modules[i];
+                    var m = this.Modules[i];
 
                     var mn = m.ModuleName ?? "UnknownModule";
                     mn += ":";
                     if (mn.Length < 50)
+                    {
                         mn += new string(' ', 50 - mn.Length);
+                    }
 
-                    Write(mn);
-                    WriteLine(m.BaseAddress.ToHexString());
+                    this.Write(mn);
+                    this.WriteLine(m.BaseAddress.ToHexString());
                 }
             }
-            EndGroup();
+            this.EndGroup();
             return true;
         }
 
         /// <summary>
-        /// Writes the plugins list.
+        ///     Writes the plugins list.
         /// </summary>
         /// <returns></returns>
         protected internal virtual bool WritePlugins()
         {
             var plugins = PluginManager.GetPlugins();
 
-            BeginGroup("Plugins (" + plugins.Count + ")");
+            this.BeginGroup("Plugins (" + plugins.Count + ")");
             {
                 for (var i = 0; i < plugins.Count; i++)
                 {
                     if (i > 0)
-                        WriteLine();
+                    {
+                        this.WriteLine();
+                    }
 
                     var p = plugins[i];
-                    BeginGroup(p.InternalKey);
+                    this.BeginGroup(p.InternalKey);
                     {
-                        Write("Name: ");
+                        this.Write("Name: ");
                         var n = p.InternalName;
                         if (n == null)
+                        {
                             n = "(null)";
+                        }
                         else
+                        {
                             n = "\"" + n + "\"";
-                        WriteLine(n);
+                        }
 
-                        Write("Version: ");
-                        WriteLine(p.InternalVersion.ToString(Culture));
+                        this.WriteLine(n);
+
+                        this.Write("Version: ");
+                        this.WriteLine(p.InternalVersion.ToString(this.Culture));
 
                         n = p.Author;
                         if (n != "Unknown" && !string.IsNullOrEmpty(n))
-                            WriteLine("Author: \"" + n + "\"");
+                        {
+                            this.WriteLine("Author: \"" + n + "\"");
+                        }
 
                         n = p.Website;
                         if (!string.IsNullOrEmpty(n))
-                            WriteLine("Website: \"" + n + "\"");
+                        {
+                            this.WriteLine("Website: \"" + n + "\"");
+                        }
 
-                        Write("Assembly: ");
-                        WriteLine(p.Assembly.ToString());
+                        this.Write("Assembly: ");
+                        this.WriteLine(p.Assembly.ToString());
                     }
-                    EndGroup();
+                    this.EndGroup();
                 }
             }
-            EndGroup();
+            this.EndGroup();
             return true;
         }
 
         /// <summary>
-        /// Writes extra information.
+        ///     Writes extra information.
         /// </summary>
         /// <returns></returns>
         protected internal virtual bool WriteExtraInfo()
         {
-            BeginGroup("Extra");
+            this.BeginGroup("Extra");
             {
                 var count = 0;
                 var hooks = new List<HookInfo>();
                 Memory.GetInProgressHooks(hooks, ref count);
 
-                BeginGroup("Currently executing hooks (" + count + ")");
+                this.BeginGroup("Currently executing hooks (" + count + ")");
                 {
                     for (var i = hooks.Count - 1; i >= 0; i--)
                     {
                         var hk = hooks[i];
-                        BeginGroup(GetAddressInModule(hk.Address, Modules, ""));
+                        this.BeginGroup(GetAddressInModule(hk.Address, this.Modules, ""));
                         {
-                            Write("Installed from assembly: ");
+                            this.Write("Installed from assembly: ");
                             if (hk.Assembly == null)
-                                WriteLine("(null)");
+                            {
+                                this.WriteLine("(null)");
+                            }
                             else
-                                WriteLine(hk.Assembly.ToString());
+                            {
+                                this.WriteLine(hk.Assembly.ToString());
+                            }
 
-                            Write("Installed from plugin: ");
+                            this.Write("Installed from plugin: ");
                             if (hk.Plugin == null)
-                                WriteLine("(null)");
+                            {
+                                this.WriteLine("(null)");
+                            }
                             else
-                                WriteLine(hk.Plugin.GetInternalString());
+                            {
+                                this.WriteLine(hk.Plugin.GetInternalString());
+                            }
 
-                            Write("Length: ");
-                            WriteLine(hk.Length.ToString(Culture));
+                            this.Write("Length: ");
+                            this.WriteLine(hk.Length.ToString(this.Culture));
 
-                            Write("Before: ");
+                            this.Write("Before: ");
                             if (hk.Before == null || hk.Before.Method == null)
-                                WriteLine("(null)");
+                            {
+                                this.WriteLine("(null)");
+                            }
                             else
-                                WriteLine(hk.Before.Method.ToString());
+                            {
+                                this.WriteLine(hk.Before.Method.ToString());
+                            }
 
-                            Write("After: ");
+                            this.Write("After: ");
                             if (hk.After == null || hk.After.Method == null)
-                                WriteLine("(null)");
+                            {
+                                this.WriteLine("(null)");
+                            }
                             else
-                                WriteLine(hk.After.Method.ToString());
+                            {
+                                this.WriteLine(hk.After.Method.ToString());
+                            }
                         }
-                        EndGroup();
+                        this.EndGroup();
                     }
                 }
-                EndGroup();
+                this.EndGroup();
             }
-            EndGroup();
+            this.EndGroup();
             return true;
         }
 
         /// <summary>
-        /// Gets the address in module.
+        ///     Gets the address in module.
         /// </summary>
         /// <param name="addr">The address.</param>
         /// <param name="modules">The modules.</param>
         /// <param name="prefix">Add this prefix if found.</param>
         /// <returns></returns>
-        public static string GetAddressInModule(IntPtr addr, System.Diagnostics.ProcessModuleCollection modules, string prefix)
+        public static string GetAddressInModule(IntPtr addr, ProcessModuleCollection modules, string prefix)
         {
-            System.Diagnostics.ProcessModule m      = null;
-            var                              offset = 0;
+            ProcessModule m = null;
+            var offset = 0;
 
             if (!TryGetCodeOffset(addr, modules, ref offset, ref m))
+            {
                 return string.Empty;
+            }
 
             var str = new StringBuilder();
             str.Append(prefix);
@@ -644,14 +819,15 @@ namespace NetScriptFramework
         }
 
         /// <summary>
-        /// Tries the get module where address is in.
+        ///     Tries the get module where address is in.
         /// </summary>
         /// <param name="addr">The address.</param>
         /// <param name="modules">The modules collection.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="module">The module.</param>
         /// <returns></returns>
-        private static bool TryGetCodeOffset(IntPtr addr, System.Diagnostics.ProcessModuleCollection modules, ref int offset, ref System.Diagnostics.ProcessModule module)
+        private static bool TryGetCodeOffset(IntPtr addr, ProcessModuleCollection modules, ref int offset,
+            ref ProcessModule module)
         {
             var a = addr.ToUInt64();
             for (var i = 0; i < modules.Count; i++)
@@ -659,211 +835,182 @@ namespace NetScriptFramework
                 var m = modules[i];
 
                 var min = m.BaseAddress.ToUInt64();
-                var max = min + (uint) m.ModuleMemorySize;
+                var max = min + (uint)m.ModuleMemorySize;
 
                 if (a < min || a >= max)
+                {
                     continue;
+                }
 
-                offset = (int) (a - min);
+                offset = (int)(a - min);
                 module = m;
                 return true;
             }
 
             return false;
         }
-
-        /// <summary>
-        /// Parse an argument from this object.
-        /// </summary>
-        /// <param name="key">Keyword for argument.</param>
-        /// <param name="message">Message to parse for.</param>
-        /// <param name="parser">Parser that is currently processing message.</param>
-        /// <returns></returns>
-        public virtual IArgument ParseArgument(string key, Message message, Parser parser) { return null; }
-
-        /// <summary>
-        /// Parse a variable from this object.
-        /// </summary>
-        /// <param name="key">Keyword for variable.</param>
-        /// <param name="message">Message to parse for.</param>
-        /// <param name="parser">Parser that is currently processing message.</param>
-        /// <returns></returns>
-        public virtual string ParseVariable(string key, Message message, Parser parser)
-        {
-            if (key.Equals("IsSkipped", StringComparison.OrdinalIgnoreCase))
-                return Skipped ? "1" : "0";
-
-            return null;
-        }
-
-        /// <summary>
-        /// Parse a function from this object.
-        /// </summary>
-        /// <param name="key">Keyword for function.</param>
-        /// <param name="args">Arguments for function.</param>
-        /// <param name="message">Message to parse for.</param>
-        /// <param name="parser">Parser that is currently processing message.</param>
-        /// <returns></returns>
-        public virtual string ParseFunction(string key, string[] args, Message message, Parser parser) { return null; }
     }
 
     /// <summary>
-    /// This is used to generate a crash log.
+    ///     This is used to generate a crash log.
     /// </summary>
     public sealed class NativeCrashLog : CrashLog
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="NativeCrashLog"/> class.
+        ///     The normal registers.
         /// </summary>
-        /// <param name="ctx">The context of thread that crashed.</param>
-        internal NativeCrashLog(CPURegisters ctx) : base() { Context = ctx; }
+        private static readonly Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>[] NormalRegisters =
+        {
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rax", "eax", "ax", "al",
+                cpu => cpu.AX),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rbx", "ebx", "bx", "bl",
+                cpu => cpu.BX),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rcx", "ecx", "cx", "cl",
+                cpu => cpu.CX),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rdx", "edx", "dx", "dl",
+                cpu => cpu.DX),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rbp", "ebp", "bp", "bpl",
+                cpu => cpu.BP),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rdi", "edi", "di", "dil",
+                cpu => cpu.DI),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rsi", "esi", "si", "sil",
+                cpu => cpu.SI),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rsp", "esp", "sp", "spl",
+                cpu => cpu.SP),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rip", "", "", "", cpu => cpu.IP),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r8", "r8d", "r8w", "r8b",
+                cpu => cpu.R8),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r9", "r9d", "r9w", "r9b",
+                cpu => cpu.R9),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r10", "r10d", "r10w", "r10b",
+                cpu => cpu.R10),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r11", "r11d", "r11w", "r11b",
+                cpu => cpu.R11),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r12", "r12d", "r12w", "r12b",
+                cpu => cpu.R12),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r13", "r13d", "r13w", "r13b",
+                cpu => cpu.R13),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r14", "r14d", "r14w", "r14b",
+                cpu => cpu.R14),
+            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r15", "r15d", "r15w", "r15b",
+                cpu => cpu.R15)
+        };
 
         /// <summary>
-        /// The context of thread that crashed.
+        ///     The fpu registers.
+        /// </summary>
+        private static readonly Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>[]
+            FPURegisters =
+            {
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm0", "xmm0f",
+                    cpu => cpu.XMM0, cpu => cpu.XMM0f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm1", "xmm1f",
+                    cpu => cpu.XMM1, cpu => cpu.XMM1f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm2", "xmm2f",
+                    cpu => cpu.XMM2, cpu => cpu.XMM2f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm3", "xmm3f",
+                    cpu => cpu.XMM3, cpu => cpu.XMM3f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm4", "xmm4f",
+                    cpu => cpu.XMM4, cpu => cpu.XMM4f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm5", "xmm5f",
+                    cpu => cpu.XMM5, cpu => cpu.XMM5f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm6", "xmm6f",
+                    cpu => cpu.XMM6, cpu => cpu.XMM6f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm7", "xmm7f",
+                    cpu => cpu.XMM7, cpu => cpu.XMM7f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm8", "xmm8f",
+                    cpu => cpu.XMM8, cpu => cpu.XMM8f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm9", "xmm9f",
+                    cpu => cpu.XMM9, cpu => cpu.XMM9f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm10", "xmm10f",
+                    cpu => cpu.XMM10, cpu => cpu.XMM10f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm11", "xmm11f",
+                    cpu => cpu.XMM11, cpu => cpu.XMM11f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm12", "xmm12f",
+                    cpu => cpu.XMM12, cpu => cpu.XMM12f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm13", "xmm13f",
+                    cpu => cpu.XMM13, cpu => cpu.XMM13f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm14", "xmm14f",
+                    cpu => cpu.XMM14, cpu => cpu.XMM14f),
+                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm15", "xmm15f",
+                    cpu => cpu.XMM15, cpu => cpu.XMM15f)
+            };
+
+        /// <summary>
+        ///     The label size.
+        /// </summary>
+        private static readonly int LabelSize = 10;
+
+        /// <summary>
+        ///     The context of thread that crashed.
         /// </summary>
         public readonly CPURegisters Context;
 
         /// <summary>
-        /// The full stack.
+        ///     Initializes a new instance of the <see cref="NativeCrashLog" /> class.
+        /// </summary>
+        /// <param name="ctx">The context of thread that crashed.</param>
+        internal NativeCrashLog(CPURegisters ctx) => this.Context = ctx;
+
+        /// <summary>
+        ///     The full stack.
         /// </summary>
         public IReadOnlyList<IntPtr> FullStack { get; private set; }
 
         /// <summary>
-        /// The call stack.
+        ///     The call stack.
         /// </summary>
         public IReadOnlyList<IntPtr> CallStack { get; private set; }
 
         /// <summary>
-        /// Gets the interesting objects.
+        ///     Gets the interesting objects.
         /// </summary>
         /// <value>
-        /// The interesting objects.
+        ///     The interesting objects.
         /// </value>
         internal InterestingCrashLogObjects InterestingObjects { get; private set; }
-
-        private sealed class ModuleEntry : IArgument
-        {
-            internal ModuleEntry() { IsBad = true; }
-
-            internal ModuleEntry(IntPtr address) { Address = address; }
-
-            private readonly bool   IsBad;
-            private readonly IntPtr Address;
-
-            public IArgument ParseArgument(string key, Message message, Parser parser) { throw new NotImplementedException(); }
-
-            public string ParseVariable(string key, Message message, Parser parser) { throw new NotImplementedException(); }
-
-            public string ParseFunction(string key, string[] args, Message message, Parser parser) { throw new NotImplementedException(); }
-        }
-
-        private sealed class CallStackEntry : IArgument
-        {
-            internal CallStackEntry() { IsBad = true; }
-
-            internal CallStackEntry(IntPtr address)
-            {
-                Address = address;
-                IsBad   = false;
-            }
-
-            private readonly bool   IsBad;
-            private readonly IntPtr Address;
-
-            public IArgument ParseArgument(string key, Message message, Parser parser)
-            {
-                key = key.ToLowerInvariant();
-                switch (key)
-                {
-                    case "module": return new ModuleEntry(Address);
-                }
-
-                return null;
-            }
-
-            public string ParseVariable(string key, Message message, Parser parser)
-            {
-                key = key.ToLowerInvariant();
-                switch (key)
-                {
-                    case "vid":
-                    {
-                        var fn = Main.GameInfo.GetFunctionInfo(Address, true);
-                        if (fn != null)
-                            return fn.Id.ToString();
-                        return "0";
-                    }
-
-                    case "offset":
-                    {
-                        var a = Address.ToUInt64();
-                        if (a >= Main.GameInfo.BaseOffset)
-                        {
-                            var totalOffset = a - Main.GameInfo.BaseOffset;
-                            var fn          = Main.GameInfo.GetFunctionInfo(Address, true);
-                            if (fn != null && totalOffset >= fn.Begin)
-                            {
-                                var fnOffset = totalOffset - fn.Begin;
-                                return "0x" + fnOffset.ToString("X");
-                            }
-                        }
-
-                        //TODO(); // module offset
-                        throw new NotImplementedException();
-                    }
-                }
-
-                return null;
-            }
-
-            public string ParseFunction(string key, string[] args, Message message, Parser parser) { return null; }
-        }
-
-        private sealed class StackEntry : IArgument
-        {
-            internal StackEntry() { IsBad = true; }
-
-            internal StackEntry(IntPtr value) { Value = value; }
-
-            private readonly bool   IsBad;
-            private readonly IntPtr Value;
-
-            public IArgument ParseArgument(string key, Message message, Parser parser) { throw new NotImplementedException(); }
-
-            public string ParseVariable(string key, Message message, Parser parser) { throw new NotImplementedException(); }
-
-            public string ParseFunction(string key, string[] args, Message message, Parser parser) { throw new NotImplementedException(); }
-        }
 
         private CallStackEntry GetCallStackEntryForMessage(int index)
         {
             if (index < 0)
+            {
                 return new CallStackEntry();
+            }
 
             if (index == 0)
-                return new CallStackEntry(Context.IP);
+            {
+                return new CallStackEntry(this.Context.IP);
+            }
 
             index--;
-            if (index >= CallStack.Count)
+            if (index >= this.CallStack.Count)
+            {
                 return new CallStackEntry();
-            return new CallStackEntry(CallStack[index]);
+            }
+
+            return new CallStackEntry(this.CallStack[index]);
         }
 
         private StackEntry GetStackEntryForMessage(int index)
         {
             var ptrSize = Main.Is64Bit ? 8 : 4;
             if (index < 0 || index % ptrSize != 0)
+            {
                 return new StackEntry();
+            }
 
             index /= ptrSize;
 
-            if (index >= FullStack.Count)
+            if (index >= this.FullStack.Count)
+            {
                 return new StackEntry();
-            return new StackEntry(FullStack[index]);
+            }
+
+            return new StackEntry(this.FullStack[index]);
         }
 
         /// <summary>
-        /// Parse an argument from this object.
+        ///     Parse an argument from this object.
         /// </summary>
         /// <param name="key">Keyword for argument.</param>
         /// <param name="message">Message to parse for.</param>
@@ -876,10 +1023,12 @@ namespace NetScriptFramework
                 var str = key.Substring(9).Trim();
                 if (str.Length != 0)
                 {
-                    Value vl    = null;
-                    var   value = 0;
+                    Value vl = null;
+                    var value = 0;
                     if (Value.TryParse(str, TypeCode.Int32, out vl) && vl.TryToInt32(out value))
-                        return GetCallStackEntryForMessage(value);
+                    {
+                        return this.GetCallStackEntryForMessage(value);
+                    }
                 }
 
                 return new CallStackEntry();
@@ -890,72 +1039,27 @@ namespace NetScriptFramework
                 var str = key.Substring(5).Trim();
                 if (str.Length != 0)
                 {
-                    Value vl    = null;
-                    var   value = 0;
+                    Value vl = null;
+                    var value = 0;
                     if (Value.TryParse(str, TypeCode.Int32, out vl) && vl.TryToInt32(out value))
-                        return GetStackEntryForMessage(value);
+                    {
+                        return this.GetStackEntryForMessage(value);
+                    }
                 }
 
                 return new StackEntry();
             }
 
             if (key.Equals("ip", StringComparison.OrdinalIgnoreCase))
-                return new CallStackEntry(Context.IP);
+            {
+                return new CallStackEntry(this.Context.IP);
+            }
 
             return base.ParseArgument(key, message, parser);
         }
 
         /// <summary>
-        /// The normal registers.
-        /// </summary>
-        private static readonly Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>[] NormalRegisters =
-            new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>[]
-            {
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rax", "eax", "ax", "al", cpu => cpu.AX),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rbx", "ebx", "bx", "bl", cpu => cpu.BX),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rcx", "ecx", "cx", "cl", cpu => cpu.CX),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rdx", "edx", "dx", "dl", cpu => cpu.DX),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rbp", "ebp", "bp", "bpl", cpu => cpu.BP),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rdi", "edi", "di", "dil", cpu => cpu.DI),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rsi", "esi", "si", "sil", cpu => cpu.SI),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rsp", "esp", "sp", "spl", cpu => cpu.SP),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("rip", "", "", "", cpu => cpu.IP),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r8", "r8d", "r8w", "r8b", cpu => cpu.R8),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r9", "r9d", "r9w", "r9b", cpu => cpu.R9),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r10", "r10d", "r10w", "r10b", cpu => cpu.R10),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r11", "r11d", "r11w", "r11b", cpu => cpu.R11),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r12", "r12d", "r12w", "r12b", cpu => cpu.R12),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r13", "r13d", "r13w", "r13b", cpu => cpu.R13),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r14", "r14d", "r14w", "r14b", cpu => cpu.R14),
-                new Tuple<string, string, string, string, Func<CPURegisters, IntPtr>>("r15", "r15d", "r15w", "r15b", cpu => cpu.R15)
-            };
-
-        /// <summary>
-        /// The fpu registers.
-        /// </summary>
-        private static readonly Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>[] FPURegisters =
-            new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>[]
-            {
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm0", "xmm0f", cpu => cpu.XMM0, cpu => cpu.XMM0f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm1", "xmm1f", cpu => cpu.XMM1, cpu => cpu.XMM1f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm2", "xmm2f", cpu => cpu.XMM2, cpu => cpu.XMM2f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm3", "xmm3f", cpu => cpu.XMM3, cpu => cpu.XMM3f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm4", "xmm4f", cpu => cpu.XMM4, cpu => cpu.XMM4f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm5", "xmm5f", cpu => cpu.XMM5, cpu => cpu.XMM5f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm6", "xmm6f", cpu => cpu.XMM6, cpu => cpu.XMM6f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm7", "xmm7f", cpu => cpu.XMM7, cpu => cpu.XMM7f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm8", "xmm8f", cpu => cpu.XMM8, cpu => cpu.XMM8f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm9", "xmm9f", cpu => cpu.XMM9, cpu => cpu.XMM9f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm10", "xmm10f", cpu => cpu.XMM10, cpu => cpu.XMM10f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm11", "xmm11f", cpu => cpu.XMM11, cpu => cpu.XMM11f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm12", "xmm12f", cpu => cpu.XMM12, cpu => cpu.XMM12f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm13", "xmm13f", cpu => cpu.XMM13, cpu => cpu.XMM13f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm14", "xmm14f", cpu => cpu.XMM14, cpu => cpu.XMM14f),
-                new Tuple<string, string, Func<CPURegisters, double>, Func<CPURegisters, float>>("xmm15", "xmm15f", cpu => cpu.XMM15, cpu => cpu.XMM15f)
-            };
-
-        /// <summary>
-        /// Parse a variable from this object.
+        ///     Parse a variable from this object.
         /// </summary>
         /// <param name="key">Keyword for variable.</param>
         /// <param name="message">Message to parse for.</param>
@@ -973,8 +1077,8 @@ namespace NetScriptFramework
                 }
 
                 {
-                    var    arr = NormalRegisters;
-                    var    len = arr.Length;
+                    var arr = NormalRegisters;
+                    var len = arr.Length;
                     ulong? val = null;
                     for (var i = 0; i < len; i++)
                     {
@@ -982,36 +1086,38 @@ namespace NetScriptFramework
 
                         if (key == t.Item1)
                         {
-                            val = t.Item5(Context).ToUInt64();
+                            val = t.Item5(this.Context).ToUInt64();
                             break;
                         }
 
                         if (key == t.Item2)
                         {
-                            val = t.Item5(Context).ToUInt32();
+                            val = t.Item5(this.Context).ToUInt32();
                             break;
                         }
 
                         if (key == t.Item3)
                         {
-                            val = t.Item5(Context).ToUInt16();
+                            val = t.Item5(this.Context).ToUInt16();
                             break;
                         }
 
                         if (key == t.Item4)
                         {
-                            val = t.Item5(Context).ToUInt8();
+                            val = t.Item5(this.Context).ToUInt8();
                             break;
                         }
                     }
 
                     if (val.HasValue)
+                    {
                         return "0x" + val.Value.ToString("X");
+                    }
                 }
 
                 {
-                    var     arr = FPURegisters;
-                    var     len = arr.Length;
+                    var arr = FPURegisters;
+                    var len = arr.Length;
                     double? val = null;
                     for (var i = 0; i < len; i++)
                     {
@@ -1019,19 +1125,21 @@ namespace NetScriptFramework
 
                         if (key == t.Item1)
                         {
-                            val = t.Item3(Context);
+                            val = t.Item3(this.Context);
                             break;
                         }
 
                         if (key == t.Item2)
                         {
-                            val = t.Item4(Context);
+                            val = t.Item4(this.Context);
                             break;
                         }
                     }
 
                     if (val.HasValue)
-                        return val.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    {
+                        return val.Value.ToString(CultureInfo.InvariantCulture);
+                    }
                 }
             }
 
@@ -1039,17 +1147,18 @@ namespace NetScriptFramework
         }
 
         /// <summary>
-        /// Parse a function from this object.
+        ///     Parse a function from this object.
         /// </summary>
         /// <param name="key">Keyword for function.</param>
         /// <param name="args">Arguments for function.</param>
         /// <param name="message">Message to parse for.</param>
         /// <param name="parser">Parser that is currently processing message.</param>
         /// <returns></returns>
-        public override string ParseFunction(string key, string[] args, Message message, Parser parser) { return base.ParseFunction(key, args, message, parser); }
+        public override string ParseFunction(string key, string[] args, Message message, Parser parser) =>
+            base.ParseFunction(key, args, message, parser);
 
         /// <summary>
-        /// Initializes this instance for log writing.
+        ///     Initializes this instance for log writing.
         /// </summary>
         /// <param name="stackCount">Stack pointer count.</param>
         protected internal override void Initialize(int stackCount)
@@ -1057,68 +1166,72 @@ namespace NetScriptFramework
             base.Initialize(stackCount);
 
             // Prepare stack and call stack for writing.
-            InterestingObjects = new InterestingCrashLogObjects();
-            FullStack          = GetStack(Context.SP, stackCount);
-            var cs = FullStack.ToList();
-            CallStack = cs;
+            this.InterestingObjects = new InterestingCrashLogObjects();
+            this.FullStack = GetStack(this.Context.SP, stackCount);
+            var cs = this.FullStack.ToList();
+            this.CallStack = cs;
             FilterCallStack(cs);
         }
 
         /// <summary>
-        /// Writes the information line of crash. This is the same line that goes to main log.
+        ///     Writes the information line of crash. This is the same line that goes to main log.
         /// </summary>
         /// <returns></returns>
         protected internal override bool WriteInfo()
         {
-            WriteLine("Unhandled native exception occurred at " + Context.IP.ToHexString() + GetAddressInModule(Context.IP, Modules, " ") + " on thread " +
-                      Memory.GetCurrentNativeThreadId()         + "!");
+            this.WriteLine("Unhandled native exception occurred at " + this.Context.IP.ToHexString() +
+                           GetAddressInModule(this.Context.IP, this.Modules, " ") + " on thread " +
+                           Memory.GetCurrentNativeThreadId() + "!");
             return true;
         }
 
         /// <summary>
-        /// Writes the call stack.
+        ///     Writes the call stack.
         /// </summary>
         /// <returns></returns>
         protected internal override bool WriteCallStack()
         {
-            BeginGroup("Probable callstack");
-            WriteAddressCallStack("[0]", Context.IP);
-            for (var i = 0; i < CallStack.Count; i++)
-                WriteAddressCallStack("[" + (i + 1).ToString() + "]", CallStack[i]);
-            EndGroup();
+            this.BeginGroup("Probable callstack");
+            this.WriteAddressCallStack("[0]", this.Context.IP);
+            for (var i = 0; i < this.CallStack.Count; i++)
+            {
+                this.WriteAddressCallStack("[" + (i + 1) + "]", this.CallStack[i]);
+            }
+
+            this.EndGroup();
             return true;
         }
 
         /// <summary>
-        /// Writes the registers. This is only valid for native exception.
+        ///     Writes the registers. This is only valid for native exception.
         /// </summary>
         /// <returns></returns>
         protected internal override bool WriteRegisters()
         {
-            BeginGroup("Registers");
+            this.BeginGroup("Registers");
             {
-                WriteAddress("AX:", Context.AX, true, InterestingObjects, 0);
-                WriteAddress("BX:", Context.BX, true, InterestingObjects, 1);
-                WriteAddress("CX:", Context.CX, true, InterestingObjects, 0);
-                WriteAddress("DX:", Context.DX, true, InterestingObjects, 0);
-                WriteAddress("SI:", Context.SI, true, InterestingObjects, 1);
-                WriteAddress("DI:", Context.DI, true, InterestingObjects, 1);
-                WriteAddress("BP:", Context.BP, true, InterestingObjects, 1);
-                WriteAddress("SP:", Context.SP, true, null, -1);
-                WriteAddress("IP:", Context.IP, true, null, -1);
+                this.WriteAddress("AX:", this.Context.AX, true, this.InterestingObjects, 0);
+                this.WriteAddress("BX:", this.Context.BX, true, this.InterestingObjects, 1);
+                this.WriteAddress("CX:", this.Context.CX, true, this.InterestingObjects, 0);
+                this.WriteAddress("DX:", this.Context.DX, true, this.InterestingObjects, 0);
+                this.WriteAddress("SI:", this.Context.SI, true, this.InterestingObjects, 1);
+                this.WriteAddress("DI:", this.Context.DI, true, this.InterestingObjects, 1);
+                this.WriteAddress("BP:", this.Context.BP, true, this.InterestingObjects, 1);
+                this.WriteAddress("SP:", this.Context.SP, true, null, -1);
+                this.WriteAddress("IP:", this.Context.IP, true, null, -1);
                 if (Main.Is64Bit)
                 {
-                    WriteAddress("R8:", Context.R8, true, InterestingObjects, 0);
-                    WriteAddress("R9:", Context.R9, true, InterestingObjects, 0);
-                    WriteAddress("R10:", Context.R10, true, InterestingObjects, 1);
-                    WriteAddress("R11:", Context.R11, true, InterestingObjects, 1);
-                    WriteAddress("R12:", Context.R12, true, InterestingObjects, 1);
-                    WriteAddress("R13:", Context.R13, true, InterestingObjects, 1);
-                    WriteAddress("R14:", Context.R14, true, InterestingObjects, 1);
-                    WriteAddress("R15:", Context.R15, true, InterestingObjects, 1);
+                    this.WriteAddress("R8:", this.Context.R8, true, this.InterestingObjects, 0);
+                    this.WriteAddress("R9:", this.Context.R9, true, this.InterestingObjects, 0);
+                    this.WriteAddress("R10:", this.Context.R10, true, this.InterestingObjects, 1);
+                    this.WriteAddress("R11:", this.Context.R11, true, this.InterestingObjects, 1);
+                    this.WriteAddress("R12:", this.Context.R12, true, this.InterestingObjects, 1);
+                    this.WriteAddress("R13:", this.Context.R13, true, this.InterestingObjects, 1);
+                    this.WriteAddress("R14:", this.Context.R14, true, this.InterestingObjects, 1);
+                    this.WriteAddress("R15:", this.Context.R15, true, this.InterestingObjects, 1);
                 }
 
-                WriteAddress("Flags:", Context.FLAGS, false, null, -1);
+                this.WriteAddress("Flags:", this.Context.FLAGS, false, null, -1);
                 // ST can't be printed because they are not in exception record info struct.
                 /*int stc = this.Context.STCount;
                 for(int i = 0; i < stc && i < 8; i++)
@@ -1138,113 +1251,154 @@ namespace NetScriptFramework
                     }
                     stream.WriteLine(string.Format(fmt, st));
                 }*/
-                WriteText("XMM0:", "(double)" + Context.XMM0.ToString(Culture) + " / (float)" + Context.XMM0f.ToString(Culture));
-                WriteText("XMM1:", "(double)" + Context.XMM1.ToString(Culture) + " / (float)" + Context.XMM1f.ToString(Culture));
-                WriteText("XMM2:", "(double)" + Context.XMM2.ToString(Culture) + " / (float)" + Context.XMM2f.ToString(Culture));
-                WriteText("XMM3:", "(double)" + Context.XMM3.ToString(Culture) + " / (float)" + Context.XMM3f.ToString(Culture));
-                WriteText("XMM4:", "(double)" + Context.XMM4.ToString(Culture) + " / (float)" + Context.XMM4f.ToString(Culture));
-                WriteText("XMM5:", "(double)" + Context.XMM5.ToString(Culture) + " / (float)" + Context.XMM5f.ToString(Culture));
-                WriteText("XMM6:", "(double)" + Context.XMM6.ToString(Culture) + " / (float)" + Context.XMM6f.ToString(Culture));
-                WriteText("XMM7:", "(double)" + Context.XMM7.ToString(Culture) + " / (float)" + Context.XMM7f.ToString(Culture));
+                this.WriteText("XMM0:",
+                    "(double)" + this.Context.XMM0.ToString(this.Culture) + " / (float)" +
+                    this.Context.XMM0f.ToString(this.Culture));
+                this.WriteText("XMM1:",
+                    "(double)" + this.Context.XMM1.ToString(this.Culture) + " / (float)" +
+                    this.Context.XMM1f.ToString(this.Culture));
+                this.WriteText("XMM2:",
+                    "(double)" + this.Context.XMM2.ToString(this.Culture) + " / (float)" +
+                    this.Context.XMM2f.ToString(this.Culture));
+                this.WriteText("XMM3:",
+                    "(double)" + this.Context.XMM3.ToString(this.Culture) + " / (float)" +
+                    this.Context.XMM3f.ToString(this.Culture));
+                this.WriteText("XMM4:",
+                    "(double)" + this.Context.XMM4.ToString(this.Culture) + " / (float)" +
+                    this.Context.XMM4f.ToString(this.Culture));
+                this.WriteText("XMM5:",
+                    "(double)" + this.Context.XMM5.ToString(this.Culture) + " / (float)" +
+                    this.Context.XMM5f.ToString(this.Culture));
+                this.WriteText("XMM6:",
+                    "(double)" + this.Context.XMM6.ToString(this.Culture) + " / (float)" +
+                    this.Context.XMM6f.ToString(this.Culture));
+                this.WriteText("XMM7:",
+                    "(double)" + this.Context.XMM7.ToString(this.Culture) + " / (float)" +
+                    this.Context.XMM7f.ToString(this.Culture));
                 if (Main.Is64Bit)
                 {
-                    WriteText("XMM8:", "(double)"  + Context.XMM8.ToString(Culture)  + " / (float)" + Context.XMM8f.ToString(Culture));
-                    WriteText("XMM9:", "(double)"  + Context.XMM9.ToString(Culture)  + " / (float)" + Context.XMM9f.ToString(Culture));
-                    WriteText("XMM10:", "(double)" + Context.XMM10.ToString(Culture) + " / (float)" + Context.XMM10f.ToString(Culture));
-                    WriteText("XMM11:", "(double)" + Context.XMM11.ToString(Culture) + " / (float)" + Context.XMM11f.ToString(Culture));
-                    WriteText("XMM12:", "(double)" + Context.XMM12.ToString(Culture) + " / (float)" + Context.XMM12f.ToString(Culture));
-                    WriteText("XMM13:", "(double)" + Context.XMM13.ToString(Culture) + " / (float)" + Context.XMM13f.ToString(Culture));
-                    WriteText("XMM14:", "(double)" + Context.XMM14.ToString(Culture) + " / (float)" + Context.XMM14f.ToString(Culture));
-                    WriteText("XMM15:", "(double)" + Context.XMM15.ToString(Culture) + " / (float)" + Context.XMM15f.ToString(Culture));
+                    this.WriteText("XMM8:",
+                        "(double)" + this.Context.XMM8.ToString(this.Culture) + " / (float)" +
+                        this.Context.XMM8f.ToString(this.Culture));
+                    this.WriteText("XMM9:",
+                        "(double)" + this.Context.XMM9.ToString(this.Culture) + " / (float)" +
+                        this.Context.XMM9f.ToString(this.Culture));
+                    this.WriteText("XMM10:",
+                        "(double)" + this.Context.XMM10.ToString(this.Culture) + " / (float)" +
+                        this.Context.XMM10f.ToString(this.Culture));
+                    this.WriteText("XMM11:",
+                        "(double)" + this.Context.XMM11.ToString(this.Culture) + " / (float)" +
+                        this.Context.XMM11f.ToString(this.Culture));
+                    this.WriteText("XMM12:",
+                        "(double)" + this.Context.XMM12.ToString(this.Culture) + " / (float)" +
+                        this.Context.XMM12f.ToString(this.Culture));
+                    this.WriteText("XMM13:",
+                        "(double)" + this.Context.XMM13.ToString(this.Culture) + " / (float)" +
+                        this.Context.XMM13f.ToString(this.Culture));
+                    this.WriteText("XMM14:",
+                        "(double)" + this.Context.XMM14.ToString(this.Culture) + " / (float)" +
+                        this.Context.XMM14f.ToString(this.Culture));
+                    this.WriteText("XMM15:",
+                        "(double)" + this.Context.XMM15.ToString(this.Culture) + " / (float)" +
+                        this.Context.XMM15f.ToString(this.Culture));
                 }
             }
-            EndGroup();
+            this.EndGroup();
             return true;
         }
 
         /// <summary>
-        /// Writes the full stack. This is only valid for native exception.
+        ///     Writes the full stack. This is only valid for native exception.
         /// </summary>
         /// <returns></returns>
         protected internal override bool WriteFullStack()
         {
-            BeginGroup("Stack");
-            for (var i = 0; i < FullStack.Count; i++)
+            this.BeginGroup("Stack");
+            for (var i = 0; i < this.FullStack.Count; i++)
             {
-                var offset = (ulong) i;
-                offset *= (ulong) IntPtr.Size;
+                var offset = (ulong)i;
+                offset *= (ulong)IntPtr.Size;
 
-                WriteAddress("[SP+" + offset.ToString("X", Culture) + "]", FullStack[i], true, InterestingObjects, i + 2);
+                this.WriteAddress("[SP+" + offset.ToString("X", this.Culture) + "]", this.FullStack[i], true,
+                    this.InterestingObjects, i + 2);
             }
 
-            EndGroup();
+            this.EndGroup();
             return true;
         }
 
         /// <summary>
-        /// Writes the interesting objects.
+        ///     Writes the interesting objects.
         /// </summary>
         /// <returns></returns>
         protected internal override bool WriteInterestingObjects()
         {
-            var ls  = InterestingObjects.GetSortedObjects();
+            var ls = this.InterestingObjects.GetSortedObjects();
             var lst = new List<KeyValuePair<int, string>>(ls.Count);
             foreach (var pair in ls)
+            {
                 try
                 {
                     var sx = pair.Value.GatherStringForCrashLog();
                     if (!string.IsNullOrEmpty(sx))
+                    {
                         lst.Add(new KeyValuePair<int, string>(pair.Key, sx));
+                    }
                 }
                 catch { }
+            }
 
-            BeginGroup("Possible relevant objects (" + lst.Count + ")");
+            this.BeginGroup("Possible relevant objects (" + lst.Count + ")");
             {
                 foreach (var pair in lst)
-                    WriteText("[" + pair.Key.ToString().PadLeft(4) + "]", pair.Value);
+                {
+                    this.WriteText("[" + pair.Key.ToString().PadLeft(4) + "]", pair.Value);
+                }
             }
-            EndGroup();
+            this.EndGroup();
             return true;
         }
 
         /// <summary>
-        /// The label size.
-        /// </summary>
-        private static int LabelSize = 10;
-
-        /// <summary>
-        /// Writes the address to stream.
+        ///     Writes the address to stream.
         /// </summary>
         /// <param name="label">The label (optional).</param>
         /// <param name="value">The value.</param>
         /// <param name="evaluate">if set to <c>true</c> evaluate address to try and see what it is.</param>
         /// <param name="gatherer">The gatherer.</param>
         /// <param name="distance">The distance.</param>
-        private void WriteAddress(string label, IntPtr value, bool evaluate, InterestingCrashLogObjects gatherer, int distance)
+        private void WriteAddress(string label, IntPtr value, bool evaluate, InterestingCrashLogObjects gatherer,
+            int distance)
         {
             if (!string.IsNullOrEmpty(label))
             {
                 if (label.Length < LabelSize)
+                {
                     label = label + new string(' ', LabelSize - label.Length);
+                }
 
-                Write(label);
+                this.Write(label);
             }
 
-            Write(string.Format(Main.Is64Bit ? "{0,-18}" : "{0,-10}", value.ToHexString()) + GetAddressInModule(value, Modules, " "));
+            this.Write(string.Format(Main.Is64Bit ? "{0,-18}" : "{0,-10}", value.ToHexString()) +
+                       GetAddressInModule(value, this.Modules, " "));
             if (!evaluate)
             {
-                WriteLine();
+                this.WriteLine();
                 return;
             }
 
             var inf = GetValueInfoImpl(value, gatherer, distance);
             if (!string.IsNullOrEmpty(inf))
-                Write(" " + inf);
-            WriteLine();
+            {
+                this.Write(" " + inf);
+            }
+
+            this.WriteLine();
         }
 
         /// <summary>
-        /// Writes the call stack address to stream.
+        ///     Writes the call stack address to stream.
         /// </summary>
         /// <param name="label">The label (optional).</param>
         /// <param name="value">The value.</param>
@@ -1254,13 +1408,15 @@ namespace NetScriptFramework
             {
                 var lz = 6;
                 if (label.Length < lz)
+                {
                     label = label + new string(' ', lz - label.Length);
+                }
 
-                Write(label);
+                this.Write(label);
             }
 
-            Write(string.Format(Main.Is64Bit ? "{0,-18}" : "{0,-10}", value.ToHexString()));
-            Write(string.Format("{0,-32}", GetAddressInModule(value, Modules, " ")));
+            this.Write(string.Format(Main.Is64Bit ? "{0,-18}" : "{0,-10}", value.ToHexString()));
+            this.Write(string.Format("{0,-32}", GetAddressInModule(value, this.Modules, " ")));
 
             if (Main.GameInfo != null)
             {
@@ -1268,25 +1424,34 @@ namespace NetScriptFramework
                 if (fn != null)
                 {
                     string offset;
-                    var    addr = Main.Is64Bit ? value.ToUInt64() : value.ToUInt32();
+                    var addr = Main.Is64Bit ? value.ToUInt64() : value.ToUInt32();
                     if (addr >= Main.GameInfo.BaseOffset)
+                    {
                         addr -= Main.GameInfo.BaseOffset;
+                    }
                     else
+                    {
                         addr = 0;
-                    if (addr >= fn.Begin)
-                        offset = "+" + (addr - fn.Begin).ToString("X");
-                    else
-                        offset = "+???";
+                    }
 
-                    Write(fn.GetName(true) + offset);
+                    if (addr >= fn.Begin)
+                    {
+                        offset = "+" + (addr - fn.Begin).ToString("X");
+                    }
+                    else
+                    {
+                        offset = "+???";
+                    }
+
+                    this.Write(fn.GetName(true) + offset);
                 }
             }
 
-            WriteLine();
+            this.WriteLine();
         }
 
         /// <summary>
-        /// Gets the function address information.
+        ///     Gets the function address information.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="full">Get full info, if false then only get the shortest best info we can.</param>
@@ -1294,7 +1459,7 @@ namespace NetScriptFramework
         public static string GetFunctionAddressInfo(IntPtr value, bool full)
         {
             var info1 = string.Format(Main.Is64Bit ? "{0,-18}" : "{0,-10}", value.ToHexString());
-            var info2 = string.Format("{0,-32}", GetAddressInModule(value, System.Diagnostics.Process.GetCurrentProcess().Modules, " "));
+            var info2 = string.Format("{0,-32}", GetAddressInModule(value, Process.GetCurrentProcess().Modules, " "));
             var info3 = "";
 
             if (Main.GameInfo != null)
@@ -1303,32 +1468,49 @@ namespace NetScriptFramework
                 if (fn != null)
                 {
                     string offset;
-                    var    addr = Main.Is64Bit ? value.ToUInt64() : value.ToUInt32();
+                    var addr = Main.Is64Bit ? value.ToUInt64() : value.ToUInt32();
                     if (addr >= Main.GameInfo.BaseOffset)
+                    {
                         addr -= Main.GameInfo.BaseOffset;
+                    }
                     else
+                    {
                         addr = 0;
+                    }
+
                     if (addr >= fn.Begin)
+                    {
                         offset = "+" + (addr - fn.Begin).ToString("X");
+                    }
                     else
+                    {
                         offset = "+???";
+                    }
 
                     info3 = fn.GetName(true) + offset;
                 }
             }
 
             if (full)
+            {
                 return info1 + info2 + info3;
+            }
 
             if (!string.IsNullOrEmpty(info3))
+            {
                 return info3;
+            }
+
             if (!string.IsNullOrEmpty(info2))
+            {
                 return info2;
+            }
+
             return info1;
         }
 
         /// <summary>
-        /// Guesses the value types.
+        ///     Guesses the value types.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="type">The type.</param>
@@ -1361,14 +1543,12 @@ namespace NetScriptFramework
                     simple = "string";
                     return;
                 }
-                else
+
+                rs = Memory.ReadStringIfItsString(target, true);
+                if (rs != null)
                 {
-                    rs = Memory.ReadStringIfItsString(target, true);
-                    if (rs != null)
-                    {
-                        simple = "pstring";
-                        return;
-                    }
+                    simple = "pstring";
+                    return;
                 }
 
                 simple = "ptr";
@@ -1379,16 +1559,24 @@ namespace NetScriptFramework
             if (types.Contains('4'))
             {
                 if (types.Contains('i'))
+                {
                     simple = "long";
+                }
                 else
+                {
                     simple = "ulong";
+                }
             }
             else if (types.Contains('2'))
             {
                 if (types.Contains('i'))
+                {
                     simple = "int";
+                }
                 else
+                {
                     simple = "uint";
+                }
             }
             else if (types.Contains('6')) { simple = "ushort"; }
             else if (types.Contains('8')) { simple = "byte"; }
@@ -1396,67 +1584,94 @@ namespace NetScriptFramework
             if (types.Contains('d'))
             {
                 if (string.IsNullOrEmpty(simple))
+                {
                     simple = "double";
+                }
                 else
+                {
                     simple = simple + " double";
+                }
             }
 
             if (types.Contains('f'))
             {
                 if (string.IsNullOrEmpty(simple))
+                {
                     simple = "float";
+                }
                 else
+                {
                     simple = simple + " float";
+                }
             }
         }
 
         private static string GetValueInfoImpl(IntPtr value, InterestingCrashLogObjects objects, int distance)
         {
             if (value == IntPtr.Zero)
+            {
                 return "(NULL)";
+            }
 
             //Memory.IncIgnoreException();
             //try
             {
-                var str      = new StringBuilder();
+                var str = new StringBuilder();
                 var isMemory = false;
-                var target   = IntPtr.Zero;
+                var target = IntPtr.Zero;
 
                 if (Memory.TryReadPointer(value, ref target))
+                {
                     isMemory = true;
+                }
 
                 if (!isMemory)
                 {
                     var types = GuessValueTypes(value);
-                    var prev  = str.Length;
+                    var prev = str.Length;
                     if (types.Contains('4'))
                     {
                         if (types.Contains('i'))
-                            str.Append("(i64):[" + value.ToInt64().ToString() + "] ");
+                        {
+                            str.Append("(i64):[" + value.ToInt64() + "] ");
+                        }
                         else
-                            str.Append("(u64):[" + unchecked((ulong) value.ToInt64()).ToString() + "] ");
+                        {
+                            str.Append("(u64):[" + unchecked((ulong)value.ToInt64()) + "] ");
+                        }
                     }
                     else if (types.Contains('2'))
                     {
                         if (types.Contains('i'))
                         {
                             if (Main.Is64Bit)
-                                str.Append("(i32):[" + value.ToInt64().ToString() + "] ");
+                            {
+                                str.Append("(i32):[" + value.ToInt64() + "] ");
+                            }
                             else
-                                str.Append("(i32):[" + value.ToInt32().ToString() + "] ");
+                            {
+                                str.Append("(i32):[" + value.ToInt32() + "] ");
+                            }
                         }
-                        else { str.Append("(u32):[" + unchecked((ulong) value.ToInt64()).ToString() + "] "); }
+                        else { str.Append("(u32):[" + unchecked((ulong)value.ToInt64()) + "] "); }
                     }
-                    else if (types.Contains('6')) { str.Append("(u16):[" + unchecked((ulong) value.ToInt64()).ToString() + "] "); }
-                    else if (types.Contains('8')) { str.Append("(u8):["  + unchecked((ulong) value.ToInt64()).ToString() + "] "); }
+                    else if (types.Contains('6')) { str.Append("(u16):[" + unchecked((ulong)value.ToInt64()) + "] "); }
+                    else if (types.Contains('8')) { str.Append("(u8):[" + unchecked((ulong)value.ToInt64()) + "] "); }
 
                     if (types.Contains('d'))
-                        str.Append("(f64):[" + value.ToDouble().ToString(System.Globalization.CultureInfo.InvariantCulture) + "] ");
+                    {
+                        str.Append("(f64):[" + value.ToDouble().ToString(CultureInfo.InvariantCulture) + "] ");
+                    }
+
                     if (types.Contains('f'))
-                        str.Append("(f32):[" + value.ToSingle().ToString(System.Globalization.CultureInfo.InvariantCulture) + "] ");
+                    {
+                        str.Append("(f32):[" + value.ToSingle().ToString(CultureInfo.InvariantCulture) + "] ");
+                    }
 
                     if (prev != str.Length)
+                    {
                         str.Remove(str.Length - 1, 1);
+                    }
 
                     return str.ToString();
                 }
@@ -1464,14 +1679,17 @@ namespace NetScriptFramework
                 var wroteTypeName = false;
                 if (Main.GameInfo != null)
                 {
-                    var tg  = target;
+                    var tg = target;
                     var tgo = value;
                     for (var level = 1; level <= 2; level++)
                     {
                         if (level >= 2)
                         {
                             if (!Memory.TryReadPointer(tg, ref tg))
+                            {
                                 break;
+                            }
+
                             tgo = target;
                         }
 
@@ -1487,24 +1705,32 @@ namespace NetScriptFramework
                                 {
                                     long offset = 0;
                                     if (tgo != obj.Address)
+                                    {
                                         offset = tgo.ToInt64() - obj.Address.ToInt64();
-                                    var inf = obj.TypeInfos.FirstOrDefault(q => q.BeginOffset.HasValue && q.BeginOffset.Value == offset);
+                                    }
+
+                                    var inf = obj.TypeInfos.FirstOrDefault(q =>
+                                        q.BeginOffset.HasValue && q.BeginOffset.Value == offset);
                                     if (inf != null)
                                     {
                                         var lib = inf.Info;
                                         if (lib != null)
+                                        {
                                             st = lib.Name;
+                                        }
                                     }
 
                                     sx = obj.ToString();
 
                                     if (objects != null && distance >= 0)
+                                    {
                                         try
                                         {
                                             objects.CurrentDistance = distance;
                                             obj.GatherObjectsForCrashLog(objects);
                                         }
                                         catch { }
+                                    }
                                 }
                             }
                             catch { }
@@ -1518,7 +1744,9 @@ namespace NetScriptFramework
                             if (!string.IsNullOrEmpty(sx) && sx != st)
                             {
                                 if (!string.IsNullOrEmpty(st) && sx.StartsWith(st))
+                                {
                                     sx = sx.Substring(st.Length).Trim();
+                                }
 
                                 //if (sx.Length >= 2 && sx[0] == '(' && sx[sx.Length - 1] == ')') sx = sx.Substring(1, sx.Length - 2);
 
@@ -1548,7 +1776,9 @@ namespace NetScriptFramework
                     }
 
                     if (!wroteTypeName)
+                    {
                         str.Append("(void*)");
+                    }
                 }
 
                 return str.ToString();
@@ -1560,14 +1790,14 @@ namespace NetScriptFramework
         }
 
         /// <summary>
-        /// Gets the value information.
+        ///     Gets the value information.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns></returns>
-        public static string GetValueInfo(IntPtr value) { return GetValueInfoImpl(value, null, -1); }
+        public static string GetValueInfo(IntPtr value) => GetValueInfoImpl(value, null, -1);
 
         /// <summary>
-        /// Guesses the value types.
+        ///     Guesses the value types.
         /// </summary>
         /// <param name="ptr">The value.</param>
         /// <returns></returns>
@@ -1577,31 +1807,45 @@ namespace NetScriptFramework
 
             if (Main.Is64Bit)
             {
-                var r = unchecked((ulong) ptr.ToInt64());
+                var r = unchecked((ulong)ptr.ToInt64());
                 if ((r & 0xFF) == r)
+                {
                     str.Append('8');
+                }
                 else if ((r & 0xFFFF) == r)
+                {
                     str.Append('6');
+                }
                 else if ((r & 0xFFFFFFFF) == r)
+                {
                     str.Append('2');
+                }
                 else
+                {
                     str.Append('4');
+                }
 
                 if ((r & 0x8000000000000000) != 0)
+                {
                     str.Append('i');
+                }
 
                 // Check float.
                 {
-                    var x = (uint) (r & 0xFFFFFFFF);
+                    var x = (uint)(r & 0xFFFFFFFF);
                     if ((x & 0x80000000) != 0)
                     {
                         if (x >= 0xb8d1b717 && x <= 0xc8742400) // between -0.0001 and -250000.0
+                        {
                             str.Append('f');
+                        }
                     }
                     else
                     {
                         if (x >= 0x38d1b717 && x <= 0x48742400) // between 0.0001 and 250000.0
+                        {
                             str.Append('f');
+                        }
                     }
                 }
 
@@ -1610,39 +1854,55 @@ namespace NetScriptFramework
                     if ((r & 0x8000000000000000) != 0)
                     {
                         if (r >= 0xbee4f8b588e368f1 && r <= 0xc12e848000000000) // between -0.00001 and -1000000.0
+                        {
                             str.Append('d');
+                        }
                     }
                     else
                     {
                         if (r >= 0x3ee4f8b588e368f1 && r <= 0x412e848000000000) // between 0.00001 and 1000000.0
+                        {
                             str.Append('d');
+                        }
                     }
                 }
             }
             else
             {
-                var r = unchecked((uint) ptr.ToInt32());
+                var r = unchecked((uint)ptr.ToInt32());
                 if ((r & 0xFF) == r)
+                {
                     str.Append('8');
+                }
                 else if ((r & 0xFFFF) == r)
+                {
                     str.Append('6');
+                }
                 else
+                {
                     str.Append('2');
+                }
 
                 if ((r & 0x80000000) != 0)
+                {
                     str.Append('i');
+                }
 
                 // Check float.
                 {
                     if ((r & 0x80000000) != 0)
                     {
                         if (r >= 0xb8d1b717 && r <= 0xc8742400) // between -0.0001 and -250000.0
+                        {
                             str.Append('f');
+                        }
                     }
                     else
                     {
                         if (r >= 0x38d1b717 && r <= 0x48742400) // between 0.0001 and 250000.0
+                        {
                             str.Append('f');
+                        }
                     }
                 }
             }
@@ -1651,7 +1911,7 @@ namespace NetScriptFramework
         }
 
         /// <summary>
-        /// Writes the text to stream.
+        ///     Writes the text to stream.
         /// </summary>
         /// <param name="label">The label (optional).</param>
         /// <param name="value">The value.</param>
@@ -1660,19 +1920,25 @@ namespace NetScriptFramework
             if (!string.IsNullOrEmpty(label))
             {
                 if (label.Length < LabelSize)
+                {
                     label = label + new string(' ', LabelSize - label.Length);
+                }
 
-                Write(label);
+                this.Write(label);
             }
 
             if (!string.IsNullOrEmpty(value))
-                WriteLine(value);
+            {
+                this.WriteLine(value);
+            }
             else
-                WriteLine();
+            {
+                this.WriteLine();
+            }
         }
 
         /// <summary>
-        /// Gets the stack memory values.
+        ///     Gets the stack memory values.
         /// </summary>
         /// <param name="start">The start of stack address.</param>
         /// <param name="count">The count of values to get.</param>
@@ -1684,7 +1950,10 @@ namespace NetScriptFramework
             {
                 var ptr = IntPtr.Zero;
                 if (!Memory.TryReadPointer(start, ref ptr))
+                {
                     return result;
+                }
+
                 result.Add(ptr);
                 start += IntPtr.Size;
             }
@@ -1693,18 +1962,22 @@ namespace NetScriptFramework
         }
 
         /// <summary>
-        /// Filters the stack and leaves only addresses with function calls.
+        ///     Filters the stack and leaves only addresses with function calls.
         /// </summary>
         /// <param name="stack">The stack.</param>
         private static void FilterCallStack(List<IntPtr> stack)
         {
             for (var i = stack.Count - 1; i >= 0; i--)
+            {
                 if (!IsFunctionCallReturnAddress(stack[i]))
+                {
                     stack.RemoveAt(i);
+                }
+            }
         }
 
         /// <summary>
-        /// Gets the call stack.
+        ///     Gets the call stack.
         /// </summary>
         /// <param name="start">The start.</param>
         /// <param name="count">The count.</param>
@@ -1712,21 +1985,26 @@ namespace NetScriptFramework
         public static void GetCallStack(IntPtr start, int count, List<IntPtr> result)
         {
             var ptr = IntPtr.Zero;
-            var sz  = IntPtr.Size;
+            var sz = IntPtr.Size;
             for (var i = 0; i < count; i++)
             {
-                if (!Memory.TryReadPointer(start + i * sz, ref ptr))
+                if (!Memory.TryReadPointer(start + (i * sz), ref ptr))
+                {
                     break;
+                }
 
                 if (!IsFunctionCallReturnAddress(ptr))
+                {
                     continue;
+                }
 
                 result.Add(ptr);
             }
         }
 
         /// <summary>
-        /// Determines whether the specified address is function call return address - meaning it has a function call before it.
+        ///     Determines whether the specified address is function call return address - meaning it has a function call before
+        ///     it.
         /// </summary>
         /// <param name="ptr">The address.</param>
         /// <returns></returns>
@@ -1734,198 +2012,327 @@ namespace NetScriptFramework
         private static bool IsFunctionCallReturnAddress(IntPtr ptr)
         {
             if (!Main.Is64Bit)
+            {
                 throw new NotImplementedException();
+            }
 
-            var  sz       = 8;
+            var sz = 8;
             uint oldFlags = 0;
 
             // Get memory protection flags. If this fails it's likely not a valid memory region.
             {
                 uint _tFlags = 0;
-                if (!VirtualProtect(ptr - sz, (uint) sz, 0x40, out oldFlags))
+                if (!VirtualProtect(ptr - sz, (uint)sz, 0x40, out oldFlags))
+                {
                     return false;
-                VirtualProtect(ptr - sz, (uint) sz, oldFlags, out _tFlags);
+                }
+
+                VirtualProtect(ptr - sz, (uint)sz, oldFlags, out _tFlags);
             }
 
             // If no execute flag then it's not code region.
             if (oldFlags != 0x10 && // PAGE_EXECUTE
                 oldFlags != 0x20 && // PAGE_EXECUTE_READ
-                oldFlags != 0x40)   // PAGE_EXECUTE_READWRITE
+                oldFlags != 0x40) // PAGE_EXECUTE_READWRITE
+            {
                 return false;
+            }
 
             // It's still possible that the region is not code if someone else manually changed the protection flags.
 
             // Read bytes.
             byte[] data = null;
             if (!Memory.TryReadBytes(ptr - sz, sz, ref data))
+            {
                 return false;
+            }
 
             var valid = new[]
             {
-                "E8 ? ? ? ?",          // Rel-call
-                "FF D0",               // call rax
-                "FF D3",               // call rbx
-                "FF D1",               // call rcx
-                "FF D2",               // call rdx
-                "FF D6",               // call rsi
-                "FF D7",               // call rdi
-                "FF D5",               // call rbp
-                "41 FF D0",            // call r8
-                "41 FF D1",            // call r9
-                "41 FF D2",            // call r10
-                "41 FF D3",            // call r11
-                "41 FF D4",            // call r12
-                "41 FF D5",            // call r13
-                "41 FF D6",            // call r14
-                "41 FF D7",            // call r15
-                "FF 14 25 ? ? ? ?",    // call qword ptr[...]
-                "FF 10",               // call [rax]
-                "FF 13",               // call [rbx]
-                "FF 11",               // call [rcx]
-                "FF 12",               // call [rdx]
-                "FF 16",               // call [rsi]
-                "FF 17",               // call [rdi]
-                "FF 15",               // call [rbp]
-                "41 FF 10",            // call [r8]
-                "41 FF 11",            // call [r9]
-                "41 FF 12",            // call [r10]
-                "41 FF 13",            // call [r11]
-                "41 FF 14",            // call [r12]
-                "41 FF 15",            // call [r13]
-                "41 FF 16",            // call [r14]
-                "41 FF 17",            // call [r15]
+                "E8 ? ? ? ?", // Rel-call
+                "FF D0", // call rax
+                "FF D3", // call rbx
+                "FF D1", // call rcx
+                "FF D2", // call rdx
+                "FF D6", // call rsi
+                "FF D7", // call rdi
+                "FF D5", // call rbp
+                "41 FF D0", // call r8
+                "41 FF D1", // call r9
+                "41 FF D2", // call r10
+                "41 FF D3", // call r11
+                "41 FF D4", // call r12
+                "41 FF D5", // call r13
+                "41 FF D6", // call r14
+                "41 FF D7", // call r15
+                "FF 14 25 ? ? ? ?", // call qword ptr[...]
+                "FF 10", // call [rax]
+                "FF 13", // call [rbx]
+                "FF 11", // call [rcx]
+                "FF 12", // call [rdx]
+                "FF 16", // call [rsi]
+                "FF 17", // call [rdi]
+                "FF 15", // call [rbp]
+                "41 FF 10", // call [r8]
+                "41 FF 11", // call [r9]
+                "41 FF 12", // call [r10]
+                "41 FF 13", // call [r11]
+                "41 FF 14", // call [r12]
+                "41 FF 15", // call [r13]
+                "41 FF 16", // call [r14]
+                "41 FF 17", // call [r15]
                 "2E FF 14 25 ? ? ? ?", // call cs:[...]
-                "FF 15 ? ? ? ?",       // call [rip+...]
-                "FF 50 ?",             // call [rax+...]
-                "FF 53 ?",             // call [rbx+...]
-                "FF 51 ?",             // call [rcx+...]
-                "FF 52 ?",             // call [rdx+...]
-                "FF 56 ?",             // call [rsi+...]
-                "FF 57 ?",             // call [rdi+...]
-                "FF 55 ?",             // call [rbp+...]
-                "41 FF 50 ?",          // call [r8+...]
-                "41 FF 51 ?",          // call [r9+...]
-                "41 FF 52 ?",          // call [r10+...]
-                "41 FF 53 ?",          // call [r11+...]
-                "41 FF 54 24 ?",       // call [r12+...]
-                "41 FF 55 ?",          // call [r13+...]
-                "41 FF 56 ?",          // call [r14+...]
-                "41 FF 57 ?",          // call [r15+...]
-                "FF 90 ? ? ? ?",       // call [rax+...]
-                "FF 93 ? ? ? ?",       // call [rbx+...]
-                "FF 91 ? ? ? ?",       // call [rcx+...]
-                "FF 92 ? ? ? ?",       // call [rdx+...]
-                "FF 96 ? ? ? ?",       // call [rsi+...]
-                "FF 97 ? ? ? ?",       // call [rdi+...]
-                "FF 95 ? ? ? ?",       // call [rbp+...]
-                "41 FF 90 ? ? ? ?",    // call [r8+...]
-                "41 FF 91 ? ? ? ?",    // call [r9+...]
-                "41 FF 92 ? ? ? ?",    // call [r10+...]
-                "41 FF 93 ? ? ? ?",    // call [r11+...]
+                "FF 15 ? ? ? ?", // call [rip+...]
+                "FF 50 ?", // call [rax+...]
+                "FF 53 ?", // call [rbx+...]
+                "FF 51 ?", // call [rcx+...]
+                "FF 52 ?", // call [rdx+...]
+                "FF 56 ?", // call [rsi+...]
+                "FF 57 ?", // call [rdi+...]
+                "FF 55 ?", // call [rbp+...]
+                "41 FF 50 ?", // call [r8+...]
+                "41 FF 51 ?", // call [r9+...]
+                "41 FF 52 ?", // call [r10+...]
+                "41 FF 53 ?", // call [r11+...]
+                "41 FF 54 24 ?", // call [r12+...]
+                "41 FF 55 ?", // call [r13+...]
+                "41 FF 56 ?", // call [r14+...]
+                "41 FF 57 ?", // call [r15+...]
+                "FF 90 ? ? ? ?", // call [rax+...]
+                "FF 93 ? ? ? ?", // call [rbx+...]
+                "FF 91 ? ? ? ?", // call [rcx+...]
+                "FF 92 ? ? ? ?", // call [rdx+...]
+                "FF 96 ? ? ? ?", // call [rsi+...]
+                "FF 97 ? ? ? ?", // call [rdi+...]
+                "FF 95 ? ? ? ?", // call [rbp+...]
+                "41 FF 90 ? ? ? ?", // call [r8+...]
+                "41 FF 91 ? ? ? ?", // call [r9+...]
+                "41 FF 92 ? ? ? ?", // call [r10+...]
+                "41 FF 93 ? ? ? ?", // call [r11+...]
                 "41 FF 94 24 ? ? ? ?", // call [r12+...]
-                "41 FF 95 ? ? ? ?",    // call [r13+...]
-                "41 FF 96 ? ? ? ?",    // call [r14+...]
-                "41 FF 97 ? ? ? ?"     // call [r15+...]
+                "41 FF 95 ? ? ? ?", // call [r13+...]
+                "41 FF 96 ? ? ? ?", // call [r14+...]
+                "41 FF 97 ? ? ? ?" // call [r15+...]
             };
 
             if (valid.Any(q => Test(q, data)))
+            {
                 return true;
+            }
 
             return false;
         }
 
         /// <summary>
-        /// Tests the specified memory for bytes.
+        ///     Tests the specified memory for bytes.
         /// </summary>
         /// <param name="fmt">The format.</param>
         /// <param name="data">The data.</param>
         /// <returns></returns>
         private static bool Test(string fmt, byte[] data)
         {
-            var spl = fmt.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+            var spl = fmt.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
             if (spl.Length > data.Length)
+            {
                 throw new InvalidOperationException();
+            }
 
             for (int i = spl.Length - 1, j = data.Length - 1; i >= 0; i--, j--)
             {
                 if (spl[i][0] == '?' || spl[i][0] == '*')
+                {
                     continue;
+                }
 
-                var hx = byte.Parse(spl[i], System.Globalization.NumberStyles.AllowHexSpecifier, System.Globalization.CultureInfo.InvariantCulture);
+                var hx = byte.Parse(spl[i], NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
                 if (data[j] != hx)
+                {
                     return false;
+                }
             }
 
             return true;
         }
 
-        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-        private static extern bool VirtualProtect(IntPtr lpAddress, uint dwSize, uint flNewProtect, out uint lpflOldProtect);
+        [DllImport("kernel32.dll")]
+        private static extern bool VirtualProtect(IntPtr lpAddress, uint dwSize, uint flNewProtect,
+            out uint lpflOldProtect);
+
+        private sealed class ModuleEntry : IArgument
+        {
+            private readonly IntPtr Address;
+
+            private readonly bool IsBad;
+            internal ModuleEntry() => this.IsBad = true;
+
+            internal ModuleEntry(IntPtr address) => this.Address = address;
+
+            public IArgument ParseArgument(string key, Message message, Parser parser) =>
+                throw new NotImplementedException();
+
+            public string ParseVariable(string key, Message message, Parser parser) =>
+                throw new NotImplementedException();
+
+            public string ParseFunction(string key, string[] args, Message message, Parser parser) =>
+                throw new NotImplementedException();
+        }
+
+        private sealed class CallStackEntry : IArgument
+        {
+            private readonly IntPtr Address;
+
+            private readonly bool IsBad;
+            internal CallStackEntry() => this.IsBad = true;
+
+            internal CallStackEntry(IntPtr address)
+            {
+                this.Address = address;
+                this.IsBad = false;
+            }
+
+            public IArgument ParseArgument(string key, Message message, Parser parser)
+            {
+                key = key.ToLowerInvariant();
+                switch (key)
+                {
+                    case "module": return new ModuleEntry(this.Address);
+                }
+
+                return null;
+            }
+
+            public string ParseVariable(string key, Message message, Parser parser)
+            {
+                key = key.ToLowerInvariant();
+                switch (key)
+                {
+                    case "vid":
+                    {
+                        var fn = Main.GameInfo.GetFunctionInfo(this.Address, true);
+                        if (fn != null)
+                        {
+                            return fn.Id.ToString();
+                        }
+
+                        return "0";
+                    }
+
+                    case "offset":
+                    {
+                        var a = this.Address.ToUInt64();
+                        if (a >= Main.GameInfo.BaseOffset)
+                        {
+                            var totalOffset = a - Main.GameInfo.BaseOffset;
+                            var fn = Main.GameInfo.GetFunctionInfo(this.Address, true);
+                            if (fn != null && totalOffset >= fn.Begin)
+                            {
+                                var fnOffset = totalOffset - fn.Begin;
+                                return "0x" + fnOffset.ToString("X");
+                            }
+                        }
+
+                        //TODO(); // module offset
+                        throw new NotImplementedException();
+                    }
+                }
+
+                return null;
+            }
+
+            public string ParseFunction(string key, string[] args, Message message, Parser parser) => null;
+        }
+
+        private sealed class StackEntry : IArgument
+        {
+            private readonly bool IsBad;
+            private readonly IntPtr Value;
+            internal StackEntry() => this.IsBad = true;
+
+            internal StackEntry(IntPtr value) => this.Value = value;
+
+            public IArgument ParseArgument(string key, Message message, Parser parser) =>
+                throw new NotImplementedException();
+
+            public string ParseVariable(string key, Message message, Parser parser) =>
+                throw new NotImplementedException();
+
+            public string ParseFunction(string key, string[] args, Message message, Parser parser) =>
+                throw new NotImplementedException();
+        }
     }
 
     /// <summary>
-    /// This is used to generate a crash log.
+    ///     This is used to generate a crash log.
     /// </summary>
     /// <seealso cref="NetScriptFramework.CrashLog" />
     public sealed class ManagedCrashLog : CrashLog
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ManagedCrashLog"/> class.
-        /// </summary>
-        /// <param name="exception">The exception.</param>
-        internal ManagedCrashLog(Exception exception) : base() { OriginalException = exception; }
-
-        /// <summary>
-        /// The original exception.
+        ///     The original exception.
         /// </summary>
         public readonly Exception OriginalException;
 
         /// <summary>
-        /// The current exception.
+        ///     The current exception.
         /// </summary>
-        internal Exception CurrentException = null;
+        internal Exception CurrentException;
 
         /// <summary>
-        /// Writes the information line of crash. This is the same line that goes to main log.
+        ///     Initializes a new instance of the <see cref="ManagedCrashLog" /> class.
+        /// </summary>
+        /// <param name="exception">The exception.</param>
+        internal ManagedCrashLog(Exception exception) => this.OriginalException = exception;
+
+        /// <summary>
+        ///     Writes the information line of crash. This is the same line that goes to main log.
         /// </summary>
         /// <returns></returns>
         protected internal override bool WriteInfo()
         {
-            var at = OriginalException.TargetSite != null ? OriginalException.TargetSite.ToString() : "(null)";
-            WriteLine("Unhandled managed exception (" + OriginalException.GetType().Name + ") occurred at " + at + "!");
+            var at = this.OriginalException.TargetSite != null
+                ? this.OriginalException.TargetSite.ToString()
+                : "(null)";
+            this.WriteLine("Unhandled managed exception (" + this.OriginalException.GetType().Name + ") occurred at " +
+                           at + "!");
             return true;
         }
 
         /// <summary>
-        /// Writes the call stack.
+        ///     Writes the call stack.
         /// </summary>
         /// <returns></returns>
         protected internal override bool WriteCallStack()
         {
-            BeginGroup("Callstack");
+            this.BeginGroup("Callstack");
             {
-                var spl = CurrentException.StackTrace.Replace("\r\n", "\n").Replace("\r", "\n").Split(new[] {'\n'}, StringSplitOptions.RemoveEmptyEntries);
+                var spl = this.CurrentException.StackTrace.Replace("\r\n", "\n").Replace("\r", "\n")
+                    .Split(new[] {'\n'}, StringSplitOptions.RemoveEmptyEntries);
                 for (var i = 0; i < spl.Length; i++)
+                {
                     spl[i] = spl[i].Trim();
+                }
 
                 foreach (var x in spl)
-                    WriteLine(x);
+                {
+                    this.WriteLine(x);
+                }
             }
-            EndGroup();
+            this.EndGroup();
             return true;
         }
 
         /// <summary>
-        /// Parse an argument from this object.
+        ///     Parse an argument from this object.
         /// </summary>
         /// <param name="key">Keyword for argument.</param>
         /// <param name="message">Message to parse for.</param>
         /// <param name="parser">Parser that is currently processing message.</param>
         /// <returns></returns>
-        public override IArgument ParseArgument(string key, Message message, Parser parser) { return base.ParseArgument(key, message, parser); }
+        public override IArgument ParseArgument(string key, Message message, Parser parser) =>
+            base.ParseArgument(key, message, parser);
 
         /// <summary>
-        /// Parse a variable from this object.
+        ///     Parse a variable from this object.
         /// </summary>
         /// <param name="key">Keyword for variable.</param>
         /// <param name="message">Message to parse for.</param>
@@ -1936,108 +2343,122 @@ namespace NetScriptFramework
             var orig = key;
             key = key.ToLowerInvariant();
             if (key.Length != 0)
+            {
                 switch (key)
                 {
                     case "isnative": return "0";
                 }
+            }
 
             return base.ParseVariable(orig, message, parser);
         }
 
         /// <summary>
-        /// Parse a function from this object.
+        ///     Parse a function from this object.
         /// </summary>
         /// <param name="key">Keyword for function.</param>
         /// <param name="args">Arguments for function.</param>
         /// <param name="message">Message to parse for.</param>
         /// <param name="parser">Parser that is currently processing message.</param>
         /// <returns></returns>
-        public override string ParseFunction(string key, string[] args, Message message, Parser parser) { return base.ParseFunction(key, args, message, parser); }
+        public override string ParseFunction(string key, string[] args, Message message, Parser parser) =>
+            base.ParseFunction(key, args, message, parser);
     }
 
     /// <summary>
-    /// Helper class for gathering objects of interest during a crash.
+    ///     Helper class for gathering objects of interest during a crash.
     /// </summary>
     public sealed class InterestingCrashLogObjects
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="InterestingCrashLogObjects"/> class.
-        /// </summary>
-        internal InterestingCrashLogObjects() { }
-
-        /// <summary>
-        /// Object entry.
-        /// </summary>
-        private sealed class Entry
-        {
-            /// <summary>
-            /// Gets or sets the object.
-            /// </summary>
-            /// <value>
-            /// The object.
-            /// </value>
-            internal IMemoryObject Object { get; set; }
-
-            /// <summary>
-            /// Gets or sets the distance.
-            /// </summary>
-            /// <value>
-            /// The distance.
-            /// </value>
-            internal int Distance { get; set; }
-        }
-
-        /// <summary>
-        /// The map of objects.
+        ///     The map of objects.
         /// </summary>
         private readonly Dictionary<long, Entry> Map = new Dictionary<long, Entry>();
 
         /// <summary>
-        /// The current distance.
+        ///     The current distance.
         /// </summary>
         internal int CurrentDistance = -1;
 
         /// <summary>
-        /// Adds the specified object. Returns true if the object was added now, otherwise false (could still have modified distance if false).
+        ///     Initializes a new instance of the <see cref="InterestingCrashLogObjects" /> class.
+        /// </summary>
+        internal InterestingCrashLogObjects() { }
+
+        /// <summary>
+        ///     Adds the specified object. Returns true if the object was added now, otherwise false (could still have modified
+        ///     distance if false).
         /// </summary>
         /// <param name="obj">The object.</param>
         public bool Add(IMemoryObject obj)
         {
             if (obj == null)
-                return false;
-
-            var   distance = CurrentDistance;
-            var   addr     = obj.Address.ToInt64();
-            Entry e        = null;
-            var   did      = false;
-            if (!Map.TryGetValue(addr, out e))
             {
-                e          = new Entry();
-                e.Object   = obj;
+                return false;
+            }
+
+            var distance = this.CurrentDistance;
+            var addr = obj.Address.ToInt64();
+            Entry e = null;
+            var did = false;
+            if (!this.Map.TryGetValue(addr, out e))
+            {
+                e = new Entry();
+                e.Object = obj;
                 e.Distance = distance;
-                Map[addr]  = e;
-                did        = true;
+                this.Map[addr] = e;
+                did = true;
             }
 
             if (distance < e.Distance)
+            {
                 e.Distance = distance;
+            }
 
             return did;
         }
 
         /// <summary>
-        /// Gets the sorted objects.
+        ///     Gets the sorted objects.
         /// </summary>
         /// <param name="maxDistance">The maximum distance.</param>
         /// <returns></returns>
         public List<KeyValuePair<int, IMemoryObject>> GetSortedObjects(int maxDistance = int.MaxValue)
         {
-            var ls = Map.Values.Select(q => new KeyValuePair<int, IMemoryObject>(q.Distance, q.Object)).ToList();
+            var ls = this.Map.Values.Select(q => new KeyValuePair<int, IMemoryObject>(q.Distance, q.Object)).ToList();
             if (maxDistance != int.MaxValue)
+            {
                 ls.RemoveAll(q => q.Key > maxDistance);
+            }
+
             if (ls.Count > 1)
+            {
                 ls.Sort((u, v) => u.Key.CompareTo(v.Key));
+            }
+
             return ls;
+        }
+
+        /// <summary>
+        ///     Object entry.
+        /// </summary>
+        private sealed class Entry
+        {
+            /// <summary>
+            ///     Gets or sets the object.
+            /// </summary>
+            /// <value>
+            ///     The object.
+            /// </value>
+            internal IMemoryObject Object { get; set; }
+
+            /// <summary>
+            ///     Gets or sets the distance.
+            /// </summary>
+            /// <value>
+            ///     The distance.
+            /// </value>
+            internal int Distance { get; set; }
         }
     }
 }

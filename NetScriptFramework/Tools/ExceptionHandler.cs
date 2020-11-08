@@ -1,34 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Runtime.InteropServices;
-using System.Security;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetScriptFramework.Tools._Internal
+﻿namespace NetScriptFramework.Tools._Internal
 {
+    using System;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Runtime.InteropServices;
+
     public static class RTHandler
     {
-        public static CPURegisters _Allocate(IntPtr addr) { return new CPURegisters(addr, null); }
+        public static CPURegisters _Allocate(IntPtr addr) => new CPURegisters(addr, null);
 
         public static void _Free(CPURegisters cpu) { }
 
         /// <summary>
-        /// Suspends all threads in current process except the executing thread.
+        ///     Suspends all threads in current process except the executing thread.
         /// </summary>
         internal static void SuspendAllThreadsInCurrentProcess()
         {
-            var threads = System.Diagnostics.Process.GetCurrentProcess().Threads;
-            var cur     = GetCurrentThreadId();
+            var threads = Process.GetCurrentProcess().Threads;
+            var cur = GetCurrentThreadId();
 
             for (var i = 0; i < threads.Count; i++)
             {
                 var t = threads[i];
 
                 if (t.Id == cur)
+                {
                     continue;
+                }
 
                 var handle = OpenThread(2, false, t.Id);
                 if (handle != IntPtr.Zero)
@@ -40,19 +38,21 @@ namespace NetScriptFramework.Tools._Internal
         }
 
         /// <summary>
-        /// Resumes all threads in current process except the executing thread.
+        ///     Resumes all threads in current process except the executing thread.
         /// </summary>
         internal static void ResumeAllThreadsInCurrentProcess()
         {
-            var threads = System.Diagnostics.Process.GetCurrentProcess().Threads;
-            var cur     = GetCurrentThreadId();
+            var threads = Process.GetCurrentProcess().Threads;
+            var cur = GetCurrentThreadId();
 
             for (var i = 0; i < threads.Count; i++)
             {
                 var t = threads[i];
 
                 if (t.Id == cur)
+                {
                     continue;
+                }
 
                 var handle = OpenThread(2, false, t.Id);
                 if (handle != IntPtr.Zero)
@@ -64,13 +64,13 @@ namespace NetScriptFramework.Tools._Internal
         }
 
         /// <summary>
-        /// Suspends all threads in current process except the executing thread.
+        ///     Suspends all threads in current process except the executing thread.
         /// </summary>
         /// <param name="notThese">Not these.</param>
         internal static void SuspendAllThreadsInCurrentProcess(int[] notThese)
         {
-            var threads = System.Diagnostics.Process.GetCurrentProcess().Threads;
-            var cur     = GetCurrentThreadId();
+            var threads = Process.GetCurrentProcess().Threads;
+            var cur = GetCurrentThreadId();
 
             for (var i = 0; i < threads.Count; i++)
             {
@@ -78,10 +78,14 @@ namespace NetScriptFramework.Tools._Internal
 
                 var id = t.Id;
                 if (id == cur)
+                {
                     continue;
+                }
 
                 if (notThese != null && notThese.Contains(id))
+                {
                     continue;
+                }
 
                 var handle = OpenThread(2, false, id);
                 if (handle != IntPtr.Zero)
@@ -93,13 +97,13 @@ namespace NetScriptFramework.Tools._Internal
         }
 
         /// <summary>
-        /// Resumes all threads in current process except the executing thread.
+        ///     Resumes all threads in current process except the executing thread.
         /// </summary>
         /// <param name="notThese">Don't resume these threads.</param>
         internal static void ResumeAllThreadsInCurrentProcess(int[] notThese)
         {
-            var threads = System.Diagnostics.Process.GetCurrentProcess().Threads;
-            var cur     = GetCurrentThreadId();
+            var threads = Process.GetCurrentProcess().Threads;
+            var cur = GetCurrentThreadId();
 
             for (var i = 0; i < threads.Count; i++)
             {
@@ -107,10 +111,14 @@ namespace NetScriptFramework.Tools._Internal
 
                 var id = t.Id;
                 if (id == cur)
+                {
                     continue;
+                }
 
                 if (notThese != null && notThese.Contains(id))
+                {
                     continue;
+                }
 
                 var handle = OpenThread(2, false, id);
                 if (handle != IntPtr.Zero)
@@ -122,7 +130,7 @@ namespace NetScriptFramework.Tools._Internal
         }
 
         /// <summary>
-        /// Exits the process.
+        ///     Exits the process.
         /// </summary>
         /// <param name="graceful">Is this graceful exit or should we kill.</param>
         internal static void ExitProcess(bool graceful)
@@ -131,12 +139,16 @@ namespace NetScriptFramework.Tools._Internal
             catch { }
 
             if (graceful)
+            {
                 Environment.Exit(0);
+            }
             else
-                System.Diagnostics.Process.GetCurrentProcess().Kill();
+            {
+                Process.GetCurrentProcess().Kill();
+            }
         }
 
-    #region API calls
+        #region API calls
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool CloseHandle(IntPtr hObject);
@@ -153,6 +165,6 @@ namespace NetScriptFramework.Tools._Internal
         [DllImport("kernel32.dll")]
         internal static extern int GetCurrentThreadId();
 
-    #endregion
+        #endregion
     }
 }
