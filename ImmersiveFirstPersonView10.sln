@@ -14,15 +14,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetScriptFramework.SkyrimSE.Implementations", "NetScriptFramework.SkyrimSE.Implementations\NetScriptFramework.SkyrimSE.Implementations.csproj", "{F29A485F-2AD4-4BA4-8A65-1573A3CEEDD5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "binkw64", "DLLPluginLoader\binkw64.vcxproj", "{3941E9F8-2E29-4D69-8717-F74562ED5301}"
-<<<<<<< HEAD
-=======
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6D30DF4D-21BF-42CD-95B4-240D471121AD}"
 	ProjectSection(SolutionItems) = preProject
 		.clang-format = .clang-format
 		.editorconfig = .editorconfig
 	EndProjectSection
->>>>>>> develop
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
