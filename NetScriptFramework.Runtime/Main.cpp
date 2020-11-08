@@ -1,4 +1,6 @@
 #include "Stdafx.h"
+#include <stdio.h>
+#include <Windows.h>
 #include "RTTI.h"
 
 #define FRAMEWORK_PATH "Data\\NetScriptFramework"
@@ -323,15 +325,15 @@ extern "C"
 
 	EXPORT void IncIgnoreException()
 	{
-		Pointer * depth = GetExceptionDepthPointer();
-		if (depth != NULL)
+		const auto depth = GetExceptionDepthPointer();
+		if (depth != nullptr)
 			*depth = *depth + 1;
 	}
 
 	EXPORT void DecIgnoreException()
 	{
-		Pointer * depth = GetExceptionDepthPointer();
-		if (depth != NULL)
+		const auto depth = GetExceptionDepthPointer();
+		if (depth != nullptr)
 			*depth = *depth - 1;
 	}
 
@@ -344,7 +346,7 @@ extern "C"
 		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
 		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
 		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return (void*)result;
+		return reinterpret_cast<void*>(result);
 	}
 	#pragma optimize( "", on )
 
@@ -357,7 +359,7 @@ extern "C"
 		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
 		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
 		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return (void*)result;
+		return reinterpret_cast<void*>(result);
 	}
 	#pragma optimize( "", on )
 
@@ -370,7 +372,7 @@ extern "C"
 		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
 		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
 		result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0; result = 0;
-		return (void*)result;
+		return reinterpret_cast<void*>(result);
 	}
 #pragma optimize( "", on )
 
@@ -564,8 +566,6 @@ extern "C"
 		case 38: return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 4;
 		case 39: return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 5;
 		case 40: return HOOK_CONTEXT_SIZE - sizeof(Pointer) * 6;
-#else
-		TODO;
 #endif
 		default: return -1;
 		}
@@ -809,7 +809,7 @@ void _ThreadStartTLS(bool allowEnterCLR)
 {
 	Pointer * mainStorage = (Pointer*)AllocateC(TLS_STORAGE_SIZE * sizeof(Pointer), 0);
 	mainStorage[TLS_STORAGE_HOOK_CALL_COUNT] = 0;
-	
+
 	void * contextBlock = AllocateC(HOOK_CONTEXT_SIZE * (HOOK_MAX_CALLS + 1), 0);
 	for (Pointer i = 0; i < (HOOK_MAX_CALLS + 1); i++)
 	{
@@ -1613,7 +1613,7 @@ LPTOP_LEVEL_EXCEPTION_FILTER _original_exception_filter = NULL;
 LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS * info)
 {
 	Pointer * depth = GetExceptionDepthPointer();
-	
+
 	bool handled = false;
 	if (depth != NULL)
 	{
@@ -1646,24 +1646,62 @@ LONG WINAPI CheckFilter(EXCEPTION_POINTERS * info)
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 
+auto show_error() -> void
+{
+	const auto err = GetLastError();
+
+	// Translate ErrorCode to String.
+	LPTSTR error = nullptr;
+	if (::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		nullptr,
+		err,
+		0,
+		reinterpret_cast<LPTSTR>(&error),
+		0,
+		nullptr) == 0)
+	{
+		// Failed in translating.
+	}
+
+	// Display message.
+	MessageBox(nullptr, error, L".NET Script Framework - Runtime", MB_ICONINFORMATION | MB_OK);
+
+	// Free the buffer.
+	if (error)
+	{
+		::LocalFree(error);
+		error = nullptr;
+	}
+}
+
 extern "C"
 {
 	EXPORT void __cdecl Initialize()
 	{
 		// Initialize environment info.
 		InitializeEnvironment();
+		show_error();
 
 		// Prepare managed code hooking.
 		if (!PrepareHook())
+		{
+			show_error();
 			return;
+		}
 
 		// Replace invoke methods.
 		if (!ReplaceMethods())
+		{
+			show_error();
 			return;
+		}
 
 		// Initialize the managed framework.
 		if (!InitializeFramework())
+		{
+			show_error();
 			return;
+		}
 
 		// Set up exception handler after framework has initialized.
 		AddVectoredExceptionHandler(1, CheckFilter);

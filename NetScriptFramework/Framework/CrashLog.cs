@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NetScriptFramework.Tools;
+#pragma warning disable 414
 
 namespace NetScriptFramework
 {
@@ -73,7 +74,7 @@ namespace NetScriptFramework
         /// Occurs after writing the crash log.
         /// </summary>
         public static readonly Event<CrashLogEventArgs> OnAfterWrite = new Event<CrashLogEventArgs>("OnAfterWrite");
-        
+
         /// <summary>
         /// Gets the modules collection.
         /// </summary>
@@ -91,7 +92,7 @@ namespace NetScriptFramework
             get;
             internal set;
         }
-        
+
         /// <summary>
         /// The culture to use for formatting.
         /// </summary>
@@ -177,7 +178,7 @@ namespace NetScriptFramework
                 else
                     writeToFile = true;
             }
-            
+
             DateTime now = DateTime.Now;
             string dirPath = null;
             string filePath = null;
@@ -252,9 +253,9 @@ namespace NetScriptFramework
                 if (!append && file.Exists)
                     throw new InvalidOperationException("File for crash log already exists!");
             }
-            
+
             this.Initialize(stackCount);
-            
+
             int handled = 0;
             var args = OnBeforeWrite.Raise(() => new CrashLogEventArgs() { Log = this, Output = this.Builder, Skip = false, Handled = handled > 0 });
             if (args != null)
@@ -266,9 +267,9 @@ namespace NetScriptFramework
                     return handled;
                 }
             }
-            
+
             this.DoWrite(now, append);
-            
+
             args = OnAfterWrite.Raise(() => new CrashLogEventArgs() { Log = this, Output = this.Builder, Skip = false, Handled = handled > 0 });
             if (args != null)
             {
@@ -287,7 +288,7 @@ namespace NetScriptFramework
                     stream.Write(this.Builder.ToString());
                 }
             }
-            
+
             return handled;
         }
 
@@ -438,7 +439,7 @@ namespace NetScriptFramework
 
             for (int i = 0; i < spl.Length - 1; i++)
                 this.WriteLine(spl[i]);
-            
+
             text = spl[spl.Length - 1];
             this.Write(text);
         }
@@ -767,7 +768,7 @@ namespace NetScriptFramework
             return null;
         }
     }
-    
+
     /// <summary>
     /// This is used to generate a crash log.
     /// </summary>
@@ -1312,7 +1313,7 @@ namespace NetScriptFramework
 
                 }
             }
-            
+
             this.BeginGroup("Possible relevant objects (" + lst.Count + ")");
             {
                 foreach(var pair in lst)
@@ -1351,7 +1352,7 @@ namespace NetScriptFramework
                 this.WriteLine();
                 return;
             }
-            
+
             string inf = GetValueInfoImpl(value, gatherer, distance);
             if (!string.IsNullOrEmpty(inf))
                 this.Write(" " + inf);
@@ -1399,7 +1400,7 @@ namespace NetScriptFramework
 
             this.WriteLine();
         }
-        
+
         /// <summary>
         /// Gets the function address information.
         /// </summary>
