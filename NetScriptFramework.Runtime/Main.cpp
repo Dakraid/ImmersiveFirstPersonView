@@ -1,6 +1,4 @@
 #include "Stdafx.h"
-#include <stdio.h>
-#include <Windows.h>
 #include "RTTI.h"
 
 #define FRAMEWORK_PATH "Data\\NetScriptFramework"
@@ -54,6 +52,60 @@ int64 _qpc_offset64 = 0;
 
 bool is64Bit = false;
 int initState = 0;
+
+auto show_error(const std::string& name = nullptr) -> void
+{
+	std::ofstream fLog("netruntime.log");;
+	{
+		if (!fLog.is_open())
+		{
+			MessageBox(nullptr, L"Could not open netruntime.log", L".NET Script Framework - Runtime", MB_ICONINFORMATION | MB_OK);
+			throw 420;
+		}
+	}
+
+	if (!name.empty())
+	{
+		if (fLog.good())
+			fLog  << name << "\n";
+
+		return;
+	}
+
+	const auto err = GetLastError();
+
+	// Translate ErrorCode to String.
+	LPTSTR error = nullptr;
+	if (::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		nullptr,
+		err,
+		0,
+		reinterpret_cast<LPTSTR>(&error),
+		0,
+		nullptr) == 0)
+	{
+		if (error)
+		{
+			::LocalFree(error);
+			error = nullptr;
+		}
+
+		return;
+	}
+
+	if (fLog.good())
+		fLog << "Encountered error: " << error << "\n";
+
+	// Display message.
+	MessageBox(nullptr, error, L".NET Script Framework - Runtime", MB_ICONINFORMATION | MB_OK);
+
+	// Free the buffer.
+	if (error)
+	{
+		::LocalFree(error);
+		error = nullptr;
+	}
+}
 
 void _CriticalFail_NoLog(const char * msg)
 {
@@ -1565,7 +1617,9 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 	{
 	case DLL_PROCESS_ATTACH:
 		if ((dwTlsIndex = TlsAlloc()) == TLS_OUT_OF_INDEXES)
+		{
 			return FALSE;
+		}
 		_ThreadStartTLS(false);
 		break;
 
@@ -1646,60 +1700,28 @@ LONG WINAPI CheckFilter(EXCEPTION_POINTERS * info)
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 
-auto show_error() -> void
-{
-	const auto err = GetLastError();
-
-	// Translate ErrorCode to String.
-	LPTSTR error = nullptr;
-	if (::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		nullptr,
-		err,
-		0,
-		reinterpret_cast<LPTSTR>(&error),
-		0,
-		nullptr) == 0)
-	{
-		// Failed in translating.
-	}
-
-	// Display message.
-	MessageBox(nullptr, error, L".NET Script Framework - Runtime", MB_ICONINFORMATION | MB_OK);
-
-	// Free the buffer.
-	if (error)
-	{
-		::LocalFree(error);
-		error = nullptr;
-	}
-}
-
 extern "C"
 {
 	EXPORT void __cdecl Initialize()
 	{
 		// Initialize environment info.
 		InitializeEnvironment();
-		show_error();
 
 		// Prepare managed code hooking.
 		if (!PrepareHook())
 		{
-			show_error();
 			return;
 		}
 
 		// Replace invoke methods.
 		if (!ReplaceMethods())
 		{
-			show_error();
 			return;
 		}
 
 		// Initialize the managed framework.
 		if (!InitializeFramework())
 		{
-			show_error();
 			return;
 		}
 

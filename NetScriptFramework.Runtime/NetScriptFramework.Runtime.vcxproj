@@ -149,11 +149,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="ReplaceImport.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RTTI.h" />
@@ -178,6 +173,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NetScriptFramework\NetScriptFramework.csproj">
       <Project>{1bf91c1b-4df3-467e-a7dd-852ab0cd7915}</Project>
+      <Private>false</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

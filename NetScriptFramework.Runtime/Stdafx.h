@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <iostream>
+#include <stdio.h>
 #include <Windows.h>
 #include <DbgHelp.h>
 #include <vector>
