@@ -21,25 +21,19 @@ namespace NetScriptFramework
         /// <summary>
         /// Pins this object and prevents it from being freed automatically when the instance is disposed.
         /// </summary>
-        public void Pin()
-        {
-            Interlocked.Increment(ref this.Pinned);
-        }
+        public void Pin() { Interlocked.Increment(ref Pinned); }
 
         /// <summary>
         /// Unpins this object and allows the underlying resources to be freed when this instance is disposed.
         /// </summary>
-        public void Unpin()
-        {
-            Interlocked.Decrement(ref this.Pinned);
-        }
+        public void Unpin() { Interlocked.Decrement(ref Pinned); }
 
         /// <summary>
         /// Frees resources.
         /// </summary>
         protected abstract void Free();
-        
-        #region IDisposable interface
+
+    #region IDisposable interface
 
         /// <summary>
         /// Internal value to avoid redundant calls.
@@ -56,8 +50,8 @@ namespace NetScriptFramework
             {
                 //if (disposing) { }
 
-                if (this.Pinned == 0)
-                    this.Free();
+                if (Pinned == 0)
+                    Free();
 
                 disposedValue = true;
             }
@@ -66,10 +60,7 @@ namespace NetScriptFramework
         /// <summary>
         /// Finalizes an instance of the <see cref="TemporaryObject"/> class.
         /// </summary>
-        ~TemporaryObject()
-        {
-            Dispose(false);
-        }
+        ~TemporaryObject() { Dispose(false); }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -80,6 +71,6 @@ namespace NetScriptFramework
             GC.SuppressFinalize(this);
         }
 
-        #endregion
+    #endregion
     }
 }

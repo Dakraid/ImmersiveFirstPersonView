@@ -16,10 +16,7 @@ namespace NetScriptFramework.Tools
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryStruct"/> class.
         /// </summary>
-        internal MemoryStruct()
-        {
-
-        }
+        internal MemoryStruct() { }
 
         /// <summary>
         /// The allocation of struct.
@@ -37,13 +34,7 @@ namespace NetScriptFramework.Tools
         /// <value>
         /// The address.
         /// </value>
-        public IntPtr Address
-        {
-            get
-            {
-                return this.Allocation.Address;
-            }
-        }
+        public IntPtr Address => Allocation.Address;
 
         /// <summary>
         /// Gets the size of struct in bytes.
@@ -51,11 +42,7 @@ namespace NetScriptFramework.Tools
         /// <value>
         /// The size.
         /// </value>
-        public int Size
-        {
-            get;
-            internal set;
-        }
+        public int Size { get; internal set; }
 
         /// <summary>
         /// Sets the value in this struct but replaces any old values that may have conflicted with this offset and value size.
@@ -76,10 +63,10 @@ namespace NetScriptFramework.Tools
             if (offset < 0)
                 throw new ArgumentOutOfRangeException("offset", "Offset can not be negative!");
 
-            if (offset > this.Size)
+            if (offset > Size)
                 throw new ArgumentOutOfRangeException("offset", "Offset can not exceed the size of struct!");
 
-            if (offset + value.Size > this.Size)
+            if (offset + value.Size > Size)
                 throw new ArgumentOutOfRangeException("offset", "Offset + value.Size can not exceed the size of struct!");
 
             if (value == null)
@@ -90,18 +77,18 @@ namespace NetScriptFramework.Tools
 
             value.Offset = offset;
 
-            ulong p = value.Packed;
-            int begin = offset;
-            int end = offset + value.Size;
-            for(int i = begin; i < end; i++)
+            var p     = value.Packed;
+            var begin = offset;
+            var end   = offset + value.Size;
+            for (var i = begin; i < end; i++)
             {
-                if (this.Fields[i] != 0)
-                    this.ClearValue(i);
+                if (Fields[i] != 0)
+                    ClearValue(i);
 
-                this.Fields[i] = p;
+                Fields[i] = p;
             }
-            
-            Memory.WriteBytes(this.Allocation.Address + offset, value.Data);
+
+            Memory.WriteBytes(Allocation.Address + offset, value.Data);
         }
 
         /// <summary>
@@ -125,10 +112,10 @@ namespace NetScriptFramework.Tools
             if (offset < 0)
                 throw new ArgumentOutOfRangeException("offset", "Offset can not be negative!");
 
-            if (offset > this.Size)
+            if (offset > Size)
                 throw new ArgumentOutOfRangeException("offset", "Offset can not exceed the size of struct!");
 
-            if (offset + value.Size > this.Size)
+            if (offset + value.Size > Size)
                 throw new ArgumentOutOfRangeException("offset", "Offset + value.Size can not exceed the size of struct!");
 
             if (value == null)
@@ -136,13 +123,13 @@ namespace NetScriptFramework.Tools
 
             value.Offset = offset;
 
-            int begin = offset;
-            int end = offset + value.Size;
-            ulong p2 = 0;
-            ulong p = value.Packed;
-            for (int i = begin; i < end; i++)
+            var   begin = offset;
+            var   end   = offset + value.Size;
+            ulong p2    = 0;
+            var   p     = value.Packed;
+            for (var i = begin; i < end; i++)
             {
-                p2 = this.Fields[i];
+                p2 = Fields[i];
                 if (p2 == 0)
                     continue;
 
@@ -154,10 +141,10 @@ namespace NetScriptFramework.Tools
             if (value.Data == null)
                 throw new InvalidOperationException();
 
-            for (int i = begin; i < end; i++)
-                this.Fields[i] = p;
+            for (var i = begin; i < end; i++)
+                Fields[i] = p;
 
-            Memory.WriteBytes(this.Allocation.Address + offset, value.Data);
+            Memory.WriteBytes(Allocation.Address + offset, value.Data);
             return true;
         }
 
@@ -177,11 +164,11 @@ namespace NetScriptFramework.Tools
             if (offset < 0)
                 throw new ArgumentOutOfRangeException("offset", "Offset can not be negative!");
 
-            if (offset > this.Size)
+            if (offset > Size)
                 throw new ArgumentOutOfRangeException("offset", "Offset can not exceed the size of struct!");
 
             ulong p = 0;
-            if (offset == this.Size || (p = this.Fields[offset]) == 0)
+            if (offset == Size || (p = Fields[offset]) == 0)
                 return null;
 
             return MemoryStructField.FromPacked(p, this);
@@ -202,26 +189,26 @@ namespace NetScriptFramework.Tools
             if (offset < 0)
                 throw new ArgumentOutOfRangeException("offset", "Offset can not be negative!");
 
-            if (offset > this.Size)
+            if (offset > Size)
                 throw new ArgumentOutOfRangeException("offset", "Offset can not exceed the size of struct!");
 
-            if (offset == this.Size)
+            if (offset == Size)
                 return false;
 
-            ulong p = this.Fields[offset];
+            var p = Fields[offset];
             if (p == 0)
                 return false;
 
-            int realOffset = 0;
-            int realSize = 0;
-            byte realType = 0;
+            var  realOffset = 0;
+            var  realSize   = 0;
+            byte realType   = 0;
             MemoryStructField.ReadPacked(p, ref realOffset, ref realSize, ref realType);
 
-            int end = realOffset + realSize;
-            for (int i = realOffset; i < end; i++)
-                this.Fields[i] = 0;
+            var end = realOffset + realSize;
+            for (var i = realOffset; i < end; i++)
+                Fields[i] = 0;
 
-            Memory.WriteZero(this.Allocation.Address + realOffset, realSize);
+            Memory.WriteZero(Allocation.Address + realOffset, realSize);
             return true;
         }
 
@@ -235,14 +222,8 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public MemoryStructField this[int offset]
         {
-            get
-            {
-                return this.GetValue(offset);
-            }
-            set
-            {
-                this.SetValue(offset, value);
-            }
+            get => GetValue(offset);
+            set => SetValue(offset, value);
         }
 
         /// <summary>
@@ -250,10 +231,10 @@ namespace NetScriptFramework.Tools
         /// </summary>
         protected override void Free()
         {
-            if(this.Allocation != null)
+            if (Allocation != null)
             {
-                this.Allocation.Dispose();
-                this.Allocation = null;
+                Allocation.Dispose();
+                Allocation = null;
             }
         }
     }
@@ -266,10 +247,7 @@ namespace NetScriptFramework.Tools
         /// <summary>
         /// Prevents a default instance of the <see cref="MemoryStructField"/> class from being created.
         /// </summary>
-        private MemoryStructField()
-        {
-
-        }
+        private MemoryStructField() { }
 
         /// <summary>
         /// Gets the size of value.
@@ -277,11 +255,7 @@ namespace NetScriptFramework.Tools
         /// <value>
         /// The size.
         /// </value>
-        public int Size
-        {
-            get;
-            internal set;
-        }
+        public int Size { get; internal set; }
 
         /// <summary>
         /// Gets the begin offset of value in struct.
@@ -289,11 +263,7 @@ namespace NetScriptFramework.Tools
         /// <value>
         /// The offset.
         /// </value>
-        public int Offset
-        {
-            get;
-            internal set;
-        }
+        public int Offset { get; internal set; }
 
         /// <summary>
         /// Gets the type of value.
@@ -301,11 +271,7 @@ namespace NetScriptFramework.Tools
         /// <value>
         /// The type.
         /// </value>
-        public FieldTypes Type
-        {
-            get;
-            private set;
-        }
+        public FieldTypes Type { get; private set; }
 
         /// <summary>
         /// Gets the data.
@@ -313,11 +279,7 @@ namespace NetScriptFramework.Tools
         /// <value>
         /// The data.
         /// </value>
-        internal byte[] Data
-        {
-            get;
-            private set;
-        }
+        internal byte[] Data { get; private set; }
 
         /// <summary>
         /// Gets the packed value.
@@ -330,11 +292,11 @@ namespace NetScriptFramework.Tools
             get
             {
                 ulong v = 0;
-                v = (byte)this.Type;
+                v =   (byte) Type;
                 v <<= 24;
-                v |= (uint)(this.Size & 0x00FFFFFF);
+                v |=  (uint) (Size & 0x00FFFFFF);
                 v <<= 24;
-                v |= (uint)(this.Offset & 0x00FFFFFF);
+                v |=  (uint) (Offset & 0x00FFFFFF);
                 return v;
             }
         }
@@ -348,9 +310,9 @@ namespace NetScriptFramework.Tools
         /// <param name="type">The type.</param>
         internal static void ReadPacked(ulong packed, ref int offset, ref int size, ref byte type)
         {
-            offset = (int)(packed & 0x00FFFFFF);
-            size = (int)((packed >> 24) & 0x00FFFFFF);
-            type = (byte)((packed >> 48) & 0xFF);
+            offset = (int) (packed          & 0x00FFFFFF);
+            size   = (int) ((packed  >> 24) & 0x00FFFFFF);
+            type   = (byte) ((packed >> 48) & 0xFF);
         }
 
         /// <summary>
@@ -364,16 +326,16 @@ namespace NetScriptFramework.Tools
             if (packed == 0)
                 return null;
 
-            int offset = 0;
-            int size = 0;
-            byte type = 0;
+            var  offset = 0;
+            var  size   = 0;
+            byte type   = 0;
             ReadPacked(packed, ref offset, ref size, ref type);
 
             var f = new MemoryStructField();
             f.Offset = offset;
-            f.Size = size;
-            f.Type = (FieldTypes)type;
-            f.Data = Memory.ReadBytes(obj.Address + offset, size);
+            f.Size   = size;
+            f.Type   = (FieldTypes) type;
+            f.Data   = Memory.ReadBytes(obj.Address + offset, size);
             return f;
         }
 
@@ -384,18 +346,18 @@ namespace NetScriptFramework.Tools
         {
             None = 0,
 
-            Pointer = 1,
-            Float = 2,
-            Double = 3,
-            UInt8 = 4,
-            Int8 = 5,
-            UInt16 = 6,
-            Int16 = 7,
-            UInt32 = 8,
-            Int32 = 9,
-            UInt64 = 10,
-            Int64 = 11,
-            ByteArray = 12,
+            Pointer   = 1,
+            Float     = 2,
+            Double    = 3,
+            UInt8     = 4,
+            Int8      = 5,
+            UInt16    = 6,
+            Int16     = 7,
+            UInt32    = 8,
+            Int32     = 9,
+            UInt64    = 10,
+            Int64     = 11,
+            ByteArray = 12
         }
 
         /// <summary>
@@ -424,18 +386,19 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool TryToPointer(ref IntPtr value)
         {
-            if (this.Type != FieldTypes.Pointer)
+            if (Type != FieldTypes.Pointer)
                 return false;
-            if(Main.Is64Bit)
+            if (Main.Is64Bit)
             {
-                long v = BitConverter.ToInt64(this.Data, 0);
+                var v = BitConverter.ToInt64(Data, 0);
                 value = new IntPtr(v);
             }
             else
             {
-                int v = BitConverter.ToInt32(this.Data, 0);
+                var v = BitConverter.ToInt32(Data, 0);
                 value = new IntPtr(v);
             }
+
             return true;
         }
 
@@ -462,9 +425,9 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool TryToFloat(ref float value)
         {
-            if (this.Type != FieldTypes.Float)
+            if (Type != FieldTypes.Float)
                 return false;
-            value = BitConverter.ToSingle(this.Data, 0);
+            value = BitConverter.ToSingle(Data, 0);
             return true;
         }
 
@@ -491,9 +454,9 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool TryToDouble(ref double value)
         {
-            if (this.Type != FieldTypes.Double)
+            if (Type != FieldTypes.Double)
                 return false;
-            value = BitConverter.ToDouble(this.Data, 0);
+            value = BitConverter.ToDouble(Data, 0);
             return true;
         }
 
@@ -508,7 +471,7 @@ namespace NetScriptFramework.Tools
         {
             var f = new MemoryStructField();
             f.Type = FieldTypes.UInt8;
-            f.Data = new byte[] { value };
+            f.Data = new byte[] {value};
             f.Size = f.Data.Length;
             return f;
         }
@@ -520,9 +483,9 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool TryToUInt8(ref byte value)
         {
-            if (this.Type != FieldTypes.UInt8)
+            if (Type != FieldTypes.UInt8)
                 return false;
-            value = this.Data[0];
+            value = Data[0];
             return true;
         }
 
@@ -537,7 +500,7 @@ namespace NetScriptFramework.Tools
         {
             var f = new MemoryStructField();
             f.Type = FieldTypes.Int8;
-            f.Data = new byte[] { unchecked((byte)value) };
+            f.Data = new byte[] {unchecked((byte) value)};
             f.Size = f.Data.Length;
             return f;
         }
@@ -549,9 +512,9 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool TryToInt8(ref sbyte value)
         {
-            if (this.Type != FieldTypes.Int8)
+            if (Type != FieldTypes.Int8)
                 return false;
-            value = unchecked((sbyte)this.Data[0]);
+            value = unchecked((sbyte) Data[0]);
             return true;
         }
 
@@ -578,9 +541,9 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool TryToUInt16(ref ushort value)
         {
-            if (this.Type != FieldTypes.UInt16)
+            if (Type != FieldTypes.UInt16)
                 return false;
-            value = BitConverter.ToUInt16(this.Data, 0);
+            value = BitConverter.ToUInt16(Data, 0);
             return true;
         }
 
@@ -607,9 +570,9 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool TryToInt16(ref short value)
         {
-            if (this.Type != FieldTypes.Int16)
+            if (Type != FieldTypes.Int16)
                 return false;
-            value = BitConverter.ToInt16(this.Data, 0);
+            value = BitConverter.ToInt16(Data, 0);
             return true;
         }
 
@@ -636,9 +599,9 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool TryToUInt32(ref uint value)
         {
-            if (this.Type != FieldTypes.UInt32)
+            if (Type != FieldTypes.UInt32)
                 return false;
-            value = BitConverter.ToUInt32(this.Data, 0);
+            value = BitConverter.ToUInt32(Data, 0);
             return true;
         }
 
@@ -665,9 +628,9 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool TryToInt32(ref int value)
         {
-            if (this.Type != FieldTypes.Int32)
+            if (Type != FieldTypes.Int32)
                 return false;
-            value = BitConverter.ToInt32(this.Data, 0);
+            value = BitConverter.ToInt32(Data, 0);
             return true;
         }
 
@@ -694,9 +657,9 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool TryToUInt64(ref ulong value)
         {
-            if (this.Type != FieldTypes.UInt64)
+            if (Type != FieldTypes.UInt64)
                 return false;
-            value = BitConverter.ToUInt64(this.Data, 0);
+            value = BitConverter.ToUInt64(Data, 0);
             return true;
         }
 
@@ -723,9 +686,9 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool TryToInt64(ref long value)
         {
-            if (this.Type != FieldTypes.Int64)
+            if (Type != FieldTypes.Int64)
                 return false;
-            value = BitConverter.ToInt64(this.Data, 0);
+            value = BitConverter.ToInt64(Data, 0);
             return true;
         }
 
@@ -759,9 +722,9 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool TryToBytes(ref byte[] value)
         {
-            if (this.Type != FieldTypes.ByteArray)
+            if (Type != FieldTypes.ByteArray)
                 return false;
-            value = this.Data.ToArray();
+            value = Data.ToArray();
             return true;
         }
     }

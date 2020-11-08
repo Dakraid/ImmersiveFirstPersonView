@@ -18,8 +18,8 @@ namespace NetScriptFramework
         /// <param name="is64Bit">if set to <c>true</c> then library is 64 bit.</param>
         internal GameInfo(ulong baseOffset, bool is64Bit)
         {
-            this.BaseOffset = baseOffset;
-            this.Is64Bit = is64Bit;
+            BaseOffset = baseOffset;
+            Is64Bit    = is64Bit;
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace NetScriptFramework
         /// The cached values.
         /// </summary>
         internal readonly List<int?> cachedValues = new List<int?>();
-        
+
         /// <summary>
         /// The functions.
         /// </summary>
@@ -113,11 +113,7 @@ namespace NetScriptFramework
         /// <value>
         /// The library base offset.
         /// </value>
-        public ulong LibraryBaseOffset
-        {
-            get;
-            internal set;
-        }
+        public ulong LibraryBaseOffset { get; internal set; }
 
         /// <summary>
         /// Gets the types.
@@ -125,13 +121,7 @@ namespace NetScriptFramework
         /// <value>
         /// The types.
         /// </value>
-        public IReadOnlyList<GameTypeInfo> Types
-        {
-            get
-            {
-                return this.typesList;
-            }
-        }
+        public IReadOnlyList<GameTypeInfo> Types => typesList;
 
         /// <summary>
         /// Gets the globals.
@@ -139,13 +129,7 @@ namespace NetScriptFramework
         /// <value>
         /// The globals.
         /// </value>
-        public IReadOnlyList<GameGlobalInfo> Globals
-        {
-            get
-            {
-                return this.globalsList;
-            }
-        }
+        public IReadOnlyList<GameGlobalInfo> Globals => globalsList;
 
         /// <summary>
         /// Gets the functions.
@@ -153,13 +137,7 @@ namespace NetScriptFramework
         /// <value>
         /// The functions.
         /// </value>
-        public IReadOnlyList<GameFunctionInfo> Functions
-        {
-            get
-            {
-                return this.functionsList;
-            }
-        }
+        public IReadOnlyList<GameFunctionInfo> Functions => functionsList;
 
         /// <summary>
         /// Gets the cached values.
@@ -167,13 +145,7 @@ namespace NetScriptFramework
         /// <value>
         /// The cached values.
         /// </value>
-        public IReadOnlyList<int?> CachedValues
-        {
-            get
-            {
-                return this.cachedValues;
-            }
-        }
+        public IReadOnlyList<int?> CachedValues => cachedValues;
 
         /// <summary>
         /// Dumps the version independent identifiers to specified file. Format will be "id tab offset" on each line.
@@ -183,7 +155,7 @@ namespace NetScriptFramework
         {
             using (var sw = targetFileInfo.CreateText())
             {
-                foreach (var x in this.vidAddrMap)
+                foreach (var x in vidAddrMap)
                 {
                     sw.Write(x.Key);
                     sw.Write("\t0x");
@@ -193,7 +165,7 @@ namespace NetScriptFramework
             }
         }
 
-#if NETSCRIPTFRAMEWORK
+    #if NETSCRIPTFRAMEWORK
         /// <summary>
         /// Gets the type from vtable address.
         /// </summary>
@@ -202,12 +174,12 @@ namespace NetScriptFramework
         /// <returns></returns>
         public GameTypeInfo GetTypeInfo(IntPtr vtable, bool withBaseOffset)
         {
-            ulong v = this.Is64Bit ? vtable.ToUInt64() : vtable.ToUInt32();
-            if(withBaseOffset)
-                v = unchecked(v - this.BaseOffset);
+            var v = Is64Bit ? vtable.ToUInt64() : vtable.ToUInt32();
+            if (withBaseOffset)
+                v = unchecked(v - BaseOffset);
 
             GameTypeInfo result = null;
-            if (this.vtTpMap.TryGetValue(v, out result))
+            if (vtTpMap.TryGetValue(v, out result))
                 return result;
             return null;
         }
@@ -223,11 +195,7 @@ namespace NetScriptFramework
             /// <value>
             /// The address.
             /// </value>
-            internal ulong Address
-            {
-                get;
-                set;
-            }
+            internal ulong Address { get; set; }
 
             /// <summary>
             /// Compares two objects and returns a value indicating whether one is less than, equal to, or greater than the other.
@@ -239,9 +207,9 @@ namespace NetScriptFramework
             /// </returns>
             public int Compare(GameFunctionInfo x, GameFunctionInfo y)
             {
-                ulong v = this.Address;
+                var v = Address;
                 var a = x;
-                int m = 1;
+                var m = 1;
                 if (a == null)
                 {
                     a = y;
@@ -264,9 +232,9 @@ namespace NetScriptFramework
         /// <returns></returns>
         public GameFunctionInfo GetFunctionInfo(IntPtr address, bool withBaseOffset)
         {
-            ulong v = this.Is64Bit ? address.ToUInt64() : address.ToUInt32();
-            if(withBaseOffset)
-                v = unchecked(v - this.BaseOffset);
+            var v = Is64Bit ? address.ToUInt64() : address.ToUInt32();
+            if (withBaseOffset)
+                v = unchecked(v - BaseOffset);
 
             /*foreach (var f in this.functionsList)
             {
@@ -274,13 +242,13 @@ namespace NetScriptFramework
                     return f;
             }*/
 
-            var searcher = new FunctionSearcher() { Address = v };
-            int result = this.functionsList.BinarySearch(null, searcher);
+            var searcher = new FunctionSearcher() {Address = v};
+            var result   = functionsList.BinarySearch(null, searcher);
             if (result < 0)
                 return null;
-            return this.functionsList[result];
+            return functionsList[result];
         }
-#endif
+    #endif
 
         /// <summary>
         /// Gets the function information.
@@ -292,9 +260,10 @@ namespace NetScriptFramework
             if (id != 0)
             {
                 GameFunctionInfo fi = null;
-                if (this.vidFnMap.TryGetValue(id, out fi))
+                if (vidFnMap.TryGetValue(id, out fi))
                     return fi;
             }
+
             return null;
         }
 
@@ -308,9 +277,10 @@ namespace NetScriptFramework
             if (id != 0)
             {
                 GameGlobalInfo fi = null;
-                if (this.vidGbMap.TryGetValue(id, out fi))
+                if (vidGbMap.TryGetValue(id, out fi))
                     return fi;
             }
+
             return null;
         }
 
@@ -321,12 +291,13 @@ namespace NetScriptFramework
         /// <returns></returns>
         public GameTypeInfo GetTypeInfo(ulong id)
         {
-            if(id != 0)
+            if (id != 0)
             {
                 GameTypeInfo ti = null;
-                if (this.uqTpMap.TryGetValue(id, out ti))
+                if (uqTpMap.TryGetValue(id, out ti))
                     return ti;
             }
+
             return null;
         }
 
@@ -337,12 +308,13 @@ namespace NetScriptFramework
         /// <returns></returns>
         public IReadOnlyList<GameTypeInstanceInfo> GetTypeInstanceInfos(uint id)
         {
-            if(id != 0)
+            if (id != 0)
             {
                 List<GameTypeInstanceInfo> ls = null;
-                if (this.tiiMap.TryGetValue(id, out ls))
+                if (tiiMap.TryGetValue(id, out ls))
                     return ls;
             }
+
             return EmptyTypeInstanceInfos;
         }
 
@@ -351,7 +323,7 @@ namespace NetScriptFramework
         /// </summary>
         private static readonly GameTypeInstanceInfo[] EmptyTypeInstanceInfos = new GameTypeInstanceInfo[0];
 
-#if NETSCRIPTFRAMEWORK
+    #if NETSCRIPTFRAMEWORK
         /// <summary>
         /// Gets the address of the specified object by its version independent identifier. This will throw an exception if the address was not found.
         /// </summary>
@@ -365,31 +337,35 @@ namespace NetScriptFramework
         public IntPtr GetAddressOf(ulong id, int extraOffset = 0, int patternOffset = 0, string pattern = null)
         {
             ulong offset = 0;
-            if(id != 0 && this.vidAddrMap.TryGetValue(id, out offset))
+            if (id != 0 && vidAddrMap.TryGetValue(id, out offset))
             {
-                ulong full = this.BaseOffset + offset;
+                var    full = BaseOffset + offset;
                 IntPtr result;
-                if (this.Is64Bit)
-                    result = new IntPtr(unchecked((long)full));
+                if (Is64Bit)
+                    result = new IntPtr(unchecked((long) full));
                 else
-                    result = new IntPtr(unchecked((int)full));
+                    result = new IntPtr(unchecked((int) full));
                 if (extraOffset != 0)
                     result = result + extraOffset;
                 if (!string.IsNullOrEmpty(pattern))
                 {
                     var target = result + patternOffset;
-                    while(pattern.Length >= 2 && pattern[0] == '[' && pattern[pattern.Length - 1] == ']')
+                    while (pattern.Length >= 2 && pattern[0] == '[' && pattern[pattern.Length - 1] == ']')
                     {
                         pattern = pattern.Substring(1, pattern.Length - 2);
-                        target = Memory.ReadPointer(target);
+                        target  = Memory.ReadPointer(target);
                     }
+
                     if (!Memory.VerifyBytes(target, pattern))
-                        throw new ArgumentException("Object with version independent id `" + id + "` did not match specified byte pattern! This usually means plugin must be updated by author.");
+                        throw new ArgumentException("Object with version independent id `" + id +
+                                                    "` did not match specified byte pattern! This usually means plugin must be updated by author.");
                 }
+
                 return result;
             }
 
-            throw new KeyNotFoundException("Object with version independent id `" + id + "` was not found in version library! This usually means plugin must be updated by author.");
+            throw new KeyNotFoundException("Object with version independent id `" + id +
+                                           "` was not found in version library! This usually means plugin must be updated by author.");
         }
 
         /// <summary>
@@ -403,14 +379,14 @@ namespace NetScriptFramework
         public IntPtr? TryGetAddressOf(ulong id, int extraOffset = 0, int patternOffset = 0, string pattern = null)
         {
             ulong offset = 0;
-            if (id != 0 && this.vidAddrMap.TryGetValue(id, out offset))
+            if (id != 0 && vidAddrMap.TryGetValue(id, out offset))
             {
-                ulong full = this.BaseOffset + offset;
+                var    full = BaseOffset + offset;
                 IntPtr result;
-                if (this.Is64Bit)
-                    result = new IntPtr(unchecked((long)full));
+                if (Is64Bit)
+                    result = new IntPtr(unchecked((long) full));
                 else
-                    result = new IntPtr(unchecked((int)full));
+                    result = new IntPtr(unchecked((int) full));
                 if (extraOffset != 0)
                     result = result + extraOffset;
                 if (!string.IsNullOrEmpty(pattern))
@@ -422,21 +398,21 @@ namespace NetScriptFramework
                         if (!Memory.TryReadPointer(target, ref target))
                             return null;
                     }
+
                     try
                     {
                         if (!Memory.VerifyBytes(target, pattern))
                             return null;
                     }
-                    catch
-                    {
-                        return null;
-                    }
+                    catch { return null; }
                 }
+
                 return result;
             }
+
             return null;
         }
-#endif
+    #endif
 
         /// <summary>
         /// Adds the type information.
@@ -444,19 +420,18 @@ namespace NetScriptFramework
         /// <param name="dt">The type info.</param>
         internal void AddTypeInfo(GameTypeInfo dt)
         {
-            if(dt.Id != 0)
+            if (dt.Id != 0)
             {
-                if (this.uqTpMap.ContainsKey(dt.Id))
+                if (uqTpMap.ContainsKey(dt.Id))
                     throw new ArgumentException("A type with this unique identifier (" + dt.Id + ") is already added!");
 
-                this.uqTpMap[dt.Id] = dt;
+                uqTpMap[dt.Id] = dt;
             }
-            if(dt.VTable != 0)
-            {
-                if(!this.vtTpMap.ContainsKey(dt.VTable))
-                    this.vtTpMap[dt.VTable] = dt;
-            }
-            this.typesList.Add(dt);
+
+            if (dt.VTable != 0)
+                if (!vtTpMap.ContainsKey(dt.VTable))
+                    vtTpMap[dt.VTable] = dt;
+            typesList.Add(dt);
         }
 
         /// <summary>
@@ -467,13 +442,14 @@ namespace NetScriptFramework
         {
             if (fi.Id != 0)
             {
-                if (this.vidAddrMap.ContainsKey(fi.Id))
+                if (vidAddrMap.ContainsKey(fi.Id))
                     throw new ArgumentException("An object with specified version independent identifier (" + fi.Id + ") was already registered!");
 
-                this.vidAddrMap[fi.Id] = fi.Begin;
-                this.vidFnMap[fi.Id] = fi;
+                vidAddrMap[fi.Id] = fi.Begin;
+                vidFnMap[fi.Id]   = fi;
             }
-            this.functionsList.Add(fi);
+
+            functionsList.Add(fi);
         }
 
         /// <summary>
@@ -484,13 +460,14 @@ namespace NetScriptFramework
         {
             if (gb.Id != 0)
             {
-                if (this.vidAddrMap.ContainsKey(gb.Id))
+                if (vidAddrMap.ContainsKey(gb.Id))
                     throw new ArgumentException("An object with specified version independent identifier (" + gb.Id + ") was already registered!");
 
-                this.vidAddrMap[gb.Id] = gb.Begin;
-                this.vidGbMap[gb.Id] = gb;
+                vidAddrMap[gb.Id] = gb.Begin;
+                vidGbMap[gb.Id]   = gb;
             }
-            this.globalsList.Add(gb);
+
+            globalsList.Add(gb);
         }
 
         /// <summary>
@@ -501,7 +478,7 @@ namespace NetScriptFramework
         internal void AddTypeInstanceInfos(uint id, List<GameTypeInstanceInfo> ls)
         {
             if (id != 0)
-                this.tiiMap[id] = ls;
+                tiiMap[id] = ls;
         }
 
         /// <summary>
@@ -512,7 +489,7 @@ namespace NetScriptFramework
         /// <exception cref="System.IO.FileNotFoundException"></exception>
         internal void ReadFromFile(System.IO.FileInfo file, int isLoadingAlias)
         {
-            this.Clear();
+            Clear();
 
             if (!file.Exists)
                 throw new System.IO.FileNotFoundException(file.FullName);
@@ -523,12 +500,12 @@ namespace NetScriptFramework
                 {
                     using (var reader = new System.IO.BinaryReader(comp))
                     {
-                        this.ReadFromStream(reader, file, isLoadingAlias);
+                        ReadFromStream(reader, file, isLoadingAlias);
 
-                        if (isLoadingAlias == 0 && this.AliasFileVersion != null)
+                        if (isLoadingAlias == 0 && AliasFileVersion != null)
                         {
-                            this.FileVersion = this.AliasFileVersion;
-                            this.AliasFileVersion = null;
+                            FileVersion      = AliasFileVersion;
+                            AliasFileVersion = null;
                         }
                     }
                 }
@@ -541,16 +518,13 @@ namespace NetScriptFramework
         /// <param name="file">The file.</param>
         internal void WriteToFile(System.IO.FileInfo file)
         {
-            this.functionsList.Sort((u, v) => u.Begin.CompareTo(v.Begin));
+            functionsList.Sort((u, v) => u.Begin.CompareTo(v.Begin));
 
             using (var stream = file.Create())
             {
                 using (var comp = new System.IO.Compression.GZipStream(stream, System.IO.Compression.CompressionMode.Compress))
                 {
-                    using (var writer = new System.IO.BinaryWriter(comp))
-                    {
-                        this.WriteToStream(writer);
-                    }
+                    using (var writer = new System.IO.BinaryWriter(comp)) { WriteToStream(writer); }
                 }
             }
         }
@@ -560,17 +534,17 @@ namespace NetScriptFramework
         /// </summary>
         internal void Clear()
         {
-            this.cachedValues.Clear();
-            this.registrationList.Clear();
-            this.typesList.Clear();
-            this.globalsList.Clear();
-            this.functionsList.Clear();
-            this.vidAddrMap.Clear();
-            this.vidFnMap.Clear();
-            this.vidGbMap.Clear();
-            this.vtTpMap.Clear();
-            this.uqTpMap.Clear();
-            this.tiiMap.Clear();
+            cachedValues.Clear();
+            registrationList.Clear();
+            typesList.Clear();
+            globalsList.Clear();
+            functionsList.Clear();
+            vidAddrMap.Clear();
+            vidFnMap.Clear();
+            vidGbMap.Clear();
+            vtTpMap.Clear();
+            uqTpMap.Clear();
+            tiiMap.Clear();
         }
 
         /// <summary>
@@ -587,96 +561,97 @@ namespace NetScriptFramework
         /// <exception cref="System.IO.InvalidDataException">Version of object is not supported!</exception>
         private void ReadFromStream(System.IO.BinaryReader stream, System.IO.FileInfo info, int isLoadingAlias)
         {
-            int version = stream.ReadInt32();
+            var version = stream.ReadInt32();
             if (version < 2 || version > StreamVersion)
                 throw new System.IO.InvalidDataException("Version of library is not supported!");
 
-            this.LibraryVersion = stream.ReadInt32();
-            this.FileVersion = new int[4];
-            for (int i = 0; i < 4; i++)
-                this.FileVersion[i] = stream.ReadInt32();
-            
-            if(stream.ReadByte() != 0)
+            LibraryVersion = stream.ReadInt32();
+            FileVersion    = new int[4];
+            for (var i = 0; i < 4; i++)
+                FileVersion[i] = stream.ReadInt32();
+
+            if (stream.ReadByte() != 0)
             {
                 if (isLoadingAlias >= 10)
-                    throw new ArgumentException("Version library failed to load because alias loading depth was exceeded (" + isLoadingAlias + ")! This could indicate infinite alias file recursion.");
+                    throw new ArgumentException("Version library failed to load because alias loading depth was exceeded (" + isLoadingAlias +
+                                                ")! This could indicate infinite alias file recursion.");
 
-                int[] alias = new int[4];
-                for (int i = 0; i < 4; i++)
+                var alias = new int[4];
+                for (var i = 0; i < 4; i++)
                     alias[i] = stream.ReadInt32();
 
                 if (isLoadingAlias == 0)
-                    this.AliasFileVersion = this.FileVersion;
+                    AliasFileVersion = FileVersion;
 
-                string oldPart = string.Join("_", this.FileVersion);
-                string newPart = string.Join("_", alias);
+                var oldPart = string.Join("_", FileVersion);
+                var newPart = string.Join("_", alias);
 
                 int replaceIndex;
                 if ((replaceIndex = info.FullName.LastIndexOf(oldPart)) < 0)
                     throw new ArgumentException("Unable to solve library file alias because old file name did not contain `" + oldPart + "`!");
 
-                string newName = info.FullName.Remove(replaceIndex, oldPart.Length);
+                var newName = info.FullName.Remove(replaceIndex, oldPart.Length);
                 newName = newName.Insert(replaceIndex, newPart);
 
                 if (newName == info.FullName)
                     throw new ArgumentException("Unable to load library due to alias pointing to same file!");
 
                 var newFile = new System.IO.FileInfo(newName);
-                this.ReadFromFile(newFile, isLoadingAlias + 1);
+                ReadFromFile(newFile, isLoadingAlias + 1);
                 return;
             }
 
-            this.LibraryBaseOffset = stream.ReadUInt64();
-            this.HashVersion = stream.ReadUInt64();
+            LibraryBaseOffset = stream.ReadUInt64();
+            HashVersion       = stream.ReadUInt64();
 
             {
-                int count = stream.ReadInt32();
-                for (int i = 0; i < count; i++)
+                var count = stream.ReadInt32();
+                for (var i = 0; i < count; i++)
                 {
                     var dt = new GameTypeInfo();
                     dt.ReadFromStream(stream, version);
-                    this.AddTypeInfo(dt);
+                    AddTypeInfo(dt);
                 }
             }
 
             {
-                int count = stream.ReadInt32();
-                for (int i = 0; i < count; i++)
+                var count = stream.ReadInt32();
+                for (var i = 0; i < count; i++)
                 {
                     var fi = new GameFunctionInfo();
                     fi.ReadFromStream(stream, version);
-                    this.AddFunctionInfo(fi);
+                    AddFunctionInfo(fi);
                 }
             }
 
             {
-                int count = stream.ReadInt32();
-                for (int i = 0; i < count; i++)
+                var count = stream.ReadInt32();
+                for (var i = 0; i < count; i++)
                 {
                     var fi = new GameGlobalInfo();
                     fi.ReadFromStream(stream, version);
-                    this.AddGlobalInfo(fi);
+                    AddGlobalInfo(fi);
                 }
             }
 
             {
-                int count = stream.ReadInt32();
-                for(int i = 0; i < count; i++)
+                var count = stream.ReadInt32();
+                for (var i = 0; i < count; i++)
                 {
                     var ri = new GameTypeRegistration();
                     ri.ReadFromStream(stream, version);
-                    this.registrationList.Add(ri);
+                    registrationList.Add(ri);
                 }
             }
 
             {
-                int count = stream.ReadInt32();
-                for(int i = 0; i < count; i++)
+                var count = stream.ReadInt32();
+                for (var i = 0; i < count; i++)
                 {
-                    int lcount;
+                    int  lcount;
                     uint lid;
                     {
-                        byte ltype = stream.ReadByte();
+                        var ltype = stream.ReadByte();
 
                         if ((ltype & 1) == 0)
                             lcount = stream.ReadByte();
@@ -692,14 +667,14 @@ namespace NetScriptFramework
                     }
 
                     var ls = new List<GameTypeInstanceInfo>(Math.Max(0, Math.Min(lcount, 64)));
-                    for(int j = 0; j < lcount; j++)
+                    for (var j = 0; j < lcount; j++)
                     {
-                        int? begin = null;
-                        int? end = null;
-                        ulong id = 0;
+                        int?  begin = null;
+                        int?  end   = null;
+                        ulong id    = 0;
 
-                        byte jtype = stream.ReadByte();
-                        if((jtype & 1) != 0)
+                        var jtype = stream.ReadByte();
+                        if ((jtype & 1) != 0)
                         {
                             if ((jtype & 2) != 0)
                                 begin = stream.ReadByte();
@@ -708,7 +683,8 @@ namespace NetScriptFramework
                             else
                                 begin = stream.ReadInt32();
                         }
-                        if((jtype & 8) != 0)
+
+                        if ((jtype & 8) != 0)
                         {
                             if ((jtype & 0x10) != 0)
                                 end = stream.ReadByte();
@@ -717,6 +693,7 @@ namespace NetScriptFramework
                             else
                                 end = stream.ReadInt32();
                         }
+
                         if ((jtype & 0x40) != 0)
                             id = stream.ReadUInt16();
                         else if ((jtype & 0x80) != 0)
@@ -725,35 +702,35 @@ namespace NetScriptFramework
                             id = stream.ReadUInt64();
 
                         var inf = GetTypeInfo(id);
-                        var ti = new GameTypeInstanceInfo(begin, end, inf);
+                        var ti  = new GameTypeInstanceInfo(begin, end, inf);
                         ls.Add(ti);
                     }
 
-                    this.tiiMap[lid] = ls;
+                    tiiMap[lid] = ls;
                 }
             }
 
             {
-                int count = stream.ReadInt32();
-                int did = 0;
-                while(did < count)
+                var count = stream.ReadInt32();
+                var did   = 0;
+                while (did < count)
                 {
-                    int nx = stream.ReadInt32();
-                    if(nx > 0)
+                    var nx = stream.ReadInt32();
+                    if (nx > 0)
                     {
                         did += nx;
-                        for(int i = 0; i < nx; i++)
+                        for (var i = 0; i < nx; i++)
                         {
-                            int val = stream.ReadInt32();
-                            this.cachedValues.Add(val);
+                            var val = stream.ReadInt32();
+                            cachedValues.Add(val);
                         }
                     }
                     else
                     {
-                        nx = -nx;
+                        nx  =  -nx;
                         did += nx;
-                        for (int i = 0; i < nx; i++)
-                            this.cachedValues.Add(null);
+                        for (var i = 0; i < nx; i++)
+                            cachedValues.Add(null);
                     }
                 }
             }
@@ -767,56 +744,55 @@ namespace NetScriptFramework
         {
             stream.Write(StreamVersion);
 
-            stream.Write(this.LibraryVersion);
+            stream.Write(LibraryVersion);
 
-            for (int i = 0; i < 4; i++)
-                stream.Write(this.FileVersion[i]);
+            for (var i = 0; i < 4; i++)
+                stream.Write(FileVersion[i]);
 
-            if (this.AliasFileVersion != null)
+            if (AliasFileVersion != null)
             {
-                stream.Write((byte)1);
-                for (int i = 0; i < 4; i++)
-                    stream.Write(this.AliasFileVersion[i]);
+                stream.Write((byte) 1);
+                for (var i = 0; i < 4; i++)
+                    stream.Write(AliasFileVersion[i]);
                 return;
             }
-            else
-                stream.Write((byte)0);
+            else { stream.Write((byte) 0); }
 
-            stream.Write(this.LibraryBaseOffset);
-            stream.Write(this.HashVersion);
+            stream.Write(LibraryBaseOffset);
+            stream.Write(HashVersion);
 
             {
-                stream.Write(this.typesList.Count);
-                foreach (var x in this.typesList)
+                stream.Write(typesList.Count);
+                foreach (var x in typesList)
                     x.WriteToStream(stream);
             }
 
             {
-                stream.Write(this.functionsList.Count);
-                foreach (var x in this.functionsList)
+                stream.Write(functionsList.Count);
+                foreach (var x in functionsList)
                     x.WriteToStream(stream);
             }
 
             {
-                stream.Write(this.globalsList.Count);
-                foreach (var x in this.globalsList)
+                stream.Write(globalsList.Count);
+                foreach (var x in globalsList)
                     x.WriteToStream(stream);
             }
 
             {
-                stream.Write(this.registrationList.Count);
-                foreach (var x in this.registrationList)
+                stream.Write(registrationList.Count);
+                foreach (var x in registrationList)
                     x.WriteToStream(stream);
             }
 
             {
-                stream.Write(this.tiiMap.Count);
-                foreach(var pair in this.tiiMap)
+                stream.Write(tiiMap.Count);
+                foreach (var pair in tiiMap)
                 {
                     {
-                        uint lid = pair.Key;
-                        var ls = pair.Value;
-                        int lcount = ls.Count;
+                        var lid    = pair.Key;
+                        var ls     = pair.Value;
+                        var lcount = ls.Count;
 
                         byte ltype = 0;
                         if (lcount < 0 || lcount > byte.MaxValue)
@@ -830,22 +806,22 @@ namespace NetScriptFramework
                         stream.Write(ltype);
 
                         if ((ltype & 1) == 0)
-                            stream.Write((byte)lcount);
+                            stream.Write((byte) lcount);
                         else
                             stream.Write(lcount);
 
                         if ((ltype & 2) != 0)
-                            stream.Write((ushort)lid);
+                            stream.Write((ushort) lid);
                         else if ((ltype & 4) != 0)
-                            stream.Write((byte)lid);
+                            stream.Write((byte) lid);
                         else
                             stream.Write(lid);
                     }
 
-                    foreach(var x in pair.Value)
+                    foreach (var x in pair.Value)
                     {
                         byte jtype = 0;
-                        if(x.BeginOffset.HasValue)
+                        if (x.BeginOffset.HasValue)
                         {
                             jtype |= 1;
                             if (x.BeginOffset.Value >= 0 && x.BeginOffset.Value <= byte.MaxValue)
@@ -853,7 +829,8 @@ namespace NetScriptFramework
                             else if (x.BeginOffset.Value >= 0 && x.BeginOffset.Value <= ushort.MaxValue)
                                 jtype |= 4;
                         }
-                        if(x.EndOffset.HasValue)
+
+                        if (x.EndOffset.HasValue)
                         {
                             jtype |= 8;
                             if (x.EndOffset.Value >= 0 && x.EndOffset.Value <= byte.MaxValue)
@@ -861,7 +838,8 @@ namespace NetScriptFramework
                             else if (x.EndOffset.Value >= 0 && x.EndOffset.Value <= ushort.MaxValue)
                                 jtype |= 0x20;
                         }
-                        ulong id = x.Info != null ? x.Info.Id : 0;
+
+                        var id = x.Info != null ? x.Info.Id : 0;
                         if (id <= ushort.MaxValue)
                             jtype |= 0x40;
                         else if (id <= uint.MaxValue)
@@ -869,30 +847,30 @@ namespace NetScriptFramework
 
                         stream.Write(jtype);
 
-                        if((jtype & 1) != 0)
+                        if ((jtype & 1) != 0)
                         {
                             if ((jtype & 2) != 0)
-                                stream.Write((byte)x.BeginOffset.Value);
+                                stream.Write((byte) x.BeginOffset.Value);
                             else if ((jtype & 4) != 0)
-                                stream.Write((ushort)x.BeginOffset.Value);
+                                stream.Write((ushort) x.BeginOffset.Value);
                             else
                                 stream.Write(x.BeginOffset.Value);
                         }
 
-                        if((jtype & 8) != 0)
+                        if ((jtype & 8) != 0)
                         {
                             if ((jtype & 0x10) != 0)
-                                stream.Write((byte)x.EndOffset.Value);
+                                stream.Write((byte) x.EndOffset.Value);
                             else if ((jtype & 0x20) != 0)
-                                stream.Write((ushort)x.EndOffset.Value);
+                                stream.Write((ushort) x.EndOffset.Value);
                             else
                                 stream.Write(x.EndOffset.Value);
                         }
 
                         if ((jtype & 0x40) != 0)
-                            stream.Write((ushort)id);
+                            stream.Write((ushort) id);
                         else if ((jtype & 0x80) != 0)
-                            stream.Write((uint)id);
+                            stream.Write((uint) id);
                         else
                             stream.Write(id);
                     }
@@ -900,17 +878,17 @@ namespace NetScriptFramework
             }
 
             {
-                int cvt = this.cachedValues.Count;
+                var cvt = cachedValues.Count;
                 stream.Write(cvt);
-                int lastWrite = 0;
-                while(lastWrite < cvt)
+                var lastWrite = 0;
+                while (lastWrite < cvt)
                 {
-                    int cnt = 1;
-                    if(this.cachedValues[lastWrite].HasValue)
+                    var cnt = 1;
+                    if (cachedValues[lastWrite].HasValue)
                     {
-                        for(int i = lastWrite + 1; i < cvt; i++)
+                        for (var i = lastWrite + 1; i < cvt; i++)
                         {
-                            var v = this.cachedValues[i];
+                            var v = cachedValues[i];
                             if (!v.HasValue)
                                 break;
 
@@ -919,15 +897,15 @@ namespace NetScriptFramework
 
                         stream.Write(cnt);
 
-                        for (int i = 0; i < cnt; i++)
-                            stream.Write(this.cachedValues[i + lastWrite].Value);
+                        for (var i = 0; i < cnt; i++)
+                            stream.Write(cachedValues[i + lastWrite].Value);
                         lastWrite += cnt;
                     }
                     else
                     {
-                        for(int i = lastWrite + 1; i < cvt; i++)
+                        for (var i = lastWrite + 1; i < cvt; i++)
                         {
-                            var v = this.cachedValues[i];
+                            var v = cachedValues[i];
                             if (v.HasValue)
                                 break;
 
@@ -953,11 +931,11 @@ namespace NetScriptFramework
             /// <param name="begin">The begin.</param>
             /// <param name="end">The end.</param>
             /// <param name="info">The type information.</param>
-            public GameTypeInstanceInfo(int? begin, int? end, GameInfo.GameTypeInfo info)
+            public GameTypeInstanceInfo(int? begin, int? end, GameTypeInfo info)
             {
-                this.BeginOffset = begin;
-                this.EndOffset = end;
-                this.Info = info;
+                BeginOffset = begin;
+                EndOffset   = end;
+                Info        = info;
             }
 
             /// <summary>
@@ -969,11 +947,11 @@ namespace NetScriptFramework
             /// The end offset. This may be null if unknown.
             /// </summary>
             public readonly int? EndOffset;
-            
+
             /// <summary>
             /// The information of the type from version library.
             /// </summary>
-            public readonly GameInfo.GameTypeInfo Info;
+            public readonly GameTypeInfo Info;
         }
 
         /// <summary>
@@ -984,10 +962,7 @@ namespace NetScriptFramework
             /// <summary>
             /// Initializes a new instance of the <see cref="GameTypeInfo"/> class.
             /// </summary>
-            internal GameTypeInfo()
-            {
-
-            }
+            internal GameTypeInfo() { }
 
             /// <summary>
             /// Initializes a new instance of the <see cref="GameTypeInfo"/> class.
@@ -999,11 +974,11 @@ namespace NetScriptFramework
             /// <param name="fields">The fields.</param>
             public GameTypeInfo(ulong guid, ulong vtable, string name, int? size, IReadOnlyList<GameFieldInfo> fields)
             {
-                this.Id = guid;
-                this.VTable = vtable;
-                this.Name = name;
-                this.Size = size;
-                this.Fields = fields;
+                Id     = guid;
+                VTable = vtable;
+                Name   = name;
+                Size   = size;
+                Fields = fields;
             }
 
             /// <summary>
@@ -1012,29 +987,17 @@ namespace NetScriptFramework
             /// <value>
             /// The unique identifier.
             /// </value>
-            public ulong Id
-            {
-                get;
-                private set;
-            }
+            public ulong Id { get; private set; }
 
             /// <summary>
             /// The virtual function table address offset.
             /// </summary>
-            public ulong VTable
-            {
-                get;
-                private set;
-            }
+            public ulong VTable { get; private set; }
 
             /// <summary>
             /// The name of type to display.
             /// </summary>
-            public string Name
-            {
-                get;
-                private set;
-            }
+            public string Name { get; private set; }
 
             /// <summary>
             /// Gets the size of type. This is null if unknown.
@@ -1042,11 +1005,7 @@ namespace NetScriptFramework
             /// <value>
             /// The size.
             /// </value>
-            public int? Size
-            {
-                get;
-                private set;
-            }
+            public int? Size { get; private set; }
 
             /// <summary>
             /// Gets or sets the known fields list. This may be null if unknown or missing.
@@ -1054,11 +1013,7 @@ namespace NetScriptFramework
             /// <value>
             /// The fields.
             /// </value>
-            public IReadOnlyList<GameFieldInfo> Fields
-            {
-                get;
-                private set;
-            }
+            public IReadOnlyList<GameFieldInfo> Fields { get; private set; }
 
             /// <summary>
             /// Reads from stream.
@@ -1068,35 +1023,37 @@ namespace NetScriptFramework
             /// <exception cref="System.IO.InvalidDataException">Version of object is not supported!</exception>
             internal void ReadFromStream(System.IO.BinaryReader stream, int version)
             {
-                byte ltype = stream.ReadByte();
+                var ltype = stream.ReadByte();
 
                 if ((ltype & 1) != 0)
                 {
                     if ((ltype & 2) != 0)
-                        this.VTable = stream.ReadUInt64();
+                        VTable = stream.ReadUInt64();
                     else
-                        this.VTable = stream.ReadUInt32();
+                        VTable = stream.ReadUInt32();
                 }
-                this.Name = stream.ReadString();
-                if((ltype & 4) != 0)
-                    this.Size = stream.ReadInt32();
+
+                Name = stream.ReadString();
+                if ((ltype & 4) != 0)
+                    Size = stream.ReadInt32();
 
                 if ((ltype & 8) != 0)
-                    this.Id = stream.ReadUInt64();
+                    Id = stream.ReadUInt64();
                 else
-                    this.Id = stream.ReadUInt32();
+                    Id = stream.ReadUInt32();
 
                 if ((ltype & 0x10) != 0)
                 {
-                    int cn = stream.ReadInt32();
+                    var cn = stream.ReadInt32();
                     var ls = new List<GameFieldInfo>(Math.Min(256, cn));
-                    for (int i = 0; i < cn; i++)
+                    for (var i = 0; i < cn; i++)
                     {
                         var fi = new GameFieldInfo();
                         fi.ReadFromStream(stream, version);
                         ls.Add(fi);
                     }
-                    this.Fields = ls;
+
+                    Fields = ls;
                 }
             }
 
@@ -1107,17 +1064,18 @@ namespace NetScriptFramework
             internal void WriteToStream(System.IO.BinaryWriter stream)
             {
                 byte ltype = 0;
-                if(this.VTable != 0)
+                if (VTable != 0)
                 {
                     ltype |= 1;
-                    if (this.VTable > uint.MaxValue)
+                    if (VTable > uint.MaxValue)
                         ltype |= 2;
                 }
-                if (this.Size.HasValue)
+
+                if (Size.HasValue)
                     ltype |= 4;
-                if (this.Id > uint.MaxValue)
+                if (Id > uint.MaxValue)
                     ltype |= 8;
-                if (this.Fields != null && this.Fields.Count != 0)
+                if (Fields != null && Fields.Count != 0)
                     ltype |= 0x10;
 
                 stream.Write(ltype);
@@ -1125,21 +1083,22 @@ namespace NetScriptFramework
                 if ((ltype & 1) != 0)
                 {
                     if ((ltype & 2) != 0)
-                        stream.Write(this.VTable);
+                        stream.Write(VTable);
                     else
-                        stream.Write((uint)this.VTable);
+                        stream.Write((uint) VTable);
                 }
-                stream.Write(this.Name);
+
+                stream.Write(Name);
                 if ((ltype & 4) != 0)
-                    stream.Write(this.Size.Value);
+                    stream.Write(Size.Value);
                 if ((ltype & 8) != 0)
-                    stream.Write(this.Id);
+                    stream.Write(Id);
                 else
-                    stream.Write((uint)this.Id);
-                if((ltype & 0x10) != 0)
+                    stream.Write((uint) Id);
+                if ((ltype & 0x10) != 0)
                 {
-                    stream.Write(this.Fields.Count);
-                    foreach (var x in this.Fields)
+                    stream.Write(Fields.Count);
+                    foreach (var x in Fields)
                         x.WriteToStream(stream);
                 }
             }
@@ -1153,10 +1112,7 @@ namespace NetScriptFramework
             /// <summary>
             /// Initializes a new instance of the <see cref="GameFieldInfo"/> class.
             /// </summary>
-            internal GameFieldInfo()
-            {
-
-            }
+            internal GameFieldInfo() { }
 
             /// <summary>
             /// Initializes a new instance of the <see cref="GameFieldInfo"/> class.
@@ -1167,10 +1123,10 @@ namespace NetScriptFramework
             /// <param name="typename">The typename.</param>
             public GameFieldInfo(uint fieldId, int? begin, string shortname, string typename)
             {
-                this.FieldId = fieldId;
-                this.Begin = begin;
-                this.ShortName = shortname;
-                this.TypeName = typename;
+                FieldId   = fieldId;
+                Begin     = begin;
+                ShortName = shortname;
+                TypeName  = typename;
             }
 
             /// <summary>
@@ -1179,23 +1135,15 @@ namespace NetScriptFramework
             /// <value>
             /// The field identifier.
             /// </value>
-            public uint FieldId
-            {
-                get;
-                private set;
-            }
-            
+            public uint FieldId { get; private set; }
+
             /// <summary>
             /// Gets the begin offset in complete type. This is null if unknown.
             /// </summary>
             /// <value>
             /// The begin.
             /// </value>
-            public int? Begin
-            {
-                get;
-                private set;
-            }
+            public int? Begin { get; private set; }
 
             /// <summary>
             /// Gets the name of field. This is null if unknown.
@@ -1203,11 +1151,7 @@ namespace NetScriptFramework
             /// <value>
             /// The name.
             /// </value>
-            public string ShortName
-            {
-                get;
-                private set;
-            }
+            public string ShortName { get; private set; }
 
             /// <summary>
             /// Gets the value type name of the field. This is null if unknown.
@@ -1215,11 +1159,7 @@ namespace NetScriptFramework
             /// <value>
             /// The name of the type.
             /// </value>
-            public string TypeName
-            {
-                get;
-                private set;
-            }
+            public string TypeName { get; private set; }
 
             /// <summary>
             /// Reads from stream.
@@ -1229,27 +1169,27 @@ namespace NetScriptFramework
             /// <exception cref="System.IO.InvalidDataException">Version of object is not supported!</exception>
             internal void ReadFromStream(System.IO.BinaryReader stream, int version)
             {
-                byte ltype = stream.ReadByte();
-                if((ltype & 1) != 0)
+                var ltype = stream.ReadByte();
+                if ((ltype & 1) != 0)
                 {
                     if ((ltype & 2) != 0)
-                        this.Begin = stream.ReadInt32();
+                        Begin = stream.ReadInt32();
                     else
-                        this.Begin = stream.ReadUInt16();
+                        Begin = stream.ReadUInt16();
                 }
+
                 if ((ltype & 4) != 0)
-                    this.ShortName = stream.ReadString();
+                    ShortName = stream.ReadString();
                 if ((ltype & 8) != 0)
-                    this.TypeName = stream.ReadString();
+                    TypeName = stream.ReadString();
                 if ((ltype & 0x10) != 0)
                 {
                     if ((ltype & 0x20) != 0)
-                        this.FieldId = stream.ReadByte();
+                        FieldId = stream.ReadByte();
                     else
-                        this.FieldId = stream.ReadUInt16();
+                        FieldId = stream.ReadUInt16();
                 }
-                else
-                    this.FieldId = stream.ReadUInt32();
+                else { FieldId = stream.ReadUInt32(); }
             }
 
             /// <summary>
@@ -1259,43 +1199,44 @@ namespace NetScriptFramework
             internal void WriteToStream(System.IO.BinaryWriter stream)
             {
                 byte ltype = 0;
-                if(this.Begin.HasValue)
+                if (Begin.HasValue)
                 {
                     ltype |= 1;
-                    if (this.Begin.Value < 0 || this.Begin.Value > ushort.MaxValue)
+                    if (Begin.Value < 0 || Begin.Value > ushort.MaxValue)
                         ltype |= 2;
                 }
-                if (!string.IsNullOrEmpty(this.ShortName))
+
+                if (!string.IsNullOrEmpty(ShortName))
                     ltype |= 4;
-                if (!string.IsNullOrEmpty(this.TypeName))
+                if (!string.IsNullOrEmpty(TypeName))
                     ltype |= 8;
-                if (this.FieldId <= byte.MaxValue)
+                if (FieldId <= byte.MaxValue)
                     ltype |= 0x30;
-                else if (this.FieldId <= ushort.MaxValue)
+                else if (FieldId <= ushort.MaxValue)
                     ltype |= 0x10;
 
                 stream.Write(ltype);
 
-                if((ltype & 1) != 0)
+                if ((ltype & 1) != 0)
                 {
                     if ((ltype & 2) != 0)
-                        stream.Write(this.Begin.Value);
+                        stream.Write(Begin.Value);
                     else
-                        stream.Write((ushort)this.Begin.Value);
+                        stream.Write((ushort) Begin.Value);
                 }
+
                 if ((ltype & 4) != 0)
-                    stream.Write(this.ShortName);
+                    stream.Write(ShortName);
                 if ((ltype & 8) != 0)
-                    stream.Write(this.TypeName);
+                    stream.Write(TypeName);
                 if ((ltype & 0x10) != 0)
                 {
                     if ((ltype & 0x20) != 0)
-                        stream.Write((byte)this.FieldId);
+                        stream.Write((byte) FieldId);
                     else
-                        stream.Write((ushort)this.FieldId);
+                        stream.Write((ushort) FieldId);
                 }
-                else
-                    stream.Write(this.FieldId);
+                else { stream.Write(FieldId); }
             }
         }
 
@@ -1307,10 +1248,7 @@ namespace NetScriptFramework
             /// <summary>
             /// Initializes a new instance of the <see cref="GameGlobalInfo"/> class.
             /// </summary>
-            internal GameGlobalInfo()
-            {
-
-            }
+            internal GameGlobalInfo() { }
 
             /// <summary>
             /// Initializes a new instance of the <see cref="GameGlobalInfo"/> class.
@@ -1321,38 +1259,26 @@ namespace NetScriptFramework
             /// <param name="typename">The typename.</param>
             public GameGlobalInfo(ulong id, ulong begin, string shortname, string typename)
             {
-                this.Id = id;
-                this.Begin = begin;
-                this.ShortName = shortname;
-                this.TypeName = typename;
+                Id        = id;
+                Begin     = begin;
+                ShortName = shortname;
+                TypeName  = typename;
             }
 
             /// <summary>
             /// The identifier of the gobal variable. This is version independent.
             /// </summary>
-            public ulong Id
-            {
-                get;
-                private set;
-            }
+            public ulong Id { get; private set; }
 
             /// <summary>
             /// The begin offset.
             /// </summary>
-            public ulong Begin
-            {
-                get;
-                private set;
-            }
+            public ulong Begin { get; private set; }
 
             /// <summary>
             /// The short name of function.
             /// </summary>
-            public string ShortName
-            {
-                get;
-                private set;
-            }
+            public string ShortName { get; private set; }
 
             /// <summary>
             /// Gets or sets the value type name of the global variable.
@@ -1360,11 +1286,7 @@ namespace NetScriptFramework
             /// <value>
             /// The name of the type.
             /// </value>
-            public string TypeName
-            {
-                get;
-                private set;
-            }
+            public string TypeName { get; private set; }
 
             /// <summary>
             /// Reads from stream.
@@ -1374,22 +1296,22 @@ namespace NetScriptFramework
             /// <exception cref="System.IO.InvalidDataException">Version of object is not supported!</exception>
             internal void ReadFromStream(System.IO.BinaryReader stream, int version)
             {
-                byte ltype = stream.ReadByte();
+                var ltype = stream.ReadByte();
                 if ((ltype & 1) != 0)
-                    this.Begin = stream.ReadUInt64();
+                    Begin = stream.ReadUInt64();
                 else
-                    this.Begin = stream.ReadUInt32();
+                    Begin = stream.ReadUInt32();
 
                 if ((ltype & 2) != 0)
-                    this.ShortName = stream.ReadString();
+                    ShortName = stream.ReadString();
 
                 if ((ltype & 4) != 0)
-                    this.TypeName = stream.ReadString();
+                    TypeName = stream.ReadString();
 
                 if ((ltype & 8) != 0)
-                    this.Id = stream.ReadUInt64();
+                    Id = stream.ReadUInt64();
                 else
-                    this.Id = stream.ReadUInt32();
+                    Id = stream.ReadUInt32();
             }
 
             /// <summary>
@@ -1399,32 +1321,32 @@ namespace NetScriptFramework
             internal void WriteToStream(System.IO.BinaryWriter stream)
             {
                 byte ltype = 0;
-                if (this.Begin > uint.MaxValue)
+                if (Begin > uint.MaxValue)
                     ltype |= 1;
-                if (!string.IsNullOrEmpty(this.ShortName))
+                if (!string.IsNullOrEmpty(ShortName))
                     ltype |= 2;
-                if (!string.IsNullOrEmpty(this.TypeName))
+                if (!string.IsNullOrEmpty(TypeName))
                     ltype |= 4;
-                if (this.Id > uint.MaxValue)
+                if (Id > uint.MaxValue)
                     ltype |= 8;
 
                 stream.Write(ltype);
 
                 if ((ltype & 1) != 0)
-                    stream.Write(this.Begin);
+                    stream.Write(Begin);
                 else
-                    stream.Write((uint)this.Begin);
+                    stream.Write((uint) Begin);
 
                 if ((ltype & 2) != 0)
-                    stream.Write(this.ShortName);
+                    stream.Write(ShortName);
 
                 if ((ltype & 4) != 0)
-                    stream.Write(this.TypeName);
+                    stream.Write(TypeName);
 
                 if ((ltype & 8) != 0)
-                    stream.Write(this.Id);
+                    stream.Write(Id);
                 else
-                    stream.Write((uint)this.Id);
+                    stream.Write((uint) Id);
             }
         }
 
@@ -1436,10 +1358,7 @@ namespace NetScriptFramework
             /// <summary>
             /// Initializes a new instance of the <see cref="GameFunctionInfo"/> class.
             /// </summary>
-            internal GameFunctionInfo()
-            {
-
-            }
+            internal GameFunctionInfo() { }
 
             /// <summary>
             /// Initializes a new instance of the <see cref="GameFunctionInfo" /> class.
@@ -1451,57 +1370,37 @@ namespace NetScriptFramework
             /// <param name="fullname">The fullname.</param>
             public GameFunctionInfo(ulong id, ulong begin, ulong end, string shortname, string fullname)
             {
-                this.Id = id;
-                this.Begin = begin;
-                this.End = end;
-                this.ShortName = shortname;
-                this.FullName = fullname;
+                Id        = id;
+                Begin     = begin;
+                End       = end;
+                ShortName = shortname;
+                FullName  = fullname;
             }
 
             /// <summary>
             /// The identifier of the function. This is version independent.
             /// </summary>
-            public ulong Id
-            {
-                get;
-                private set;
-            }
+            public ulong Id { get; private set; }
 
             /// <summary>
             /// The begin offset.
             /// </summary>
-            public ulong Begin
-            {
-                get;
-                private set;
-            }
+            public ulong Begin { get; private set; }
 
             /// <summary>
             /// The end offset.
             /// </summary>
-            public ulong End
-            {
-                get;
-                private set;
-            }
+            public ulong End { get; private set; }
 
             /// <summary>
             /// The short name of function.
             /// </summary>
-            public string ShortName
-            {
-                get;
-                private set;
-            }
+            public string ShortName { get; private set; }
 
             /// <summary>
             /// The full name of function.
             /// </summary>
-            public string FullName
-            {
-                get;
-                private set;
-            }
+            public string FullName { get; private set; }
 
             /// <summary>
             /// Gets the name.
@@ -1511,12 +1410,13 @@ namespace NetScriptFramework
             public string GetName(bool includeOffset)
             {
                 var bld = new StringBuilder(32);
-                bld.Append(!string.IsNullOrEmpty(this.ShortName) ? this.ShortName : "unk");
+                bld.Append(!string.IsNullOrEmpty(ShortName) ? ShortName : "unk");
                 if (includeOffset)
                 {
                     bld.Append('_');
-                    bld.Append(this.Begin.ToString("X"));
+                    bld.Append(Begin.ToString("X"));
                 }
+
                 return bld.ToString();
             }
 
@@ -1528,33 +1428,32 @@ namespace NetScriptFramework
             /// <exception cref="System.IO.InvalidDataException">Version of object is not supported!</exception>
             internal void ReadFromStream(System.IO.BinaryReader stream, int version)
             {
-                byte ltype = stream.ReadByte();
+                var ltype = stream.ReadByte();
 
                 if ((ltype & 1) != 0)
-                    this.Begin = stream.ReadUInt64();
+                    Begin = stream.ReadUInt64();
                 else
-                    this.Begin = stream.ReadUInt32();
+                    Begin = stream.ReadUInt32();
 
                 if ((ltype & 2) != 0)
                 {
                     if ((ltype & 4) != 0)
-                        this.End = stream.ReadUInt64();
+                        End = stream.ReadUInt64();
                     else
-                        this.End = stream.ReadUInt32();
+                        End = stream.ReadUInt32();
                 }
-                else
-                    this.End = this.Begin + stream.ReadUInt16();
+                else { End = Begin + stream.ReadUInt16(); }
 
                 if ((ltype & 8) != 0)
-                    this.ShortName = stream.ReadString();
+                    ShortName = stream.ReadString();
 
                 if ((ltype & 0x10) != 0)
-                    this.FullName = stream.ReadString();
+                    FullName = stream.ReadString();
 
                 if ((ltype & 0x20) != 0)
-                    this.Id = stream.ReadUInt64();
+                    Id = stream.ReadUInt64();
                 else
-                    this.Id = stream.ReadUInt32();
+                    Id = stream.ReadUInt32();
             }
 
             /// <summary>
@@ -1564,48 +1463,48 @@ namespace NetScriptFramework
             internal void WriteToStream(System.IO.BinaryWriter stream)
             {
                 byte ltype = 0;
-                if (this.Begin > uint.MaxValue)
+                if (Begin > uint.MaxValue)
                     ltype |= 1;
-                if(this.End < this.Begin || (this.End - this.Begin) > ushort.MaxValue)
+                if (End < Begin || End - Begin > ushort.MaxValue)
                 {
                     ltype |= 2;
-                    if (this.End > uint.MaxValue)
+                    if (End > uint.MaxValue)
                         ltype |= 4;
                 }
-                if (!string.IsNullOrEmpty(this.ShortName))
+
+                if (!string.IsNullOrEmpty(ShortName))
                     ltype |= 8;
-                if (!string.IsNullOrEmpty(this.FullName))
+                if (!string.IsNullOrEmpty(FullName))
                     ltype |= 0x10;
-                if (this.Id > uint.MaxValue)
+                if (Id > uint.MaxValue)
                     ltype |= 0x20;
 
                 stream.Write(ltype);
 
                 if ((ltype & 1) != 0)
-                    stream.Write(this.Begin);
+                    stream.Write(Begin);
                 else
-                    stream.Write((uint)this.Begin);
+                    stream.Write((uint) Begin);
 
                 if ((ltype & 2) != 0)
                 {
                     if ((ltype & 4) != 0)
-                        stream.Write(this.End);
+                        stream.Write(End);
                     else
-                        stream.Write((uint)this.End);
+                        stream.Write((uint) End);
                 }
-                else
-                    stream.Write((ushort)(this.End - this.Begin));
+                else { stream.Write((ushort) (End - Begin)); }
 
                 if ((ltype & 8) != 0)
-                    stream.Write(this.ShortName);
+                    stream.Write(ShortName);
 
                 if ((ltype & 0x10) != 0)
-                    stream.Write(this.FullName);
+                    stream.Write(FullName);
 
                 if ((ltype & 0x20) != 0)
-                    stream.Write(this.Id);
+                    stream.Write(Id);
                 else
-                    stream.Write((uint)this.Id);
+                    stream.Write((uint) Id);
             }
         }
 
@@ -1617,10 +1516,7 @@ namespace NetScriptFramework
             /// <summary>
             /// Initializes a new instance of the <see cref="GameTypeRegistration"/> class.
             /// </summary>
-            internal GameTypeRegistration()
-            {
-
-            }
+            internal GameTypeRegistration() { }
 
             /// <summary>
             /// Initializes a new instance of the <see cref="GameTypeRegistration"/> class.
@@ -1631,10 +1527,10 @@ namespace NetScriptFramework
             /// <param name="offsetInType">Type of the offset in.</param>
             internal GameTypeRegistration(uint interfaceId, uint implementationId, int vtableOffset, int offsetInType)
             {
-                this.InterfaceId = interfaceId;
-                this.ImplementationId = implementationId;
-                this.VTableOffset = vtableOffset;
-                this.OffsetInType = offsetInType;
+                InterfaceId      = interfaceId;
+                ImplementationId = implementationId;
+                VTableOffset     = vtableOffset;
+                OffsetInType     = offsetInType;
             }
 
             /// <summary>
@@ -1643,11 +1539,7 @@ namespace NetScriptFramework
             /// <value>
             /// The interface identifier.
             /// </value>
-            public uint InterfaceId
-            {
-                get;
-                private set;
-            }
+            public uint InterfaceId { get; private set; }
 
             /// <summary>
             /// Gets the implementation identifier.
@@ -1655,11 +1547,7 @@ namespace NetScriptFramework
             /// <value>
             /// The implementation identifier.
             /// </value>
-            public uint ImplementationId
-            {
-                get;
-                private set;
-            }
+            public uint ImplementationId { get; private set; }
 
             /// <summary>
             /// Gets the virtual function table offset. This is negative if not available.
@@ -1667,11 +1555,7 @@ namespace NetScriptFramework
             /// <value>
             /// The v table offset.
             /// </value>
-            public int VTableOffset
-            {
-                get;
-                private set;
-            }
+            public int VTableOffset { get; private set; }
 
             /// <summary>
             /// Gets the offset in complete type.
@@ -1679,11 +1563,7 @@ namespace NetScriptFramework
             /// <value>
             /// The type of the offset in.
             /// </value>
-            public int OffsetInType
-            {
-                get;
-                private set;
-            }
+            public int OffsetInType { get; private set; }
 
             /// <summary>
             /// Reads from stream.
@@ -1693,31 +1573,31 @@ namespace NetScriptFramework
             /// <exception cref="System.IO.InvalidDataException">Version of object is not supported!</exception>
             internal void ReadFromStream(System.IO.BinaryReader stream, int version)
             {
-                byte ltype = stream.ReadByte();
+                var ltype = stream.ReadByte();
 
                 if ((ltype & 1) != 0)
-                    this.InterfaceId = stream.ReadUInt16();
+                    InterfaceId = stream.ReadUInt16();
                 else
-                    this.InterfaceId = stream.ReadUInt32();
+                    InterfaceId = stream.ReadUInt32();
 
                 if ((ltype & 2) != 0)
-                    this.ImplementationId = stream.ReadUInt16();
+                    ImplementationId = stream.ReadUInt16();
                 else
-                    this.ImplementationId = stream.ReadUInt32();
+                    ImplementationId = stream.ReadUInt32();
 
                 if ((ltype & 4) != 0)
-                    this.VTableOffset = stream.ReadInt32();
+                    VTableOffset = stream.ReadInt32();
                 else
-                    this.VTableOffset = -1;
+                    VTableOffset = -1;
 
-                if((ltype & 8) != 0)
+                if ((ltype & 8) != 0)
                 {
                     if ((ltype & 0x10) != 0)
-                        this.OffsetInType = stream.ReadByte();
+                        OffsetInType = stream.ReadByte();
                     else if ((ltype & 0x20) != 0)
-                        this.OffsetInType = stream.ReadUInt16();
+                        OffsetInType = stream.ReadUInt16();
                     else
-                        this.OffsetInType = stream.ReadInt32();
+                        OffsetInType = stream.ReadInt32();
                 }
             }
 
@@ -1729,47 +1609,47 @@ namespace NetScriptFramework
             {
                 byte ltype = 0;
 
-                if (this.InterfaceId <= ushort.MaxValue)
+                if (InterfaceId <= ushort.MaxValue)
                     ltype |= 1;
-                if (this.ImplementationId <= ushort.MaxValue)
+                if (ImplementationId <= ushort.MaxValue)
                     ltype |= 2;
-                if (this.VTableOffset >= 0)
+                if (VTableOffset >= 0)
                     ltype |= 4;
-                if(this.OffsetInType != 0)
+                if (OffsetInType != 0)
                 {
                     ltype |= 8;
-                    if (this.OffsetInType >= 0)
+                    if (OffsetInType >= 0)
                     {
-                        if (this.OffsetInType <= byte.MaxValue)
+                        if (OffsetInType <= byte.MaxValue)
                             ltype |= 0x10;
-                        else if (this.OffsetInType <= ushort.MaxValue)
+                        else if (OffsetInType <= ushort.MaxValue)
                             ltype |= 0x20;
                     }
                 }
 
                 stream.Write(ltype);
-                
+
                 if ((ltype & 1) != 0)
-                    stream.Write((ushort)this.InterfaceId);
+                    stream.Write((ushort) InterfaceId);
                 else
-                    stream.Write(this.InterfaceId);
+                    stream.Write(InterfaceId);
 
                 if ((ltype & 2) != 0)
-                    stream.Write((ushort)this.ImplementationId);
+                    stream.Write((ushort) ImplementationId);
                 else
-                    stream.Write(this.ImplementationId);
+                    stream.Write(ImplementationId);
 
                 if ((ltype & 4) != 0)
-                    stream.Write(this.VTableOffset);
+                    stream.Write(VTableOffset);
 
-                if((ltype & 8) != 0)
+                if ((ltype & 8) != 0)
                 {
                     if ((ltype & 0x10) != 0)
-                        stream.Write((byte)this.OffsetInType);
+                        stream.Write((byte) OffsetInType);
                     else if ((ltype & 0x20) != 0)
-                        stream.Write((ushort)this.OffsetInType);
+                        stream.Write((ushort) OffsetInType);
                     else
-                        stream.Write(this.OffsetInType);
+                        stream.Write(OffsetInType);
                 }
             }
         }

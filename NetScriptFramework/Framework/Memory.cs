@@ -13,7 +13,7 @@ namespace NetScriptFramework
     /// </summary>
     public static class Memory
     {
-        #region Native functions
+    #region Native functions
 
         /// <summary>
         /// Invokes a "thiscall" native function.
@@ -24,13 +24,14 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static IntPtr InvokeThisCall(IntPtr thisAddress, IntPtr funcAddress, params InvokeArgument[] args)
         {
-            int count = 0;
+            var      count    = 0;
             IntPtr[] prepared = null;
             if (Main.Is64Bit)
             {
                 prepared = PrepareArguments(0, args, thisAddress, ref count);
                 return InvokeCdecl(funcAddress, new IntPtr(count), prepared);
             }
+
             prepared = PrepareArguments(0, args, null, ref count);
             return InvokeThisCall(thisAddress, funcAddress, new IntPtr(count), prepared);
         }
@@ -44,19 +45,20 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static float InvokeThisCallF(IntPtr thisAddress, IntPtr funcAddress, params InvokeArgument[] args)
         {
-            int count = 0;
+            var      count    = 0;
             IntPtr[] prepared = null;
-            IntPtr result;
-            byte[] converted = null;
+            IntPtr   result;
+            byte[]   converted = null;
             if (Main.Is64Bit)
             {
-                prepared = PrepareArguments(1, args, thisAddress, ref count);
-                result = InvokeCdeclF(funcAddress, new IntPtr(count), prepared);
+                prepared  = PrepareArguments(1, args, thisAddress, ref count);
+                result    = InvokeCdeclF(funcAddress, new IntPtr(count), prepared);
                 converted = BitConverter.GetBytes(result.ToInt64());
                 return BitConverter.ToSingle(converted, 0);
             }
-            prepared = PrepareArguments(1, args, null, ref count);
-            result = InvokeThisCallF(thisAddress, funcAddress, new IntPtr(count), prepared);
+
+            prepared  = PrepareArguments(1, args, null, ref count);
+            result    = InvokeThisCallF(thisAddress, funcAddress, new IntPtr(count), prepared);
             converted = BitConverter.GetBytes(result.ToInt32());
             return BitConverter.ToSingle(converted, 0);
         }
@@ -70,19 +72,20 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static double InvokeThisCallD(IntPtr thisAddress, IntPtr funcAddress, params InvokeArgument[] args)
         {
-            int count = 0;
+            var      count    = 0;
             IntPtr[] prepared = null;
-            IntPtr result;
-            byte[] converted = null;
+            IntPtr   result;
+            byte[]   converted = null;
             if (Main.Is64Bit)
             {
-                prepared = PrepareArguments(2, args, thisAddress, ref count);
-                result = InvokeCdeclD(funcAddress, new IntPtr(count), prepared);
+                prepared  = PrepareArguments(2, args, thisAddress, ref count);
+                result    = InvokeCdeclD(funcAddress, new IntPtr(count), prepared);
                 converted = BitConverter.GetBytes(result.ToInt64());
                 return BitConverter.ToDouble(converted, 0);
             }
-            prepared = PrepareArguments(2, args, null, ref count);
-            result = InvokeThisCallD(thisAddress, funcAddress, new IntPtr(count), prepared);
+
+            prepared  = PrepareArguments(2, args, null, ref count);
+            result    = InvokeThisCallD(thisAddress, funcAddress, new IntPtr(count), prepared);
             converted = BitConverter.GetBytes(result.ToInt32());
             return BitConverter.ToSingle(converted, 0);
         }
@@ -97,7 +100,7 @@ namespace NetScriptFramework
         {
             if (Main.Is64Bit)
                 return InvokeCdecl(funcAddress, args);
-            int count = 0;
+            var count    = 0;
             var prepared = PrepareArguments(0, args, null, ref count);
             return InvokeStdCall(funcAddress, new IntPtr(count), prepared);
         }
@@ -112,10 +115,10 @@ namespace NetScriptFramework
         {
             if (Main.Is64Bit)
                 return InvokeCdeclF(funcAddress, args);
-            int count = 0;
-            var prepared = PrepareArguments(1, args, null, ref count);
-            var result = InvokeStdCallF(funcAddress, new IntPtr(count), prepared);
-            byte[] converted = BitConverter.GetBytes(result.ToInt32());
+            var count     = 0;
+            var prepared  = PrepareArguments(1, args, null, ref count);
+            var result    = InvokeStdCallF(funcAddress, new IntPtr(count), prepared);
+            var converted = BitConverter.GetBytes(result.ToInt32());
             return BitConverter.ToSingle(converted, 0);
         }
 
@@ -129,10 +132,10 @@ namespace NetScriptFramework
         {
             if (Main.Is64Bit)
                 return InvokeCdeclD(funcAddress, args);
-            int count = 0;
-            var prepared = PrepareArguments(2, args, null, ref count);
-            var result = InvokeStdCallD(funcAddress, new IntPtr(count), prepared);
-            byte[] converted = BitConverter.GetBytes(result.ToInt32());
+            var count     = 0;
+            var prepared  = PrepareArguments(2, args, null, ref count);
+            var result    = InvokeStdCallD(funcAddress, new IntPtr(count), prepared);
+            var converted = BitConverter.GetBytes(result.ToInt32());
             return BitConverter.ToSingle(converted, 0);
         }
 
@@ -144,7 +147,7 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static IntPtr InvokeCdecl(IntPtr funcAddress, params InvokeArgument[] args)
         {
-            int count = 0;
+            var count    = 0;
             var prepared = PrepareArguments(0, args, null, ref count);
             return InvokeCdecl(funcAddress, new IntPtr(count), prepared);
         }
@@ -157,17 +160,17 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static float InvokeCdeclF(IntPtr funcAddress, params InvokeArgument[] args)
         {
-            int count = 0;
+            var count    = 0;
             var prepared = PrepareArguments(1, args, null, ref count);
-            var result = InvokeCdeclF(funcAddress, new IntPtr(count), prepared);
+            var result   = InvokeCdeclF(funcAddress, new IntPtr(count), prepared);
             if (Main.Is64Bit)
             {
-                byte[] converted = BitConverter.GetBytes(result.ToInt64());
+                var converted = BitConverter.GetBytes(result.ToInt64());
                 return BitConverter.ToSingle(converted, 0);
             }
             else
             {
-                byte[] converted = BitConverter.GetBytes(result.ToInt32());
+                var converted = BitConverter.GetBytes(result.ToInt32());
                 return BitConverter.ToSingle(converted, 0);
             }
         }
@@ -180,17 +183,17 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static double InvokeCdeclD(IntPtr funcAddress, params InvokeArgument[] args)
         {
-            int count = 0;
+            var count    = 0;
             var prepared = PrepareArguments(2, args, null, ref count);
-            var result = InvokeCdeclD(funcAddress, new IntPtr(count), prepared);
+            var result   = InvokeCdeclD(funcAddress, new IntPtr(count), prepared);
             if (Main.Is64Bit)
             {
-                byte[] converted = BitConverter.GetBytes(result.ToInt64());
+                var converted = BitConverter.GetBytes(result.ToInt64());
                 return BitConverter.ToDouble(converted, 0);
             }
             else
             {
-                byte[] converted = BitConverter.GetBytes(result.ToInt32());
+                var converted = BitConverter.GetBytes(result.ToInt32());
                 return BitConverter.ToSingle(converted, 0);
             }
         }
@@ -249,7 +252,7 @@ namespace NetScriptFramework
         [DllImport("NetScriptFramework.Runtime.dll")]
         internal static extern void WriteFQTo(byte[] source, byte[] dest);
 
-        private static IntPtr _Invoke_Cdecl_address = IntPtr.Zero;
+        private static IntPtr _Invoke_Cdecl_address  = IntPtr.Zero;
         private static IntPtr _Invoke_CdeclF_address = IntPtr.Zero;
         private static IntPtr _Invoke_CdeclD_address = IntPtr.Zero;
 
@@ -284,74 +287,80 @@ namespace NetScriptFramework
             }
             else if (!thisPtr.HasValue)
             {
-                IntPtr[] result = new IntPtr[args.Length * 2];
-                for (int i = 0; i < args.Length; i++)
+                var result = new IntPtr[args.Length * 2];
+                for (var i = 0; i < args.Length; i++)
                 {
-                    var a = args[i];
-                    int type = a.ValueType;
+                    var a    = args[i];
+                    var type = a.ValueType;
                     result[i * 2] = _Argument_Jmp_Address[funcReturnType * 15 + Math.Min(4, i) * 3 + type];
-                    switch(type)
+                    switch (type)
                     {
-                        case 0: result[i * 2 + 1] = a.ValueOther; break;
+                        case 0:
+                            result[i * 2 + 1] = a.ValueOther;
+                            break;
                         case 1:
-                            {
-                                byte[] converted = BitConverter.GetBytes(a.ValueFloat);
-                                long converted2 = BitConverter.ToUInt32(converted, 0);
-                                result[i * 2 + 1] = new IntPtr(converted2);
-                            }
+                        {
+                            var  converted  = BitConverter.GetBytes(a.ValueFloat);
+                            long converted2 = BitConverter.ToUInt32(converted, 0);
+                            result[i * 2 + 1] = new IntPtr(converted2);
+                        }
                             break;
                         case 2:
-                            {
-                                byte[] converted = BitConverter.GetBytes(a.ValueDouble);
-                                long converted2 = BitConverter.ToUInt32(converted, 0);
-                                result[i * 2 + 1] = new IntPtr(converted2);
-                            }
+                        {
+                            var  converted  = BitConverter.GetBytes(a.ValueDouble);
+                            long converted2 = BitConverter.ToUInt32(converted, 0);
+                            result[i * 2 + 1] = new IntPtr(converted2);
+                        }
                             break;
                         default: throw new NotImplementedException();
                     }
                 }
+
                 count = args.Length;
                 return result;
             }
             else
             {
-                IntPtr[] result = new IntPtr[(args.Length + 1) * 2];
+                var result = new IntPtr[(args.Length + 1)        * 2];
                 result[0] = _Argument_Jmp_Address[funcReturnType * 15];
                 result[1] = thisPtr.Value;
-                for (int j = 0; j < args.Length; j++)
+                for (var j = 0; j < args.Length; j++)
                 {
-                    var a = args[j];
-                    int type = a.ValueType;
-                    int i = j + 1;
+                    var a    = args[j];
+                    var type = a.ValueType;
+                    var i    = j + 1;
                     result[i * 2] = _Argument_Jmp_Address[funcReturnType * 15 + Math.Min(4, i) * 3 + type];
                     switch (type)
                     {
-                        case 0: result[i * 2 + 1] = a.ValueOther; break;
+                        case 0:
+                            result[i * 2 + 1] = a.ValueOther;
+                            break;
                         case 1:
-                            {
-                                byte[] converted = BitConverter.GetBytes(a.ValueFloat);
-                                long converted2 = BitConverter.ToUInt32(converted, 0);
-                                result[i * 2 + 1] = new IntPtr(converted2);
-                            }
+                        {
+                            var  converted  = BitConverter.GetBytes(a.ValueFloat);
+                            long converted2 = BitConverter.ToUInt32(converted, 0);
+                            result[i * 2 + 1] = new IntPtr(converted2);
+                        }
                             break;
                         case 2:
-                            {
-                                byte[] converted = BitConverter.GetBytes(a.ValueDouble);
-                                long converted2 = BitConverter.ToUInt32(converted, 0);
-                                result[i * 2 + 1] = new IntPtr(converted2);
-                            }
+                        {
+                            var  converted  = BitConverter.GetBytes(a.ValueDouble);
+                            long converted2 = BitConverter.ToUInt32(converted, 0);
+                            result[i * 2 + 1] = new IntPtr(converted2);
+                        }
                             break;
                         default: throw new NotImplementedException();
                     }
                 }
+
                 count = args.Length + 1;
                 return result;
             }
         }
 
-        #endregion
+    #endregion
 
-        #region Allocation
+    #region Allocation
 
         /// <summary>
         /// Allocates memory in current process. Returned value contains information about the allocation, including the base address. If
@@ -384,24 +393,22 @@ namespace NetScriptFramework
                     throw new ArgumentOutOfRangeException("size");
 
                 if (_codePageDefault < 0)
-                {
                     //SYSTEM_INFO si;
                     //GetSystemInfo(&si);
                     //_codePageDefault = Math.Max(65536, si.dwAllocationGranularity);
                     _codePageDefault = 65536;
-                }
 
                 MemoryAllocation result = null;
                 lock (_codePageLocker)
                 {
-                    for (int i = 0; i < _codePageList.Count; i++)
+                    for (var i = 0; i < _codePageList.Count; i++)
                     {
                         result = _codePageList[i].Get(size);
                         if (result != null)
                             return result;
                     }
 
-                    CodePageAllocator allocator = new CodePageAllocator(Math.Max(size, _codePageDefault));
+                    var allocator = new CodePageAllocator(Math.Max(size, _codePageDefault));
                     _codePageList.Add(allocator);
 
                     result = allocator.Get(size);
@@ -429,11 +436,11 @@ namespace NetScriptFramework
             if (size < 0)
                 throw new ArgumentOutOfRangeException("size");
 
-            var alloc = Memory.Allocate(Math.Max(0x10, size), 0x10);
-            var mem = new Tools.MemoryStruct();
+            var alloc = Allocate(Math.Max(0x10, size), 0x10);
+            var mem   = new Tools.MemoryStruct();
             mem.Allocation = alloc;
-            mem.Size = size;
-            mem.Fields = new ulong[size];
+            mem.Size       = size;
+            mem.Fields     = new ulong[size];
             return mem;
         }
 
@@ -452,7 +459,7 @@ namespace NetScriptFramework
             if (text == null)
                 throw new ArgumentNullException("text");
 
-            IntPtr result = wide ? Marshal.StringToHGlobalUni(text) : Marshal.StringToHGlobalAnsi(text);
+            var result = wide ? Marshal.StringToHGlobalUni(text) : Marshal.StringToHGlobalAnsi(text);
             if (result == IntPtr.Zero)
                 throw new InvalidOperationException();
 
@@ -463,10 +470,7 @@ namespace NetScriptFramework
         /// Frees the previously allocated string.
         /// </summary>
         /// <param name="address">The address.</param>
-        internal static void FreeString(IntPtr address)
-        {
-            Marshal.FreeHGlobal(address);
-        }
+        internal static void FreeString(IntPtr address) { Marshal.FreeHGlobal(address); }
 
         /// <summary>
         /// Frees previously allocated code.
@@ -476,10 +480,7 @@ namespace NetScriptFramework
         /// <param name="page">The page.</param>
         internal static void FreeCode(IntPtr address, int size, CodePageAllocator page)
         {
-            lock (_codePageLocker)
-            {
-                page.Free(address, size);
-            }
+            lock (_codePageLocker) { page.Free(address, size); }
         }
 
         [DllImport("NetScriptFramework.Runtime.dll")]
@@ -488,13 +489,13 @@ namespace NetScriptFramework
         [DllImport("NetScriptFramework.Runtime.dll")]
         internal static extern void FreeC(IntPtr buf, bool align);
 
-        private static readonly object _codePageLocker = new object();
-        private static readonly List<CodePageAllocator> _codePageList = new List<CodePageAllocator>();
-        private static int _codePageDefault = -1;
+        private static readonly object                  _codePageLocker  = new object();
+        private static readonly List<CodePageAllocator> _codePageList    = new List<CodePageAllocator>();
+        private static          int                     _codePageDefault = -1;
 
-        #endregion
+    #endregion
 
-        #region Query
+    #region Query
 
         [DllImport("kernel32.dll")]
         private static extern int VirtualQuery(IntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, int dwLength);
@@ -504,11 +505,11 @@ namespace NetScriptFramework
         {
             public IntPtr BaseAddress;
             public IntPtr AllocationBase;
-            public uint AllocationProtect;
+            public uint   AllocationProtect;
             public IntPtr RegionSize;
-            public uint State;
-            public uint Protect;
-            public uint Type;
+            public uint   State;
+            public uint   Protect;
+            public uint   Type;
         }
 
         /// <summary>
@@ -517,18 +518,18 @@ namespace NetScriptFramework
         [Flags]
         public enum AllocationProtectFlags : uint
         {
-            None = 0,
-            PAGE_EXECUTE = 0x00000010,
-            PAGE_EXECUTE_READ = 0x00000020,
+            None                   = 0,
+            PAGE_EXECUTE           = 0x00000010,
+            PAGE_EXECUTE_READ      = 0x00000020,
             PAGE_EXECUTE_READWRITE = 0x00000040,
             PAGE_EXECUTE_WRITECOPY = 0x00000080,
-            PAGE_NOACCESS = 0x00000001,
-            PAGE_READONLY = 0x00000002,
-            PAGE_READWRITE = 0x00000004,
-            PAGE_WRITECOPY = 0x00000008,
-            PAGE_GUARD = 0x00000100,
-            PAGE_NOCACHE = 0x00000200,
-            PAGE_WRITECOMBINE = 0x00000400
+            PAGE_NOACCESS          = 0x00000001,
+            PAGE_READONLY          = 0x00000002,
+            PAGE_READWRITE         = 0x00000004,
+            PAGE_WRITECOPY         = 0x00000008,
+            PAGE_GUARD             = 0x00000100,
+            PAGE_NOCACHE           = 0x00000200,
+            PAGE_WRITECOMBINE      = 0x00000400
         }
 
         /// <summary>
@@ -543,7 +544,7 @@ namespace NetScriptFramework
         public static bool GetRegionInfo(IntPtr address, ref IntPtr baseAddress, ref long size, ref AllocationProtectFlags flags)
         {
             MEMORY_BASIC_INFORMATION result;
-            int ok = VirtualQuery(address, out result, Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION)));
+            var                      ok = VirtualQuery(address, out result, Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION)));
             if (ok == 0)
                 return false;
 
@@ -552,8 +553,8 @@ namespace NetScriptFramework
                 size = result.RegionSize.ToInt64();
             else
                 size = result.RegionSize.ToInt32();
-            flags = (AllocationProtectFlags)result.AllocationProtect;
-            
+            flags = (AllocationProtectFlags) result.AllocationProtect;
+
             return true;
         }
 
@@ -566,7 +567,7 @@ namespace NetScriptFramework
         /// <param name="executable">if set to <c>true</c> then execution must be allowed to be valid.</param>
         /// <param name="allowGuard">if set to <c>true</c> then guard flag is allowed, otherwise returns false if there is a guard flag.</param>
         /// <returns></returns>
-        public static bool IsValidRegion(Memory.AllocationProtectFlags flags, bool read, bool write, bool executable, bool allowGuard = false)
+        public static bool IsValidRegion(AllocationProtectFlags flags, bool read, bool write, bool executable, bool allowGuard = false)
         {
             if ((flags & AllocationProtectFlags.PAGE_NOACCESS) != AllocationProtectFlags.None)
                 return false;
@@ -574,23 +575,20 @@ namespace NetScriptFramework
             if (!allowGuard && (flags & AllocationProtectFlags.PAGE_GUARD) != AllocationProtectFlags.None)
                 return false;
 
-            if(read)
-            {
-                if ((flags & (AllocationProtectFlags.PAGE_EXECUTE_READ | AllocationProtectFlags.PAGE_EXECUTE_READWRITE | AllocationProtectFlags.PAGE_EXECUTE_WRITECOPY | AllocationProtectFlags.PAGE_READONLY | AllocationProtectFlags.PAGE_READWRITE | AllocationProtectFlags.PAGE_WRITECOPY)) == AllocationProtectFlags.None)
+            if (read)
+                if ((flags & (AllocationProtectFlags.PAGE_EXECUTE_READ | AllocationProtectFlags.PAGE_EXECUTE_READWRITE | AllocationProtectFlags.PAGE_EXECUTE_WRITECOPY |
+                              AllocationProtectFlags.PAGE_READONLY | AllocationProtectFlags.PAGE_READWRITE | AllocationProtectFlags.PAGE_WRITECOPY)) == AllocationProtectFlags.None)
                     return false;
-            }
 
-            if(write)
-            {
-                if ((flags & (AllocationProtectFlags.PAGE_EXECUTE_READWRITE | AllocationProtectFlags.PAGE_EXECUTE_WRITECOPY | AllocationProtectFlags.PAGE_READWRITE | AllocationProtectFlags.PAGE_WRITECOPY)) == AllocationProtectFlags.None)
+            if (write)
+                if ((flags & (AllocationProtectFlags.PAGE_EXECUTE_READWRITE | AllocationProtectFlags.PAGE_EXECUTE_WRITECOPY | AllocationProtectFlags.PAGE_READWRITE |
+                              AllocationProtectFlags.PAGE_WRITECOPY)) == AllocationProtectFlags.None)
                     return false;
-            }
 
-            if(executable)
-            {
-                if ((flags & (AllocationProtectFlags.PAGE_EXECUTE | AllocationProtectFlags.PAGE_EXECUTE_READ | AllocationProtectFlags.PAGE_EXECUTE_READWRITE | AllocationProtectFlags.PAGE_EXECUTE_WRITECOPY)) == AllocationProtectFlags.None)
+            if (executable)
+                if ((flags & (AllocationProtectFlags.PAGE_EXECUTE | AllocationProtectFlags.PAGE_EXECUTE_READ | AllocationProtectFlags.PAGE_EXECUTE_READWRITE |
+                              AllocationProtectFlags.PAGE_EXECUTE_WRITECOPY)) == AllocationProtectFlags.None)
                     return false;
-            }
 
             return true;
         }
@@ -607,19 +605,19 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static bool IsValidRegion(IntPtr address, int size, bool read, bool write, bool executable, bool allowGuard = false)
         {
-            IntPtr alloc_base = IntPtr.Zero;
-            long alloc_size = 0;
-            AllocationProtectFlags alloc_flags = AllocationProtectFlags.None;
+            var  alloc_base  = IntPtr.Zero;
+            long alloc_size  = 0;
+            var  alloc_flags = AllocationProtectFlags.None;
 
             if (!GetRegionInfo(address, ref alloc_base, ref alloc_size, ref alloc_flags))
                 return false;
 
-            if(!IsValidRegion(alloc_flags, read, write, executable, allowGuard))
+            if (!IsValidRegion(alloc_flags, read, write, executable, allowGuard))
                 return false;
 
-            ulong b = (Main.Is64Bit ? alloc_base.ToUInt64() : alloc_base.ToUInt32());
-            ulong begin = Main.Is64Bit ? address.ToUInt64() : address.ToUInt32();
-            ulong end = b + unchecked((ulong)alloc_size);
+            var b     = Main.Is64Bit ? alloc_base.ToUInt64() : alloc_base.ToUInt32();
+            var begin = Main.Is64Bit ? address.ToUInt64() : address.ToUInt32();
+            var end   = b + unchecked((ulong) alloc_size);
 
             if (begin >= end || begin < b)
                 return false;
@@ -627,14 +625,14 @@ namespace NetScriptFramework
             if (size <= 0)
                 return true;
 
-            ulong available = end - begin;
-            ulong want = (ulong)size;
+            var available = end - begin;
+            var want      = (ulong) size;
             return want <= available;
         }
 
-        #endregion
+    #endregion
 
-        #region Reading
+    #region Reading
 
         /// <summary>
         /// Reads value from specified memory address.
@@ -661,7 +659,7 @@ namespace NetScriptFramework
         {
             var r = new byte[1];
             Read(address, r, r.Length, protect);
-            return unchecked((sbyte)r[0]);
+            return unchecked((sbyte) r[0]);
         }
 
         /// <summary>
@@ -918,13 +916,13 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static string ReadString(IntPtr address, bool wide, bool protect = false)
         {
-            using (System.IO.MemoryStream ms = new System.IO.MemoryStream(128))
+            using (var ms = new System.IO.MemoryStream(128))
             {
-                byte[] r = new byte[wide ? 2 : 1];
+                var r = new byte[wide ? 2 : 1];
                 while (true)
                 {
                     Read(address, r, r.Length, protect);
-                    if ((wide && BitConverter.ToChar(r, 0) == '\0') || (!wide && r[0] == 0))
+                    if (wide && BitConverter.ToChar(r, 0) == '\0' || !wide && r[0] == 0)
                         break;
                     address += r.Length;
                     ms.Write(r, 0, r.Length);
@@ -943,13 +941,13 @@ namespace NetScriptFramework
         /// <returns></returns>
         internal static string ReadStringIfItsString(IntPtr address, bool escapeChars)
         {
-            int countGood = 0;
-            int countBad = 0;
-            int countOk = 0;
+            var countGood = 0;
+            var countBad  = 0;
+            var countOk   = 0;
 
-            using (System.IO.MemoryStream ms = new System.IO.MemoryStream(128))
+            using (var ms = new System.IO.MemoryStream(128))
             {
-                byte[] r = new byte[1];
+                var r = new byte[1];
                 while (true)
                 {
                     if (!TryRead(address, r, r.Length, false))
@@ -959,10 +957,10 @@ namespace NetScriptFramework
                     address += r.Length;
                     ms.Write(r, 0, r.Length);
 
-                    bool did = false;
-                    switch(r[0])
+                    var did = false;
+                    switch (r[0])
                     {
-                        case 9: // \t
+                        case 9:   // \t
                         case 0xD: // \r
                             countOk++;
                             did = true;
@@ -979,39 +977,40 @@ namespace NetScriptFramework
                         countBad++;
                         did = true;
                     }
-                    else if(!did && r[0] < 0x7F)
+                    else if (!did && r[0] < 0x7F)
                     {
                         countGood++;
                         did = true;
                     }
-                    else if(!did && r[0] < 176)
+                    else if (!did && r[0] < 176)
                     {
                         countOk++;
                         did = true;
                     }
-                    else if(!did)
+                    else if (!did)
                     {
                         countBad++;
                         did = true;
                     }
                 }
 
-                int total = countGood + countOk + countBad;
+                var total = countGood + countOk + countBad;
                 if (total <= 0)
                     return null;
 
-                int score = countBad * -20 + countOk * 1 + countGood * 4;
+                var score = countBad * -20 + countOk * 1 + countGood * 4;
                 if (score < 0)
                     return null;
 
                 r = ms.ToArray();
-                string rs = Encoding.ASCII.GetString(r);
-                if(escapeChars)
+                var rs = Encoding.ASCII.GetString(r);
+                if (escapeChars)
                 {
                     rs = rs.Replace("\n", "\\n");
                     rs = rs.Replace("\r", "\\r");
                     rs = rs.Replace("\t", "\\t");
                 }
+
                 return rs;
             }
         }
@@ -1028,7 +1027,7 @@ namespace NetScriptFramework
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException("length");
-            byte[] result = new byte[length];
+            var result = new byte[length];
             if (length > 0)
                 Read(address, result, length, protect);
             return result;
@@ -1050,73 +1049,76 @@ namespace NetScriptFramework
         public static bool VerifyBytes(IntPtr address, string hex, bool protect = false)
         {
             if (hex == null)
-                throw new ArgumentNullException("hex");
+                throw new ArgumentNullException(nameof(hex));
 
             if (hex.Length == 0)
                 return true;
 
-            List<byte?> parsed = new List<byte?>(32);
+            var parsed = new List<byte?>(32);
             {
                 byte cur_val = 0;
-                int cur_i = 0;
-                bool cur_w = false;
+                var  cur_i   = 0;
+                var  cur_w   = false;
 
-                int index = 0;
-                int len = hex.Length;
+                var index = 0;
+                var len   = hex.Length;
                 while (index < len)
                 {
-                    char c = hex[index];
+                    var c = hex[index];
 
                     switch (c)
                     {
                         case ' ':
                         case '-':
+                        {
+                            if (cur_i > 0)
                             {
-                                if(cur_i > 0)
-                                {
-                                    if (cur_w)
-                                        parsed.Add(null);
-                                    else
-                                        parsed.Add(cur_val);
+                                if (cur_w)
+                                    parsed.Add(null);
+                                else
+                                    parsed.Add(cur_val);
 
-                                    cur_i = 0;
-                                    cur_val = 0;
-                                    cur_w = false;
-                                }
-
-                                index++;
-                                continue;
+                                cur_i   = 0;
+                                cur_val = 0;
+                                cur_w   = false;
                             }
+
+                            index++;
+                            continue;
+                        }
 
                         case '*':
                         case '?':
                         case '.':
+                        {
+                            if (cur_i > 0)
                             {
-                                if(cur_i > 0)
+                                if (cur_w && cur_i == 1) // ?[?]
                                 {
-                                    if(cur_w && cur_i == 1) // ?[?]
-                                        cur_i++;
-                                    else if(cur_w && cur_i == 2) // ??[?]
-                                    {
-                                        parsed.Add(null);
-                                        cur_i = 1;
-                                    }
-                                    else if(!cur_w) // n[?]
-                                    {
-                                        parsed.Add(cur_val);
-                                        cur_w = true;
-                                        cur_i = 1;
-                                        cur_val = 0;
-                                    }
+                                    cur_i++;
                                 }
-                                else
+                                else if (cur_w && cur_i == 2) // ??[?]
                                 {
+                                    parsed.Add(null);
                                     cur_i = 1;
-                                    cur_w = true;
                                 }
-                                index++;
-                                continue;
+                                else if (!cur_w) // n[?]
+                                {
+                                    parsed.Add(cur_val);
+                                    cur_w   = true;
+                                    cur_i   = 1;
+                                    cur_val = 0;
+                                }
                             }
+                            else
+                            {
+                                cur_i = 1;
+                                cur_w = true;
+                            }
+
+                            index++;
+                            continue;
+                        }
 
                         case '0':
                         case '1':
@@ -1140,49 +1142,50 @@ namespace NetScriptFramework
                         case 'D':
                         case 'E':
                         case 'F':
+                        {
+                            byte val = 0;
+                            if (c >= '0' && c <= '9')
+                                val = (byte) (c - '0');
+                            else if (c >= 'a' && c <= 'f')
+                                val = (byte) (c - 'a' + 10);
+                            else if (c >= 'A' && c <= 'F')
+                                val = (byte) (c - 'A' + 10);
+
+                            if (cur_i > 0)
                             {
-                                byte val = 0;
-                                if (c >= '0' && c <= '9')
-                                    val = (byte)(c - '0');
-                                else if (c >= 'a' && c <= 'f')
-                                    val = (byte)(c - 'a' + 10);
-                                else if (c >= 'A' && c <= 'F')
-                                    val = (byte)(c - 'A' + 10);
-
-                                if (cur_i > 0)
+                                if (cur_w)
                                 {
-                                    if(cur_w)
-                                    {
-                                        parsed.Add(null);
-                                        cur_i = 1;
-                                        cur_w = false;
-                                        cur_val = val;
-                                    }
-                                    else
-                                    {
-                                        cur_val <<= 4;
-                                        cur_val |= val;
-                                        parsed.Add(cur_val);
-
-                                        cur_val = 0;
-                                        cur_i = 0;
-                                    }
+                                    parsed.Add(null);
+                                    cur_i   = 1;
+                                    cur_w   = false;
+                                    cur_val = val;
                                 }
                                 else
                                 {
-                                    cur_i = 1;
-                                    cur_val = val;
+                                    cur_val <<= 4;
+                                    cur_val |=  val;
+                                    parsed.Add(cur_val);
+
+                                    cur_val = 0;
+                                    cur_i   = 0;
                                 }
-                                index++;
-                                continue;
                             }
-                            
+                            else
+                            {
+                                cur_i   = 1;
+                                cur_val = val;
+                            }
+
+                            index++;
+                            continue;
+                        }
+
                         default:
                             throw new FormatException("Unknown symbol in hex string: '" + c.ToString() + "'!");
                     }
                 }
 
-                if(cur_i > 0)
+                if (cur_i > 0)
                 {
                     if (cur_w)
                         parsed.Add(null);
@@ -1191,14 +1194,14 @@ namespace NetScriptFramework
                 }
             }
 
-            var bytes = Memory.ReadBytes(address, parsed.Count, protect);
-            for(int i = 0; i < bytes.Length; i++)
+            var bytes = ReadBytes(address, parsed.Count, protect);
+            for (var i = 0; i < bytes.Length; i++)
             {
-                byte? comp = parsed[i];
+                var comp = parsed[i];
                 if (!comp.HasValue)
                     continue;
 
-                byte val = bytes[i];
+                var val = bytes[i];
                 if (comp.Value != val)
                     return false;
             }
@@ -1218,20 +1221,18 @@ namespace NetScriptFramework
         public static bool TryReadBytes(IntPtr address, int length, ref byte[] result, bool protect = false)
         {
             if (length < 0)
-                throw new ArgumentOutOfRangeException("length");
-            byte[] r = new byte[length];
+                throw new ArgumentOutOfRangeException(nameof(length));
+            var r = new byte[length];
             if (length > 0)
-            {
                 if (!TryRead(address, r, length, protect))
                     return false;
-            }
             result = r;
             return true;
         }
 
-        #endregion
+    #endregion
 
-        #region Writing
+    #region Writing
 
         /// <summary>
         /// Writes value to specified memory address.
@@ -1242,7 +1243,7 @@ namespace NetScriptFramework
         /// Only set this true if you are sure you don't have write permissions!</param>
         public static void WriteInt8(IntPtr address, sbyte value, bool protect = false)
         {
-            var r = new byte[] { unchecked((byte)value) };
+            var r = new byte[] {unchecked((byte) value)};
             Write(address, r, 0, r.Length, protect);
         }
 
@@ -1255,7 +1256,7 @@ namespace NetScriptFramework
         /// Only set this true if you are sure you don't have write permissions!</param>
         public static void WriteUInt8(IntPtr address, byte value, bool protect = false)
         {
-            var r = new byte[] { value };
+            var r = new byte[] {value};
             Write(address, r, 0, r.Length, protect);
         }
 
@@ -1487,10 +1488,7 @@ namespace NetScriptFramework
         /// <param name="value">The value to write.</param>
         /// <param name="protect">If set to <c>true</c> then change protection flags of memory page before writing and return after.
         /// Only set this true if you are sure you don't have write permissions!</param>
-        public static void WriteBytes(IntPtr address, byte[] value, bool protect = false)
-        {
-            Write(address, value, 0, value.Length, protect);
-        }
+        public static void WriteBytes(IntPtr address, byte[] value, bool protect = false) { Write(address, value, 0, value.Length, protect); }
 
         /// <summary>
         /// Writes value to specified memory address.
@@ -1501,10 +1499,7 @@ namespace NetScriptFramework
         /// <param name="length">The amount of bytes to write starting at index.</param>
         /// <param name="protect">If set to <c>true</c> then change protection flags of memory page before writing and return after.
         /// Only set this true if you are sure you don't have write permissions!</param>
-        public static void WriteBytes(IntPtr address, byte[] value, int index, int length, bool protect = false)
-        {
-            Write(address, value, index, length, protect);
-        }
+        public static void WriteBytes(IntPtr address, byte[] value, int index, int length, bool protect = false) { Write(address, value, index, length, protect); }
 
         /// <summary>
         /// Writes zero bytes to specified memory address.
@@ -1521,13 +1516,11 @@ namespace NetScriptFramework
             if (size <= ZeroBytes.Length)
                 WriteBytes(address, ZeroBytes, 0, size, protect);
             else
-            {
-                for(int i = 0; i < size; i += ZeroBytes.Length)
+                for (var i = 0; i < size; i += ZeroBytes.Length)
                 {
-                    int len = Math.Min(ZeroBytes.Length, (size - i));
+                    var len = Math.Min(ZeroBytes.Length, size - i);
                     WriteBytes(address, ZeroBytes, 0, len, protect);
                 }
-            }
         }
 
         /// <summary>
@@ -1543,7 +1536,7 @@ namespace NetScriptFramework
             if (size < 0)
                 throw new ArgumentOutOfRangeException("size", "Size must not be negative!");
 
-            byte[] pdata = ReadBytes(source, size, protectSource);
+            var pdata = ReadBytes(source, size, protectSource);
             WriteBytes(target, pdata, protectTarget);
         }
 
@@ -1561,7 +1554,7 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static int InterlockedIncrement32(IntPtr address, bool protect = false)
         {
-            byte[] data = new byte[4];
+            var data = new byte[4];
             Write(address, data, 0, data.Length, protect, 3);
             return BitConverter.ToInt32(data, 0);
         }
@@ -1575,7 +1568,7 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static int InterlockedDecrement32(IntPtr address, bool protect = false)
         {
-            byte[] data = new byte[4];
+            var data = new byte[4];
             Write(address, data, 0, data.Length, protect, 4);
             return BitConverter.ToInt32(data, 0);
         }
@@ -1589,7 +1582,7 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static long InterlockedIncrement64(IntPtr address, bool protect = false)
         {
-            byte[] data = new byte[8];
+            var data = new byte[8];
             Write(address, data, 0, data.Length, protect, 5);
             return BitConverter.ToInt64(data, 0);
         }
@@ -1603,7 +1596,7 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static long InterlockedDecrement64(IntPtr address, bool protect = false)
         {
-            byte[] data = new byte[8];
+            var data = new byte[8];
             Write(address, data, 0, data.Length, protect, 6);
             return BitConverter.ToInt64(data, 0);
         }
@@ -1617,41 +1610,39 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static bool FindCodeCave(IntPtr page, int size, ref IntPtr result)
         {
-            IntPtr baseAddr = IntPtr.Zero;
+            var  baseAddr = IntPtr.Zero;
             long pageSize = 0;
-            AllocationProtectFlags flags = AllocationProtectFlags.None;
+            var  flags    = AllocationProtectFlags.None;
             if (size <= 0 || size > 256 || !GetRegionInfo(page, ref baseAddr, ref pageSize, ref flags) || !IsValidRegion(flags, true, false, false))
                 return false;
 
-            long cur = baseAddr.ToInt64();
-            long max = cur + pageSize;
-            int batch = 4096;
-            byte[] searching = new byte[size];
-            for (int i = 0; i < size; i++)
+            var cur       = baseAddr.ToInt64();
+            var max       = cur + pageSize;
+            var batch     = 4096;
+            var searching = new byte[size];
+            for (var i = 0; i < size; i++)
                 searching[i] = 0xCC;
 
-            while(cur < max)
+            while (cur < max)
             {
-                long can = Math.Min((max - cur), batch);
-                byte[] buf = Memory.ReadBytes(new IntPtr(cur), (int)can);
-                for(int i = 0; i < buf.Length - (size + 1); i++)
+                var can = Math.Min(max - cur, batch);
+                var buf = ReadBytes(new IntPtr(cur), (int) can);
+                for (var i = 0; i < buf.Length - (size + 1); i++)
                 {
                     if (buf[i] != 0xC3)
                         continue;
 
-                    int j = i + 1;
-                    int k = 0;
-                    bool ok = true;
-                    for(; k < size; k++, j++)
-                    {
-                        if(buf[j] != searching[k])
+                    var j  = i + 1;
+                    var k  = 0;
+                    var ok = true;
+                    for (; k < size; k++, j++)
+                        if (buf[j] != searching[k])
                         {
                             ok = false;
                             break;
                         }
-                    }
 
-                    if(ok)
+                    if (ok)
                     {
                         result = new IntPtr(cur + i + 1);
                         return true;
@@ -1674,39 +1665,37 @@ namespace NetScriptFramework
         {
             var result = new List<IntPtr>();
 
-            IntPtr baseAddr = IntPtr.Zero;
+            var  baseAddr = IntPtr.Zero;
             long pageSize = 0;
-            AllocationProtectFlags flags = AllocationProtectFlags.None;
+            var  flags    = AllocationProtectFlags.None;
             if (!GetRegionInfo(page, ref baseAddr, ref pageSize, ref flags))
                 return result;
 
-            long cur = baseAddr.ToInt64();
-            long max = cur + pageSize;
-            int batch = 4096;
-            byte[] searching = new byte[size];
-            for (int i = 0; i < size; i++)
+            var cur       = baseAddr.ToInt64();
+            var max       = cur + pageSize;
+            var batch     = 4096;
+            var searching = new byte[size];
+            for (var i = 0; i < size; i++)
                 searching[i] = 0xCC;
 
             while (cur < max)
             {
-                long can = Math.Min((max - cur), batch);
-                byte[] buf = Memory.ReadBytes(new IntPtr(cur), (int)can);
-                for (int i = 0; i < buf.Length - (size + 1); i++)
+                var can = Math.Min(max - cur, batch);
+                var buf = ReadBytes(new IntPtr(cur), (int) can);
+                for (var i = 0; i < buf.Length - (size + 1); i++)
                 {
                     if (buf[i] != 0xC3)
                         continue;
 
-                    int j = i + 1;
-                    int k = 0;
-                    bool ok = true;
+                    var j  = i + 1;
+                    var k  = 0;
+                    var ok = true;
                     for (; k < size; k++, j++)
-                    {
                         if (buf[j] != searching[k])
                         {
                             ok = false;
                             break;
                         }
-                    }
 
                     if (ok)
                     {
@@ -1744,59 +1733,63 @@ namespace NetScriptFramework
             if (replaceLength < 5)
                 throw new ArgumentOutOfRangeException("replaceLength", "Replaced code length must be at least 5 bytes!");
 
-            IntPtr relCallAddr = IntPtr.Zero;
-            IntPtr returnAddr = address + replaceLength;
-            byte[] includeCode = includeLength > 0 ? Memory.ReadBytes(address, Math.Abs(includeLength)) : new byte[0];
-            bool isRelCall = false;
+            var relCallAddr = IntPtr.Zero;
+            var returnAddr  = address + replaceLength;
+            var includeCode = includeLength > 0 ? ReadBytes(address, Math.Abs(includeLength)) : new byte[0];
+            var isRelCall   = false;
 
-            if(includeCode.Length == 5 && includeCode[0] == 0xE8)
+            if (includeCode.Length == 5 && includeCode[0] == 0xE8)
             {
                 relCallAddr = address + 5 + BitConverter.ToInt32(includeCode, 1);
-                includeCode = new byte[6] { 0xFF, 0x15, 0, 0, 0, 0 }; // dummy
-                isRelCall = true;
+                includeCode = new byte[6] {0xFF, 0x15, 0, 0, 0, 0}; // dummy
+                isRelCall   = true;
             }
 
-            var alloc = Memory.Allocate(assemblyCode.Length + includeCode.Length + 0x40, 0, true);
+            var alloc = Allocate(assemblyCode.Length + includeCode.Length + 0x40, 0, true);
             alloc.Pin();
 
-            Memory.WritePointer(alloc.Address, relCallAddr, true);
-            Memory.WritePointer(alloc.Address + 8, returnAddr, true);
+            WritePointer(alloc.Address, relCallAddr, true);
+            WritePointer(alloc.Address + 8, returnAddr, true);
 
             using (var ms = new System.IO.MemoryStream(assemblyCode.Length + includeCode.Length + 0x30))
             {
                 using (var wr = new System.IO.BinaryWriter(ms))
                 {
-                    wr.Write((byte)0x58); // pop rax
+                    wr.Write((byte) 0x58); // pop rax
 
-                    if(placeIncludedCodeBeforeNewCode)
+                    if (placeIncludedCodeBeforeNewCode)
                     {
                         if (isRelCall)
                         {
-                            wr.Write(new byte[] { 0xFF, 0x15 }); // call [rip+relCall]
-                            wr.Write((int)-(0x10 + (int)ms.Position + 4));
-                        }
-                        else if(includeCode.Length != 0)
-                            wr.Write(includeCode); // includeCode
-                    }
-
-                    if(assemblyCode.Length != 0)
-                        wr.Write(assemblyCode); // assemblyCode
-
-                    if(!placeIncludedCodeBeforeNewCode)
-                    {
-                        if (isRelCall)
-                        {
-                            wr.Write(new byte[] { 0xFF, 0x15 }); // call [rip+relCall]
-                            wr.Write((int)-(0x10 + (int)ms.Position + 4));
+                            wr.Write(new byte[] {0xFF, 0x15}); // call [rip+relCall]
+                            wr.Write((int) -(0x10 + (int) ms.Position + 4));
                         }
                         else if (includeCode.Length != 0)
+                        {
                             wr.Write(includeCode); // includeCode
+                        }
                     }
 
-                    wr.Write(new byte[] { 0xFF, 0x25 }); // jmp [rip+returnAddr]
-                    wr.Write((int)-(0x8 + (int)ms.Position + 4));
+                    if (assemblyCode.Length != 0)
+                        wr.Write(assemblyCode); // assemblyCode
 
-                    Memory.WriteBytes(alloc.Address + 0x10, ms.ToArray(), true);
+                    if (!placeIncludedCodeBeforeNewCode)
+                    {
+                        if (isRelCall)
+                        {
+                            wr.Write(new byte[] {0xFF, 0x15}); // call [rip+relCall]
+                            wr.Write((int) -(0x10 + (int) ms.Position + 4));
+                        }
+                        else if (includeCode.Length != 0)
+                        {
+                            wr.Write(includeCode); // includeCode
+                        }
+                    }
+
+                    wr.Write(new byte[] {0xFF, 0x25}); // jmp [rip+returnAddr]
+                    wr.Write((int) -(0x8 + (int) ms.Position + 4));
+
+                    WriteBytes(alloc.Address + 0x10, ms.ToArray(), true);
                 }
             }
 
@@ -1805,40 +1798,38 @@ namespace NetScriptFramework
             {
                 using (var wr = new System.IO.BinaryWriter(ms))
                 {
-                    wr.Write((byte)0x50); // push rax
-                    wr.Write(new byte[] { 0x48, 0xB8 }); // mov rax, ...
+                    wr.Write((byte) 0x50);             // push rax
+                    wr.Write(new byte[] {0x48, 0xB8}); // mov rax, ...
                     wr.Write((alloc.Address + 0x10).ToInt64());
-                    wr.Write(new byte[] { 0xFF, 0xE0 }); // jmp rax
+                    wr.Write(new byte[] {0xFF, 0xE0}); // jmp rax
 
                     jmpAway = ms.ToArray();
                 }
             }
 
-            if(replaceLength < jmpAway.Length)
+            if (replaceLength < jmpAway.Length)
             {
-                IntPtr cave = IntPtr.Zero;
-                if (!Memory.FindCodeCave(address, jmpAway.Length, ref cave))
-                    throw new ArgumentException("The replaced code would require a code cave but didn't find an available code cave of length " + jmpAway.Length + " in the code page!");
+                var cave = IntPtr.Zero;
+                if (!FindCodeCave(address, jmpAway.Length, ref cave))
+                    throw new ArgumentException("The replaced code would require a code cave but didn't find an available code cave of length " + jmpAway.Length +
+                                                " in the code page!");
 
-                Memory.WriteBytes(cave, jmpAway, true);
+                WriteBytes(cave, jmpAway, true);
 
-                long fromAddress = (address + 5).ToInt64();
-                long toAddress = cave.ToInt64();
+                var fromAddress = (address + 5).ToInt64();
+                var toAddress   = cave.ToInt64();
 
-                int diff = (int)(toAddress - fromAddress);
+                var diff = (int) (toAddress - fromAddress);
 
-                Memory.WriteUInt8(address, 0xE9, true);
-                Memory.WriteInt32(address + 1, diff, true);
+                WriteUInt8(address, 0xE9, true);
+                WriteInt32(address + 1, diff, true);
             }
-            else
-            {
-                Memory.WriteBytes(address, jmpAway, true);
-            }
+            else { WriteBytes(address, jmpAway, true); }
         }
 
-        #endregion
+    #endregion
 
-        #region Internal methods
+    #region Internal methods
 
         /// <summary>
         /// Converts the specified pointer to a unsigned long value.
@@ -1848,8 +1839,8 @@ namespace NetScriptFramework
         internal static ulong Convert(IntPtr ptr)
         {
             if (Main.Is64Bit)
-                return unchecked((ulong)ptr.ToInt64());
-            return unchecked((uint)ptr.ToInt32());
+                return unchecked((ulong) ptr.ToInt64());
+            return unchecked((uint) ptr.ToInt32());
         }
 
         /// <summary>
@@ -1860,9 +1851,9 @@ namespace NetScriptFramework
         internal static IntPtr Convert(ulong ptr)
         {
             if (Main.Is64Bit)
-                return new IntPtr(unchecked((long)ptr));
+                return new IntPtr(unchecked((long) ptr));
             ptr &= 0xFFFFFFFF;
-            return new IntPtr(unchecked((int)((uint)ptr)));
+            return new IntPtr(unchecked((int) (uint) ptr));
         }
 
         /// <summary>
@@ -1885,7 +1876,7 @@ namespace NetScriptFramework
                 }
                 else
                 {
-                    switch(intl)
+                    switch (intl)
                     {
                         case 1:
                             if (MemoryReadInterlocked32(address, buffer) == 0)
@@ -1901,24 +1892,22 @@ namespace NetScriptFramework
                             throw new InvalidOperationException();
                     }
                 }
+
                 return;
             }
 
             lock (ProtectedMemoryLocker)
             {
                 uint oldProtect = 0;
-                if (!VirtualProtect(address, (uint)length, 0x40, out oldProtect))
+                if (!VirtualProtect(address, (uint) length, 0x40, out oldProtect))
                     throw new MemoryAccessException(address, length, 1);
 
                 try
                 {
                     if (intl == 0)
-                    {
                         Marshal.Copy(address, buffer, 0, length);
-                    }
                     else
-                    {
-                        switch(intl)
+                        switch (intl)
                         {
                             case 1:
                                 if (MemoryReadInterlocked32(address, buffer) == 0)
@@ -1933,12 +1922,8 @@ namespace NetScriptFramework
                             default:
                                 throw new InvalidOperationException();
                         }
-                    }
                 }
-                finally
-                {
-                    VirtualProtect(address, (uint)length, oldProtect, out oldProtect);
-                }
+                finally { VirtualProtect(address, (uint) length, oldProtect, out oldProtect); }
             }
         }
 
@@ -1978,23 +1963,21 @@ namespace NetScriptFramework
                             throw new InvalidOperationException();
                     }
                 }
+
                 return true;
             }
 
             lock (ProtectedMemoryLocker)
             {
                 uint oldProtect = 0;
-                if (!VirtualProtect(address, (uint)length, 0x40, out oldProtect))
+                if (!VirtualProtect(address, (uint) length, 0x40, out oldProtect))
                     return false;
 
                 try
                 {
                     if (intl == 0)
-                    {
                         Marshal.Copy(address, buffer, 0, length);
-                    }
                     else
-                    {
                         switch (intl)
                         {
                             case 1:
@@ -2010,12 +1993,8 @@ namespace NetScriptFramework
                             default:
                                 throw new InvalidOperationException();
                         }
-                    }
                 }
-                finally
-                {
-                    VirtualProtect(address, (uint)length, oldProtect, out oldProtect);
-                }
+                finally { VirtualProtect(address, (uint) length, oldProtect, out oldProtect); }
             }
 
             return true;
@@ -2043,7 +2022,7 @@ namespace NetScriptFramework
                 }
                 else
                 {
-                    switch(intl)
+                    switch (intl)
                     {
                         case 1:
                             if (MemoryWriteInterlocked32(buffer, address) == 0)
@@ -2056,7 +2035,7 @@ namespace NetScriptFramework
                             break;
 
                         case 3:
-                            if(MemoryIncrementInterlocked32(buffer, address) == 0)
+                            if (MemoryIncrementInterlocked32(buffer, address) == 0)
                                 throw new MemoryAccessException(address, 4, true);
                             break;
 
@@ -2079,23 +2058,21 @@ namespace NetScriptFramework
                             throw new NotImplementedException();
                     }
                 }
+
                 return;
             }
 
             lock (ProtectedMemoryLocker)
             {
                 uint oldProtect = 0;
-                if (!VirtualProtect(address, (uint)length, 0x40, out oldProtect))
+                if (!VirtualProtect(address, (uint) length, 0x40, out oldProtect))
                     throw new MemoryAccessException(address, length, -1);
 
                 try
                 {
                     if (intl == 0)
-                    {
                         Marshal.Copy(buffer, index, address, length);
-                    }
                     else
-                    {
                         switch (intl)
                         {
                             case 1:
@@ -2131,12 +2108,8 @@ namespace NetScriptFramework
                             default:
                                 throw new NotImplementedException();
                         }
-                    }
                 }
-                finally
-                {
-                    VirtualProtect(address, (uint)length, oldProtect, out oldProtect);
-                }
+                finally { VirtualProtect(address, (uint) length, oldProtect, out oldProtect); }
             }
         }
 
@@ -2146,18 +2119,16 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static int[] GetMainModuleVersion()
         {
-            int[] result = new int[4];
+            var result = new int[4];
             result[0] = 1;
-            var module = System.Diagnostics.Process.GetCurrentProcess().MainModule;
+            var module          = System.Diagnostics.Process.GetCurrentProcess().MainModule;
             var fileVersionInfo = module.FileVersionInfo;
-            if(fileVersionInfo != null)
+            if (fileVersionInfo != null)
             {
-                int[] arr = Game.GetModuleVersion(fileVersionInfo);
-                if(arr != null)
-                {
-                    for (int i = 0; i < 4 && i < arr.Length; i++)
+                var arr = Game.GetModuleVersion(fileVersionInfo);
+                if (arr != null)
+                    for (var i = 0; i < 4 && i < arr.Length; i++)
                         result[i] = arr[i];
-                }
             }
 
             return result;
@@ -2204,7 +2175,7 @@ namespace NetScriptFramework
         [DllImport("NetScriptFramework.Runtime.dll")]
         private static extern void Explore_RTTI(IntPtr obj, IntPtr baseObj, IntPtr data, int dataMaxCount, IntPtr moduleBase);
 
-        #endregion
+    #endregion
 
         /// <summary>
         /// Explores the rtti data of object. Returns false if failed for any reason.
@@ -2215,26 +2186,27 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static bool ExploreRTTI(IntPtr obj, ref IntPtr baseObj, ref List<Tuple<IntPtr, int>> typeDescriptors)
         {
-            int ptrSize = IntPtr.Size;
-            int maxInheritCount = 0x80;
-            var ls = new List<Tuple<IntPtr, int>>();
-            using (var alloc = Memory.Allocate((maxInheritCount + 2) * ptrSize))
+            var ptrSize         = IntPtr.Size;
+            var maxInheritCount = 0x80;
+            var ls              = new List<Tuple<IntPtr, int>>();
+            using (var alloc = Allocate((maxInheritCount + 2) * ptrSize))
             {
-                IntPtr addrOfBase = alloc.Address - ptrSize * 2;
-                Memory.WritePointer(addrOfBase, IntPtr.Zero);
+                var addrOfBase = alloc.Address - ptrSize * 2;
+                WritePointer(addrOfBase, IntPtr.Zero);
                 Explore_RTTI(obj, addrOfBase, alloc.Address, maxInheritCount, Main.GetMainTargetedModule().BaseAddress);
 
-                IntPtr _base = Memory.ReadPointer(addrOfBase);
+                var _base = ReadPointer(addrOfBase);
                 if (_base == IntPtr.Zero)
                     return false;
 
-                for(int i = 0; i < maxInheritCount; i += 2)
+                for (var i = 0; i < maxInheritCount; i += 2)
                 {
-                    var objTypeId = Memory.ReadPointer(alloc.Address + i * ptrSize);
-                    var objOffset = Memory.ReadInt32(alloc.Address + (i + 1) * ptrSize);
+                    var objTypeId = ReadPointer(alloc.Address + i       * ptrSize);
+                    var objOffset = ReadInt32(alloc.Address   + (i + 1) * ptrSize);
                     ls.Add(new Tuple<IntPtr, int>(objTypeId, objOffset));
                 }
-                baseObj = _base;
+
+                baseObj         = _base;
                 typeDescriptors = ls;
             }
 
@@ -2245,46 +2217,31 @@ namespace NetScriptFramework
         /// Gets the current native thread identifier.
         /// </summary>
         /// <returns></returns>
-        public static int GetCurrentNativeThreadId()
-        {
-            return Tools._Internal.RTHandler.GetCurrentThreadId();
-        }
+        public static int GetCurrentNativeThreadId() { return Tools._Internal.RTHandler.GetCurrentThreadId(); }
 
         /// <summary>
         /// Suspends all threads in the process, except the currently executing thread.
         /// </summary>
-        public static void SuspendAllThreadsExcentCurrent()
-        {
-            Tools._Internal.RTHandler.SuspendAllThreadsInCurrentProcess();
-        }
+        public static void SuspendAllThreadsExcentCurrent() { Tools._Internal.RTHandler.SuspendAllThreadsInCurrentProcess(); }
 
         /// <summary>
         /// Resumes all threads in the process, except the currently executing thread.
         /// </summary>
-        public static void ResumeAllThreadsExceptCurrent()
-        {
-            Tools._Internal.RTHandler.ResumeAllThreadsInCurrentProcess();
-        }
+        public static void ResumeAllThreadsExceptCurrent() { Tools._Internal.RTHandler.ResumeAllThreadsInCurrentProcess(); }
 
         /// <summary>
         /// Suspends all threads except current and specified.
         /// </summary>
         /// <param name="specified">The specified threads not to suspend.</param>
-        public static void SuspendAllThreadsExceptCurrentAndSpecified(int[] specified)
-        {
-            Tools._Internal.RTHandler.SuspendAllThreadsInCurrentProcess(specified);
-        }
+        public static void SuspendAllThreadsExceptCurrentAndSpecified(int[] specified) { Tools._Internal.RTHandler.SuspendAllThreadsInCurrentProcess(specified); }
 
         /// <summary>
         /// Resumes all threads except current and specified.
         /// </summary>
         /// <param name="specified">The specified threads not to resume.</param>
-        public static void ResumeAllThreadsExceptCurrentAndSpecified(int[] specified)
-        {
-            Tools._Internal.RTHandler.ResumeAllThreadsInCurrentProcess(specified);
-        }
+        public static void ResumeAllThreadsExceptCurrentAndSpecified(int[] specified) { Tools._Internal.RTHandler.ResumeAllThreadsInCurrentProcess(specified); }
 
-        #region Injection
+    #region Injection
 
         /// <summary>
         /// Writes the assembly NOP opcodes to address. This will use safe writing so we can write on code pages as well.
@@ -2296,8 +2253,8 @@ namespace NetScriptFramework
             if (count <= 0)
                 return;
 
-            byte[] data = new byte[count];
-            for (int i = 0; i < data.Length; i++)
+            var data = new byte[count];
+            for (var i = 0; i < data.Length; i++)
                 data[i] = 0x90;
 
             WriteBytes(address, data, true);
@@ -2416,7 +2373,7 @@ namespace NetScriptFramework
         public static void WriteHook(HookParameters parameters)
         {
             if (parameters == null)
-                throw new ArgumentNullException("parameters");
+                throw new ArgumentNullException(nameof(parameters));
 
             if (parameters.Address == IntPtr.Zero)
                 throw new ArgumentNullException("parameters.Address");
@@ -2435,70 +2392,69 @@ namespace NetScriptFramework
             else if (parameters.After != null)
                 handler = Tools._Internal.HookAfter.Instance;
 
-            bool isLongHook = false;
-            IntPtr target = IntPtr.Zero;
-            IntPtr include1 = IntPtr.Zero;
-            IntPtr include2 = IntPtr.Zero;
+            var isLongHook = false;
+            var target     = IntPtr.Zero;
+            var include1   = IntPtr.Zero;
+            var include2   = IntPtr.Zero;
 
             if (Main.Is64Bit && (parameters.ForceLongJump || parameters.ReplaceLength >= 13))
                 isLongHook = true;
 
-            handler.BuildHook(parameters.Address, parameters.ReplaceLength, parameters.Address, parameters.IncludeLength, isLongHook, ref target, ref include1, ref include2);
-            if(!isLongHook && Main.Is64Bit)
+            handler?.BuildHook(parameters.Address, parameters.ReplaceLength, parameters.Address, parameters.IncludeLength, isLongHook, ref target, ref include1, ref include2);
+            if (!isLongHook && Main.Is64Bit)
             {
-                long addr_s = parameters.Address.ToInt64();
-                long addr_t = target.ToInt64() - 5;
+                var addr_s = parameters.Address.ToInt64();
+                var addr_t = target.ToInt64() - 5;
 
                 if (addr_t > addr_s)
                 {
-                    if (addr_t - addr_s <= int.MaxValue)
-                    {
-
-                    }
-                    else
-                        throw new InvalidOperationException();
+                    if (addr_t - addr_s <= int.MaxValue) { }
+                    else { throw new InvalidOperationException(); }
                 }
                 else
                 {
-                    if (addr_t - addr_s >= int.MinValue)
-                    {
-
-                    }
-                    else
-                        throw new InvalidOperationException();
+                    if (addr_t - addr_s >= int.MinValue) { }
+                    else { throw new InvalidOperationException(); }
                 }
             }
-            
-            int requiredLength = isLongHook ? 13 : 5;
+
+            var requiredLength = isLongHook ? 13 : 5;
             if (parameters.ReplaceLength < requiredLength)
-                throw new ArgumentException("parameters.ReplaceLength", "Replace length must be at least " + requiredLength + " bytes when " + (isLongHook ? "far jump" : "near jump") + " is used!");
+                throw new ArgumentException("parameters.ReplaceLength",
+                                            "Replace length must be at least " + requiredLength + " bytes when " + (isLongHook ? "far jump" : "near jump") + " is used!");
 
             if (parameters.IncludeLength < 0)
                 throw new ArgumentOutOfRangeException("parameters.IncludeLength", "Include length can't be a negative value!");
 
             var assembly = System.Reflection.Assembly.GetCallingAssembly();
-            var plugin = PluginManager.GetPlugins().FirstOrDefault(q => q.Assembly == assembly);
+            var plugin   = PluginManager.GetPlugins().FirstOrDefault(q => q.Assembly == assembly);
 
-            HookInfo info = new HookInfo();
-            info.Address = parameters.Address;
-            info.Length = parameters.ReplaceLength;
-            info.Assembly = assembly;
-            info.Plugin = plugin;
-            info.Before = parameters.Before;
-            info.After = parameters.After;
-            info.IsFarJump = isLongHook;
-            info.Include = include1;
-            info.Include2 = include2;
+            var info = new HookInfo
+            {
+                Address   = parameters.Address,
+                Length    = parameters.ReplaceLength,
+                Assembly  = assembly,
+                Plugin    = plugin,
+                Before    = parameters.Before,
+                After     = parameters.After,
+                IsFarJump = isLongHook,
+                Include   = include1,
+                Include2  = include2
+            };
 
             HookInfo conflict = null;
             if ((conflict = AddHookIfNoOverlap(info, info.Address, info.Length, parameters.Pattern)) != null)
             {
-                string placedBy = (conflict.Plugin != null ? conflict.Plugin.GetInternalString() : (conflict.Assembly != null ? conflict.Assembly.GetName().FullName : "(null)")) ?? string.Empty;
-                throw new InvalidOperationException("Unable to place .NET hook at address 0x" + Convert(parameters.Address).ToString("X") + " - 0x" + (Convert(parameters.Address) + (uint)parameters.ReplaceLength).ToString("X") + " because there is another hook already in place that would overlap! Previous hook was placed by " + placedBy);
+                var placedBy = (conflict.Plugin != null ? conflict.Plugin.GetInternalString() : conflict.Assembly != null ? conflict.Assembly.GetName().FullName : "(null)") ??
+                               string.Empty;
+                throw new InvalidOperationException("Unable to place .NET hook at address 0x" + Convert(parameters.Address).ToString("X") + " - 0x" +
+                                                    (Convert(parameters.Address) + (uint) parameters.ReplaceLength).ToString("X") +
+                                                    " because there is another hook already in place that would overlap! Previous hook was placed by " + placedBy);
             }
-            HookRealMap[info.Address.ToInt64()] = info;
+
+            HookRealMap[info.Address.ToInt64()]                     = info;
             HookMap[info.Address.ToInt64() + (isLongHook ? 13 : 5)] = info;
-            
+
             byte[] source = null;
 
             if (!Main.Is64Bit)
@@ -2510,15 +2466,14 @@ namespace NetScriptFramework
                 throw new InvalidOperationException();
 
             WriteBytes(parameters.Address, source, true);
-            if (parameters.ReplaceLength > requiredLength)
-            {
-                byte[] nops = new byte[parameters.ReplaceLength - requiredLength];
-                for (int i = 0; i < nops.Length; i++)
-                    nops[i] = 0x90;
-                WriteBytes(parameters.Address + requiredLength, nops, true);
-            }
+            if (parameters.ReplaceLength <= requiredLength) return;
+
+            var nops = new byte[parameters.ReplaceLength - requiredLength];
+            for (var i = 0; i < nops.Length; i++)
+                nops[i] = 0x90;
+            WriteBytes(parameters.Address + requiredLength, nops, true);
         }
-        
+
         /// <summary>
         /// Prepares the .NET hooking code.
         /// </summary>
@@ -2526,10 +2481,10 @@ namespace NetScriptFramework
         {
             Main.Log.AppendLine("Preparing .NET code hooking.");
 
-            _Invoke_Cdecl_address = InvokeCdecl_addr();
+            _Invoke_Cdecl_address  = InvokeCdecl_addr();
             _Invoke_CdeclF_address = InvokeCdeclF_addr();
             _Invoke_CdeclD_address = InvokeCdeclD_addr();
-            
+
             _Argument_Jmp_Address = new IntPtr[]
             {
                 _Invoke_Cdecl_address + 0x63, // arg0 type0
@@ -2578,10 +2533,10 @@ namespace NetScriptFramework
                 _Invoke_CdeclD_address + 0xB6, // arg3 type2
                 _Invoke_CdeclD_address + 0xBF, // arg4 type0
                 _Invoke_CdeclD_address + 0xBF, // arg4 type1
-                _Invoke_CdeclD_address + 0xBF, // arg4 type2
+                _Invoke_CdeclD_address + 0xBF  // arg4 type2
             };
 
-            _unmanagedDoAction = GetDoActionAddress();
+            _unmanagedDoAction   = GetDoActionAddress();
             CPURegisters.Offsets = new CPURegisters.CPUOffsets();
         }
 
@@ -2596,15 +2551,15 @@ namespace NetScriptFramework
             if (tlsBase == IntPtr.Zero)
                 return;
 
-            count = Memory.ReadInt32(tlsBase);
+            count = ReadInt32(tlsBase);
             if (count == 0)
                 return;
 
-            IntPtr ptr = Memory.ReadPointer(tlsBase + (Main.Is64Bit ? 8 : 4));
-            int size = GetHookContextSize();
-            for(int i = 0; i < count; i++)
+            var ptr  = ReadPointer(tlsBase + (Main.Is64Bit ? 8 : 4));
+            var size = GetHookContextSize();
+            for (var i = 0; i < count; i++)
             {
-                var addr = Memory.ReadPointer(ptr + (size - 0x18));
+                var addr = ReadPointer(ptr + (size - 0x18));
                 var info = GetHookReal(addr);
                 if (info != null)
                     hooks.Add(info);
@@ -2633,11 +2588,11 @@ namespace NetScriptFramework
             // push rcx
             // mov rcx, 1234
             // call rcx
-            var result = new byte[] { 0x51, 0x48, 0xB9 }.Concat(BitConverter.GetBytes(target.ToInt64())).Concat(new byte[] { 0xFF, 0xD1 }).ToArray();
-#if DEBUG
-            if(result.Length != 13)
+            var result = new byte[] {0x51, 0x48, 0xB9}.Concat(BitConverter.GetBytes(target.ToInt64())).Concat(new byte[] {0xFF, 0xD1}).ToArray();
+        #if DEBUG
+            if (result.Length != 13)
                 throw new InvalidOperationException();
-#endif
+        #endif
             return result;
         }
 
@@ -2650,19 +2605,19 @@ namespace NetScriptFramework
         private static byte[] GetHookBytesSource64_Near(IntPtr source, IntPtr target)
         {
             // call 1234
-            int value = (int)((target.ToInt64() - 5) - source.ToInt64());
-            var result = new byte[] { 0xE8 }.Concat(BitConverter.GetBytes(value)).ToArray();
-#if DEBUG
-            if(result.Length != 5)
+            var value  = (int) (target.ToInt64() - 5 - source.ToInt64());
+            var result = new byte[] {0xE8}.Concat(BitConverter.GetBytes(value)).ToArray();
+        #if DEBUG
+            if (result.Length != 5)
                 throw new InvalidOperationException();
-#endif
+        #endif
             return result;
         }
-        
-        internal static IntPtr _unmanagedDoAction = IntPtr.Zero;
-        private static readonly Dictionary<long, HookInfo> HookMap = new Dictionary<long, HookInfo>();
-        private static readonly Dictionary<long, HookInfo> HookRealMap = new Dictionary<long, HookInfo>();
-        private static readonly List<Tuple<ulong, ulong, HookInfo>> HookOverlapList = new List<Tuple<ulong, ulong, HookInfo>>();
+
+        internal static         IntPtr                              _unmanagedDoAction = IntPtr.Zero;
+        private static readonly Dictionary<long, HookInfo>          HookMap            = new Dictionary<long, HookInfo>();
+        private static readonly Dictionary<long, HookInfo>          HookRealMap        = new Dictionary<long, HookInfo>();
+        private static readonly List<Tuple<ulong, ulong, HookInfo>> HookOverlapList    = new List<Tuple<ulong, ulong, HookInfo>>();
 
         /// <summary>
         /// Adds the hook if no overlap with other hooks.
@@ -2674,26 +2629,25 @@ namespace NetScriptFramework
         /// <returns></returns>
         private static HookInfo AddHookIfNoOverlap(HookInfo self, IntPtr begin, int size, string pattern)
         {
-            ulong min = Memory.Convert(begin);
-            ulong max = min + (uint)size;
+            var min = Convert(begin);
+            var max = min + (uint) size;
 
             var ls = HookOverlapList;
-            for(int i = 0; i < ls.Count; i++)
+            for (var i = 0; i < ls.Count; i++)
             {
-                var t = ls[i];
-                ulong min_t = t.Item1;
-                ulong max_t = t.Item2;
+                var t     = ls[i];
+                var min_t = t.Item1;
+                var max_t = t.Item2;
 
-                if(min <= min_t)
+                if (min <= min_t)
                 {
                     if (max > min_t)
                         return t.Item3;
 
                     if (!string.IsNullOrEmpty(pattern))
-                    {
-                        if (!Memory.VerifyBytes(begin, pattern, false))
-                            throw new ArgumentException("Trying to install hook at " + begin.ToHexString() + ", but the expected byte pattern of \"" + pattern + "\" does not match!");
-                    }
+                        if (!VerifyBytes(begin, pattern, false))
+                            throw new ArgumentException("Trying to install hook at " + begin.ToHexString() + ", but the expected byte pattern of \"" + pattern +
+                                                        "\" does not match!");
 
                     ls.Insert(i, new Tuple<ulong, ulong, HookInfo>(min, max, self));
                     return null;
@@ -2704,15 +2658,13 @@ namespace NetScriptFramework
             }
 
             if (!string.IsNullOrEmpty(pattern))
-            {
-                if (!Memory.VerifyBytes(begin, pattern, false))
+                if (!VerifyBytes(begin, pattern, false))
                     throw new ArgumentException("Trying to install hook at " + begin.ToHexString() + ", but the expected byte pattern of \"" + pattern + "\" does not match!");
-            }
 
             ls.Add(new Tuple<ulong, ulong, HookInfo>(min, max, self));
             return null;
         }
-        
+
         /// <summary>
         /// Gets the hook.
         /// </summary>
@@ -2754,10 +2706,10 @@ namespace NetScriptFramework
                     return;*/
 
                 // Read the hook info.
-                int sz = GetHookContextSize();
+                var sz = GetHookContextSize();
 
                 // The hooked address. This is not the actual address yet!
-                var hookAddr = Memory.ReadPointer(cpu_address + sz - IntPtr.Size * 6);
+                var hookAddr = ReadPointer(cpu_address + sz - IntPtr.Size * 6);
 
                 // Get action.
                 var hook = GetHook(hookAddr);
@@ -2773,23 +2725,21 @@ namespace NetScriptFramework
                     else
                         throw new InvalidOperationException("Trying to invoke hook with no handlers!");
                 }
-                else if (hook.After != null)
-                    handler = Tools._Internal.HookBoth.Instance;
-                else
-                    handler = Tools._Internal.HookBefore.Instance;
+                else if (hook.After != null) { handler = Tools._Internal.HookBoth.Instance; }
+                else { handler                         = Tools._Internal.HookBefore.Instance; }
 
                 // Create CPU register info.
                 var cpu = new CPURegisters(cpu_address, handler);
-                
+
                 // Fix some things according to hook.
-                cpu.IP = hook.Address + hook.Length;
-                cpu.Include = pass == 0 ? hook.Include : hook.Include2;
-                cpu.Hook = hook.Address;
+                cpu.IP        = hook.Address + hook.Length;
+                cpu.Include   = pass == 0 ? hook.Include : hook.Include2;
+                cpu.Hook      = hook.Address;
                 cpu.AllowSkip = pass == 0;
 
                 // Perform action.
                 var ac = pass == 0 ? hook.Before : hook.After;
-                if(ac != null)
+                if (ac != null)
                     ac(cpu);
             }
             catch (Exception ex)
@@ -2798,8 +2748,8 @@ namespace NetScriptFramework
                 Main.ProcessManagedUnhandledException(ex);
             }
         }
-        
-        #endregion
+
+    #endregion
     }
 
     /// <summary>
@@ -2860,7 +2810,7 @@ namespace NetScriptFramework
     /// <seealso cref="NetScriptFramework.TemporaryObject" />
     public sealed class MemoryAllocation : TemporaryObject
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryAllocation"/> class.
@@ -2872,16 +2822,16 @@ namespace NetScriptFramework
         /// <param name="page">The page.</param>
         internal MemoryAllocation(IntPtr address, int size, int align, MemoryAllocationTypes type, CodePageAllocator page)
         {
-            this.Address = address;
-            this.Size = size;
-            this.Align = align;
-            this.Type = type;
-            this.CodePage = page;
+            Address  = address;
+            Size     = size;
+            Align    = align;
+            Type     = type;
+            CodePage = page;
         }
 
-        #endregion
+    #endregion
 
-        #region MemoryAllocation members
+    #region MemoryAllocation members
 
         /// <summary>
         /// The code page if it is code.
@@ -2911,11 +2861,8 @@ namespace NetScriptFramework
         /// <summary>
         /// Zeroes this instance.
         /// </summary>
-        public void Zero()
-        {
-            Memory.WriteZero(this.Address, this.Size);
-        }
-        
+        public void Zero() { Memory.WriteZero(Address, Size); }
+
         /// <summary>
         /// List of memory allocation types.
         /// </summary>
@@ -2934,7 +2881,7 @@ namespace NetScriptFramework
             /// <summary>
             /// The memory is allocated for ANSI or Unicode string.
             /// </summary>
-            String = 2,
+            String = 2
         }
 
         /// <summary>
@@ -2943,18 +2890,18 @@ namespace NetScriptFramework
         /// <exception cref="System.InvalidOperationException"></exception>
         protected override void Free()
         {
-            switch (this.Type)
+            switch (Type)
             {
                 case MemoryAllocationTypes.Heap:
-                    Memory.FreeC(this.Address, this.Align != 0);
+                    Memory.FreeC(Address, Align != 0);
                     break;
 
                 case MemoryAllocationTypes.Code:
-                    Memory.FreeCode(this.Address, this.Size, this.CodePage);
+                    Memory.FreeCode(Address, Size, CodePage);
                     break;
 
                 case MemoryAllocationTypes.String:
-                    Memory.FreeString(this.Address);
+                    Memory.FreeString(Address);
                     break;
 
                 default:
@@ -2962,7 +2909,7 @@ namespace NetScriptFramework
             }
         }
 
-        #endregion
+    #endregion
     }
 
     /// <summary>
@@ -2970,15 +2917,12 @@ namespace NetScriptFramework
     /// </summary>
     public sealed class InvokeArgument
     {
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InvokeArgument"/> class.
         /// </summary>
-        private InvokeArgument()
-        {
-
-        }
+        private InvokeArgument() { }
 
         /// <summary>
         /// The value if it's not floating point.
@@ -3000,9 +2944,9 @@ namespace NetScriptFramework
         /// </summary>
         internal int ValueType = -1;
 
-        #endregion
+    #endregion
 
-        #region InvokeArgument members
+    #region InvokeArgument members
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="IntPtr"/> to <see cref="InvokeArgument"/>.
@@ -3011,10 +2955,7 @@ namespace NetScriptFramework
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(IntPtr value)
-        {
-            return new InvokeArgument() { ValueOther = value, ValueType = 0 };
-        }
+        public static implicit operator InvokeArgument(IntPtr value) { return new InvokeArgument() {ValueOther = value, ValueType = 0}; }
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="Int32"/> to <see cref="InvokeArgument"/>.
@@ -3023,10 +2964,7 @@ namespace NetScriptFramework
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(int value)
-        {
-            return new InvokeArgument() { ValueOther = new IntPtr(value), ValueType = 0 };
-        }
+        public static implicit operator InvokeArgument(int value) { return new InvokeArgument() {ValueOther = new IntPtr(value), ValueType = 0}; }
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="System.Int64"/> to <see cref="InvokeArgument"/>.
@@ -3035,10 +2973,7 @@ namespace NetScriptFramework
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(long value)
-        {
-            return new InvokeArgument() { ValueOther = new IntPtr(value), ValueType = 0 };
-        }
+        public static implicit operator InvokeArgument(long value) { return new InvokeArgument() {ValueOther = new IntPtr(value), ValueType = 0}; }
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="System.UInt32"/> to <see cref="InvokeArgument"/>.
@@ -3047,10 +2982,7 @@ namespace NetScriptFramework
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(uint value)
-        {
-            return new InvokeArgument() { ValueOther = new IntPtr(unchecked((int)value)), ValueType = 0 };
-        }
+        public static implicit operator InvokeArgument(uint value) { return new InvokeArgument() {ValueOther = new IntPtr(unchecked((int) value)), ValueType = 0}; }
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="System.UInt64"/> to <see cref="InvokeArgument"/>.
@@ -3059,10 +2991,7 @@ namespace NetScriptFramework
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(ulong value)
-        {
-            return new InvokeArgument() { ValueOther = new IntPtr(unchecked((long)value)), ValueType = 0 };
-        }
+        public static implicit operator InvokeArgument(ulong value) { return new InvokeArgument() {ValueOther = new IntPtr(unchecked((long) value)), ValueType = 0}; }
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="System.Int16"/> to <see cref="InvokeArgument"/>.
@@ -3071,10 +3000,7 @@ namespace NetScriptFramework
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(short value)
-        {
-            return new InvokeArgument() { ValueOther = new IntPtr(unchecked((ushort)value)), ValueType = 0 };
-        }
+        public static implicit operator InvokeArgument(short value) { return new InvokeArgument() {ValueOther = new IntPtr(unchecked((ushort) value)), ValueType = 0}; }
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="System.UInt16"/> to <see cref="InvokeArgument"/>.
@@ -3083,10 +3009,7 @@ namespace NetScriptFramework
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(ushort value)
-        {
-            return new InvokeArgument() { ValueOther = new IntPtr(value), ValueType = 0 };
-        }
+        public static implicit operator InvokeArgument(ushort value) { return new InvokeArgument() {ValueOther = new IntPtr(value), ValueType = 0}; }
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="System.Byte"/> to <see cref="InvokeArgument"/>.
@@ -3095,10 +3018,7 @@ namespace NetScriptFramework
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(byte value)
-        {
-            return new InvokeArgument() { ValueOther = new IntPtr(value), ValueType = 0 };
-        }
+        public static implicit operator InvokeArgument(byte value) { return new InvokeArgument() {ValueOther = new IntPtr(value), ValueType = 0}; }
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="System.SByte"/> to <see cref="InvokeArgument"/>.
@@ -3107,10 +3027,7 @@ namespace NetScriptFramework
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(sbyte value)
-        {
-            return new InvokeArgument() { ValueOther = new IntPtr(unchecked((byte)value)), ValueType = 0 };
-        }
+        public static implicit operator InvokeArgument(sbyte value) { return new InvokeArgument() {ValueOther = new IntPtr(unchecked((byte) value)), ValueType = 0}; }
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="System.Boolean"/> to <see cref="InvokeArgument"/>.
@@ -3119,10 +3036,7 @@ namespace NetScriptFramework
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(bool value)
-        {
-            return new InvokeArgument() { ValueOther = new IntPtr(value ? (int)1 : (int)0), ValueType = 0 };
-        }
+        public static implicit operator InvokeArgument(bool value) { return new InvokeArgument() {ValueOther = new IntPtr(value ? (int) 1 : (int) 0), ValueType = 0}; }
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="System.Double"/> to <see cref="InvokeArgument"/>.
@@ -3136,10 +3050,11 @@ namespace NetScriptFramework
             if (!Main.Is64Bit)
             {
                 // This is correct.
-                byte[] converted = BitConverter.GetBytes((float)value);
-                return new InvokeArgument() { ValueOther = new IntPtr(BitConverter.ToInt32(converted, 0)), ValueType = 0 };
+                var converted = BitConverter.GetBytes((float) value);
+                return new InvokeArgument() {ValueOther = new IntPtr(BitConverter.ToInt32(converted, 0)), ValueType = 0};
             }
-            return new InvokeArgument() { ValueDouble = value, ValueType = 2 };
+
+            return new InvokeArgument() {ValueDouble = value, ValueType = 2};
         }
 
         /// <summary>
@@ -3154,13 +3069,14 @@ namespace NetScriptFramework
             if (!Main.Is64Bit)
             {
                 // This is correct.
-                byte[] converted = BitConverter.GetBytes(value);
-                return new InvokeArgument() { ValueOther = new IntPtr(BitConverter.ToInt32(converted, 0)), ValueType = 0 };
+                var converted = BitConverter.GetBytes(value);
+                return new InvokeArgument() {ValueOther = new IntPtr(BitConverter.ToInt32(converted, 0)), ValueType = 0};
             }
-            return new InvokeArgument() { ValueFloat = value, ValueType = 1 };
+
+            return new InvokeArgument() {ValueFloat = value, ValueType = 1};
         }
 
-        #endregion
+    #endregion
     }
 
     /// <summary>
@@ -3171,10 +3087,7 @@ namespace NetScriptFramework
         /// <summary>
         /// Initializes a new instance of the <see cref="VTableHookParameters"/> class.
         /// </summary>
-        public VTableHookParameters()
-        {
-
-        }
+        public VTableHookParameters() { }
 
         /// <summary>
         /// Gets or sets the address of the entry in vtable.
@@ -3182,11 +3095,7 @@ namespace NetScriptFramework
         /// <value>
         /// The address.
         /// </value>
-        public IntPtr Address
-        {
-            get;
-            set;
-        }
+        public IntPtr Address { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to skip default implementation and not call what was in the vtable before this.
@@ -3194,11 +3103,7 @@ namespace NetScriptFramework
         /// <value>
         /// <c>true</c> if [skip default implementation]; otherwise, <c>false</c>.
         /// </value>
-        public bool SkipDefaultImplementation
-        {
-            get;
-            set;
-        }
+        public bool SkipDefaultImplementation { get; set; }
 
         /// <summary>
         /// Gets or sets the action to run when hooked code is triggered. This action will run before included code and may read or write CPU registers.
@@ -3206,11 +3111,7 @@ namespace NetScriptFramework
         /// <value>
         /// The action.
         /// </value>
-        public Action<CPURegisters> Before
-        {
-            get;
-            set;
-        }
+        public Action<CPURegisters> Before { get; set; }
 
         /// <summary>
         /// Gets or sets the action to run when hooked code is triggered. This action will run after included code and may read or write CPU registers.
@@ -3218,13 +3119,9 @@ namespace NetScriptFramework
         /// <value>
         /// The action.
         /// </value>
-        public Action<CPURegisters> After
-        {
-            get;
-            set;
-        }
+        public Action<CPURegisters> After { get; set; }
     }
-    
+
     /// <summary>
     /// Parameters for creating a hook.
     /// </summary>
@@ -3233,10 +3130,7 @@ namespace NetScriptFramework
         /// <summary>
         /// Initializes a new instance of the <see cref="HookParameters"/> class.
         /// </summary>
-        public HookParameters()
-        {
-
-        }
+        public HookParameters() { }
 
         /// <summary>
         /// Gets or sets the start address of hook.
@@ -3244,11 +3138,7 @@ namespace NetScriptFramework
         /// <value>
         /// The address.
         /// </value>
-        public IntPtr Address
-        {
-            get;
-            set;
-        }
+        public IntPtr Address { get; set; }
 
         /// <summary>
         /// Gets or sets the length of the replaced code in bytes. The code is replaced due to placing a hook there. Must be at least 5 bytes in 32-bit process and 13 bytes in 64-bit process. If near jump
@@ -3258,11 +3148,7 @@ namespace NetScriptFramework
         /// <value>
         /// The length of the replaced code.
         /// </value>
-        public int ReplaceLength
-        {
-            get;
-            set;
-        }
+        public int ReplaceLength { get; set; }
 
         /// <summary>
         /// Gets or sets the length of the included code in bytes. This code will be included automatically and be run after the hook action if set. Be careful not to include any location-specific code
@@ -3271,11 +3157,7 @@ namespace NetScriptFramework
         /// <value>
         /// The length of the included code.
         /// </value>
-        public int IncludeLength
-        {
-            get;
-            set;
-        }
+        public int IncludeLength { get; set; }
 
         /// <summary>
         /// Gets or sets the expected pattern at location. If the pattern does not match it will throw an exception. If empty or null then the pattern is ignored.
@@ -3283,11 +3165,7 @@ namespace NetScriptFramework
         /// <value>
         /// The pattern.
         /// </value>
-        public string Pattern
-        {
-            get;
-            set;
-        }
+        public string Pattern { get; set; }
 
         /// <summary>
         /// Gets or sets the action to run when hooked code is triggered. This action will run before included code and may read or write CPU registers.
@@ -3295,11 +3173,7 @@ namespace NetScriptFramework
         /// <value>
         /// The action.
         /// </value>
-        public Action<CPURegisters> Before
-        {
-            get;
-            set;
-        }
+        public Action<CPURegisters> Before { get; set; }
 
         /// <summary>
         /// Gets or sets the action to run when hooked code is triggered. This action will run after included code and may read or write CPU registers.
@@ -3307,11 +3181,7 @@ namespace NetScriptFramework
         /// <value>
         /// The action.
         /// </value>
-        public Action<CPURegisters> After
-        {
-            get;
-            set;
-        }
+        public Action<CPURegisters> After { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to force long jump that uses 13 bytes instead of the 5 byte one. This only has any effect in 64 bit mode.
@@ -3319,18 +3189,14 @@ namespace NetScriptFramework
         /// <value>
         ///   <c>true</c> if [force long jump]; otherwise, <c>false</c>.
         /// </value>
-        public bool ForceLongJump
-        {
-            get;
-            set;
-        } = false;
+        public bool ForceLongJump { get; set; } = false;
     }
 
     /// <summary>
-	/// Use this for code allocations. VirtualAlloc is used to allocate whole page of memory and is very wasteful for this reason.
-	/// So we use our own backend allocator to use same code page for multiple allocations to save memory.
-	/// </summary>
-	internal sealed class CodePageAllocator : IDisposable
+    /// Use this for code allocations. VirtualAlloc is used to allocate whole page of memory and is very wasteful for this reason.
+    /// So we use our own backend allocator to use same code page for multiple allocations to save memory.
+    /// </summary>
+    internal sealed class CodePageAllocator : IDisposable
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="CodePageAllocator"/> class.
@@ -3341,12 +3207,12 @@ namespace NetScriptFramework
             if (size <= 0)
                 throw new ArgumentOutOfRangeException("size", "Size must be positive!");
 
-            Size = size;
+            Size      = size;
             Available = new SortedDictionary<ulong, int>();
-            Begin = VirtualAlloc(IntPtr.Zero, new IntPtr(size), 0x3000, 0x40);
+            Begin     = VirtualAlloc(IntPtr.Zero, new IntPtr(size), 0x3000, 0x40);
             if (Begin == IntPtr.Zero)
                 throw new OutOfMemoryException("Failed to allocate memory for code page!");
-            End = Begin + size;
+            End                              = Begin + size;
             Available[Memory.Convert(Begin)] = size;
         }
 
@@ -3366,25 +3232,23 @@ namespace NetScriptFramework
             if (Available.Count == 0)
                 return null;
 
-            ulong found = 0;
-            int foundTotal = 0;
+            ulong found      = 0;
+            var   foundTotal = 0;
             foreach (var x in Available)
 
-            {
                 if (x.Value >= size)
                 {
-                    found = x.Key;
+                    found      = x.Key;
                     foundTotal = x.Value;
                     break;
                 }
-            }
 
             if (found == 0)
                 return null;
 
             Available.Remove(found);
             if (foundTotal > size)
-                Available[found + (uint)size] = foundTotal - size;
+                Available[found + (uint) size] = foundTotal - size;
 
             return new MemoryAllocation(Memory.Convert(found), size, 0, MemoryAllocation.MemoryAllocationTypes.Code, this);
         }
@@ -3396,40 +3260,35 @@ namespace NetScriptFramework
         /// <param name="size">The size of allocation.</param>
         internal void Free(IntPtr addr, int size)
         {
-            ulong addr_u = Memory.Convert(addr);
-            ulong keyFound = 0;
-            int valueFound = 0;
-            int found = 0;
+            var   addr_u     = Memory.Convert(addr);
+            ulong keyFound   = 0;
+            var   valueFound = 0;
+            var   found      = 0;
             foreach (var x in Available)
 
-            {
-                if (x.Key + (uint)x.Value == addr_u)
+                if (x.Key + (uint) x.Value == addr_u)
                 {
-                    keyFound = x.Key;
+                    keyFound   = x.Key;
                     valueFound = x.Value;
-                    found = 1;
+                    found      = 1;
                     break;
                 }
-                else if (addr_u + (uint)size == x.Key)
+                else if (addr_u + (uint) size == x.Key)
                 {
-                    keyFound = x.Key;
+                    keyFound   = x.Key;
                     valueFound = x.Value;
-                    found = 2;
+                    found      = 2;
                     break;
                 }
-            }
 
-            if (found == 0)
-                Available[addr_u] = size;
-            else if (found == 1)
-                Available[keyFound] = valueFound + size;
+            if (found      == 0) { Available[addr_u]   = size; }
+            else if (found == 1) { Available[keyFound] = valueFound + size; }
             else if (found == 2)
             {
                 Available.Remove(keyFound);
                 Available[addr_u] = valueFound + size;
             }
-            else
-                throw new NotImplementedException();
+            else { throw new NotImplementedException(); }
         }
 
         /// <summary>
@@ -3447,7 +3306,7 @@ namespace NetScriptFramework
         /// </summary>
         private readonly SortedDictionary<ulong, int> Available = null;
 
-        #region Api calls
+    #region Api calls
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern IntPtr VirtualAlloc(IntPtr lpAddress, IntPtr dwSize, uint lAllocationType, uint flProtect);
@@ -3455,9 +3314,9 @@ namespace NetScriptFramework
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool VirtualFree(IntPtr lpAddress, IntPtr dwSize, uint dwFreeType);
 
-        #endregion
+    #endregion
 
-        #region IDisposable interface
+    #region IDisposable interface
 
         /// <summary>
         /// The disposed value to avoid redundant calls.
@@ -3487,10 +3346,7 @@ namespace NetScriptFramework
         /// <summary>
         /// Finalizes an instance of the <see cref="CodePageAllocator"/> class.
         /// </summary>
-        ~CodePageAllocator()
-        {
-            Dispose(false);
-        }
+        ~CodePageAllocator() { Dispose(false); }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -3501,7 +3357,7 @@ namespace NetScriptFramework
             GC.SuppressFinalize(this);
         }
 
-        #endregion
+    #endregion
     };
 
     /// <summary>
@@ -3509,7 +3365,7 @@ namespace NetScriptFramework
     /// </summary>
     public sealed class CPURegisters
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CPURegisters"/> class.
@@ -3518,25 +3374,25 @@ namespace NetScriptFramework
         /// <param name="isFromHook">Is this from hook?</param>
         internal CPURegisters(IntPtr address, Tools._Internal.HookBase isFromHook)
         {
-            this.Address = address;
-            this.IsFromHook = isFromHook;
+            Address    = address;
+            IsFromHook = isFromHook;
 
-            var handler = this.IsFromHook;
-            if(handler != null)
+            var handler = IsFromHook;
+            if (handler != null)
             {
-                this.AX = Memory.ReadPointer(this.Address + VerifyOffset(Offsets.Hook_AX, "Reading Hook AX register"));
-                this.CX = Memory.ReadPointer(this.Address + VerifyOffset(Offsets.Hook_CX, "Reading Hook CX register"));
+                AX = Memory.ReadPointer(Address + VerifyOffset(Offsets.Hook_AX, "Reading Hook AX register"));
+                CX = Memory.ReadPointer(Address + VerifyOffset(Offsets.Hook_CX, "Reading Hook CX register"));
             }
         }
 
-        #endregion
+    #endregion
 
         /// <summary>
         /// Is from hook?
         /// </summary>
         private readonly Tools._Internal.HookBase IsFromHook;
 
-        #region CPURegisters members
+    #region CPURegisters members
 
         /// <summary>
         /// Verifies the offset.
@@ -3551,7 +3407,7 @@ namespace NetScriptFramework
                 throw new NotSupportedException(name + " is not supported!");
             return offset;
         }
-        
+
         /// <summary>
         /// Gets or sets the value in AX register.
         /// </summary>
@@ -3560,14 +3416,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr AX
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.AX, "Reading AX register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.AX, "Writing AX register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.AX, "Reading AX register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.AX, "Writing AX register"), value);
         }
 
         /// <summary>
@@ -3578,14 +3428,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr BX
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.BX, "Reading BX register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.BX, "Writing BX register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.BX, "Reading BX register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.BX, "Writing BX register"), value);
         }
 
         /// <summary>
@@ -3596,14 +3440,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr CX
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.CX, "Reading CX register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.CX, "Writing CX register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.CX, "Reading CX register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.CX, "Writing CX register"), value);
         }
 
         /// <summary>
@@ -3614,14 +3452,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr DX
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.DX, "Reading DX register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.DX, "Writing DX register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.DX, "Reading DX register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.DX, "Writing DX register"), value);
         }
 
         /// <summary>
@@ -3632,14 +3464,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr DI
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.DI, "Reading DI register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.DI, "Writing DI register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.DI, "Reading DI register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.DI, "Writing DI register"), value);
         }
 
         /// <summary>
@@ -3650,14 +3476,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr SI
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.SI, "Reading SI register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.SI, "Writing SI register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.SI, "Reading SI register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.SI, "Writing SI register"), value);
         }
 
         /// <summary>
@@ -3668,14 +3488,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr BP
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.BP, "Reading BP register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.BP, "Writing BP register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.BP, "Reading BP register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.BP, "Writing BP register"), value);
         }
 
         /// <summary>
@@ -3686,14 +3500,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr SP
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.SP, "Reading SP register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.SP, "Writing SP register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.SP, "Reading SP register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.SP, "Writing SP register"), value);
         }
 
         /// <summary>
@@ -3704,14 +3512,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr FLAGS
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.FLAGS, "Reading FLAGS register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.FLAGS, "Writing FLAGS register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.FLAGS, "Reading FLAGS register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.FLAGS, "Writing FLAGS register"), value);
         }
 
         /// <summary>
@@ -3725,15 +3527,15 @@ namespace NetScriptFramework
         {
             get
             {
-                int offset = this.IsFromHook != null ? Offsets.ReturnAfter : Offsets.IP;
+                var offset = IsFromHook != null ? Offsets.ReturnAfter : Offsets.IP;
                 offset = VerifyOffset(offset, "Reading IP register");
-                return Memory.ReadPointer(this.Address + offset);
+                return Memory.ReadPointer(Address + offset);
             }
             set
             {
-                int offset = this.IsFromHook != null ? Offsets.ReturnAfter : Offsets.IP;
+                var offset = IsFromHook != null ? Offsets.ReturnAfter : Offsets.IP;
                 offset = VerifyOffset(offset, "Writing IP register");
-                Memory.WritePointer(this.Address + offset, value);
+                Memory.WritePointer(Address + offset, value);
             }
         }
 
@@ -3747,15 +3549,15 @@ namespace NetScriptFramework
         {
             get
             {
-                if (this.IsFromHook == null)
+                if (IsFromHook == null)
                     return IntPtr.Zero;
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.Hook, "Reading hook address"));
+                return Memory.ReadPointer(Address + VerifyOffset(Offsets.Hook, "Reading hook address"));
             }
             internal set
             {
-                if (this.IsFromHook == null)
+                if (IsFromHook == null)
                     throw new InvalidOperationException();
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.Hook, "Writing hook address"), value);
+                Memory.WritePointer(Address + VerifyOffset(Offsets.Hook, "Writing hook address"), value);
             }
         }
 
@@ -3769,15 +3571,15 @@ namespace NetScriptFramework
         {
             get
             {
-                if (this.IsFromHook == null)
+                if (IsFromHook == null)
                     return IntPtr.Zero;
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.Hook_OrigReturnAfter, "Reading original hook address"));
+                return Memory.ReadPointer(Address + VerifyOffset(Offsets.Hook_OrigReturnAfter, "Reading original hook address"));
             }
             set
             {
-                if (this.IsFromHook == null)
+                if (IsFromHook == null)
                     throw new InvalidOperationException();
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.Hook_OrigReturnAfter, "Writing original hook address"), value);
+                Memory.WritePointer(Address + VerifyOffset(Offsets.Hook_OrigReturnAfter, "Writing original hook address"), value);
             }
         }
 
@@ -3786,11 +3588,11 @@ namespace NetScriptFramework
         /// </summary>
         public void Skip()
         {
-            if (this.IsFromHook == null)
+            if (IsFromHook == null)
                 throw new InvalidOperationException("This is only available when executing a hook!");
 
-            if(this.AllowSkip)
-                this.Include = this.IsFromHook.EmptyInclude;
+            if (AllowSkip)
+                Include = IsFromHook.EmptyInclude;
         }
 
         /// <summary>
@@ -3804,9 +3606,9 @@ namespace NetScriptFramework
         {
             get
             {
-                if (this.IsFromHook == null)
+                if (IsFromHook == null)
                     return -1;
-                return Memory.ReadInt32(this.Address + VerifyOffset(Offsets.Depth, "Depth checking"));
+                return Memory.ReadInt32(Address + VerifyOffset(Offsets.Depth, "Depth checking"));
             }
         }
 
@@ -3818,14 +3620,8 @@ namespace NetScriptFramework
         /// </value>
         internal IntPtr Include
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + Offsets.IP);
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + Offsets.IP, value);
-            }
+            get => Memory.ReadPointer(Address  + Offsets.IP);
+            set => Memory.WritePointer(Address + Offsets.IP, value);
         }
 
         /// <summary>
@@ -3834,12 +3630,8 @@ namespace NetScriptFramework
         /// <value>
         ///   <c>true</c> if [allow skip]; otherwise, <c>false</c>.
         /// </value>
-        internal bool AllowSkip
-        {
-            get;
-            set;
-        } = false;
-        
+        internal bool AllowSkip { get; set; } = false;
+
         /// <summary>
         /// Gets or sets the value in XMM0 register.
         /// </summary>
@@ -3848,14 +3640,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM0
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM0, "Reading XMM0 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM0, "Writing XMM0 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM0, "Reading XMM0 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM0, "Writing XMM0 register"), value);
         }
 
         /// <summary>
@@ -3866,14 +3652,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM1
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM1, "Reading XMM1 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM1, "Writing XMM1 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM1, "Reading XMM1 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM1, "Writing XMM1 register"), value);
         }
 
         /// <summary>
@@ -3884,14 +3664,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM2
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM2, "Reading XMM2 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM2, "Writing XMM2 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM2, "Reading XMM2 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM2, "Writing XMM2 register"), value);
         }
 
         /// <summary>
@@ -3902,14 +3676,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM3
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM3, "Reading XMM3 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM3, "Writing XMM3 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM3, "Reading XMM3 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM3, "Writing XMM3 register"), value);
         }
 
         /// <summary>
@@ -3920,14 +3688,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM4
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM4, "Reading XMM4 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM4, "Writing XMM4 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM4, "Reading XMM4 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM4, "Writing XMM4 register"), value);
         }
 
         /// <summary>
@@ -3938,14 +3700,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM5
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM5, "Reading XMM5 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM5, "Writing XMM5 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM5, "Reading XMM5 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM5, "Writing XMM5 register"), value);
         }
 
         /// <summary>
@@ -3956,14 +3712,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM6
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM6, "Reading XMM6 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM6, "Writing XMM6 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM6, "Reading XMM6 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM6, "Writing XMM6 register"), value);
         }
 
         /// <summary>
@@ -3974,14 +3724,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM7
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM7, "Reading XMM7 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM7, "Writing XMM7 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM7, "Reading XMM7 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM7, "Writing XMM7 register"), value);
         }
 
         /// <summary>
@@ -3993,14 +3737,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM8
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM8, "Reading XMM8 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM8, "Writing XMM8 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM8, "Reading XMM8 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM8, "Writing XMM8 register"), value);
         }
 
         /// <summary>
@@ -4012,14 +3750,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM9
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM9, "Reading XMM9 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM9, "Writing XMM9 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM9, "Reading XMM9 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM9, "Writing XMM9 register"), value);
         }
 
         /// <summary>
@@ -4031,14 +3763,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM10
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM10, "Reading XMM10 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM10, "Writing XMM10 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM10, "Reading XMM10 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM10, "Writing XMM10 register"), value);
         }
 
         /// <summary>
@@ -4050,14 +3776,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM11
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM11, "Reading XMM11 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM11, "Writing XMM11 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM11, "Reading XMM11 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM11, "Writing XMM11 register"), value);
         }
 
         /// <summary>
@@ -4069,14 +3789,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM12
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM12, "Reading XMM12 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM12, "Writing XMM12 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM12, "Reading XMM12 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM12, "Writing XMM12 register"), value);
         }
 
         /// <summary>
@@ -4088,14 +3802,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM13
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM13, "Reading XMM13 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM13, "Writing XMM13 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM13, "Reading XMM13 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM13, "Writing XMM13 register"), value);
         }
 
         /// <summary>
@@ -4107,14 +3815,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM14
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM14, "Reading XMM14 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM14, "Writing XMM14 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM14, "Reading XMM14 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM14, "Writing XMM14 register"), value);
         }
 
         /// <summary>
@@ -4126,14 +3828,8 @@ namespace NetScriptFramework
         /// </value>
         public double XMM15
         {
-            get
-            {
-                return Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM15, "Reading XMM15 register"));
-            }
-            set
-            {
-                Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM15, "Writing XMM15 register"), value);
-            }
+            get => Memory.ReadDouble128(Address  + VerifyOffset(Offsets.XMM15, "Reading XMM15 register"));
+            set => Memory.WriteDouble128(Address + VerifyOffset(Offsets.XMM15, "Writing XMM15 register"), value);
         }
 
         /// <summary>
@@ -4144,14 +3840,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM0f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM0, "Reading XMM0 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM0, "Writing XMM0 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM0, "Reading XMM0 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM0, "Writing XMM0 register"), value);
         }
 
         /// <summary>
@@ -4162,14 +3852,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM1f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM1, "Reading XMM1 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM1, "Writing XMM1 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM1, "Reading XMM1 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM1, "Writing XMM1 register"), value);
         }
 
         /// <summary>
@@ -4180,14 +3864,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM2f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM2, "Reading XMM2 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM2, "Writing XMM2 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM2, "Reading XMM2 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM2, "Writing XMM2 register"), value);
         }
 
         /// <summary>
@@ -4198,14 +3876,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM3f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM3, "Reading XMM3 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM3, "Writing XMM3 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM3, "Reading XMM3 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM3, "Writing XMM3 register"), value);
         }
 
         /// <summary>
@@ -4216,14 +3888,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM4f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM4, "Reading XMM4 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM4, "Writing XMM4 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM4, "Reading XMM4 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM4, "Writing XMM4 register"), value);
         }
 
         /// <summary>
@@ -4234,14 +3900,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM5f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM5, "Reading XMM5 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM5, "Writing XMM5 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM5, "Reading XMM5 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM5, "Writing XMM5 register"), value);
         }
 
         /// <summary>
@@ -4252,14 +3912,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM6f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM6, "Reading XMM6 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM6, "Writing XMM6 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM6, "Reading XMM6 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM6, "Writing XMM6 register"), value);
         }
 
         /// <summary>
@@ -4270,14 +3924,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM7f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM7, "Reading XMM7 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM7, "Writing XMM7 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM7, "Reading XMM7 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM7, "Writing XMM7 register"), value);
         }
 
         /// <summary>
@@ -4289,14 +3937,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM8f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM8, "Reading XMM8 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM8, "Writing XMM8 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM8, "Reading XMM8 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM8, "Writing XMM8 register"), value);
         }
 
         /// <summary>
@@ -4308,14 +3950,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM9f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM9, "Reading XMM9 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM9, "Writing XMM9 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM9, "Reading XMM9 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM9, "Writing XMM9 register"), value);
         }
 
         /// <summary>
@@ -4327,14 +3963,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM10f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM10, "Reading XMM10 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM10, "Writing XMM10 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM10, "Reading XMM10 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM10, "Writing XMM10 register"), value);
         }
 
         /// <summary>
@@ -4346,14 +3976,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM11f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM11, "Reading XMM11 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM11, "Writing XMM11 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM11, "Reading XMM11 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM11, "Writing XMM11 register"), value);
         }
 
         /// <summary>
@@ -4365,14 +3989,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM12f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM12, "Reading XMM12 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM12, "Writing XMM12 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM12, "Reading XMM12 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM12, "Writing XMM12 register"), value);
         }
 
         /// <summary>
@@ -4384,14 +4002,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM13f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM13, "Reading XMM13 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM13, "Writing XMM13 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM13, "Reading XMM13 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM13, "Writing XMM13 register"), value);
         }
 
         /// <summary>
@@ -4403,14 +4015,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM14f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM14, "Reading XMM14 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM14, "Writing XMM14 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM14, "Reading XMM14 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM14, "Writing XMM14 register"), value);
         }
 
         /// <summary>
@@ -4422,14 +4028,8 @@ namespace NetScriptFramework
         /// </value>
         public float XMM15f
         {
-            get
-            {
-                return Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM15, "Reading XMM15 register"));
-            }
-            set
-            {
-                Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM15, "Writing XMM15 register"), value);
-            }
+            get => Memory.ReadFloat128(Address  + VerifyOffset(Offsets.XMM15, "Reading XMM15 register"));
+            set => Memory.WriteFloat128(Address + VerifyOffset(Offsets.XMM15, "Writing XMM15 register"), value);
         }
 
         /// <summary>
@@ -4441,14 +4041,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr R8
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R8, "Reading R8 register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.R8, "Writing R8 register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.R8, "Reading R8 register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.R8, "Writing R8 register"), value);
         }
 
         /// <summary>
@@ -4460,14 +4054,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr R9
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R9, "Reading R9 register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.R9, "Writing R9 register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.R9, "Reading R9 register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.R9, "Writing R9 register"), value);
         }
 
         /// <summary>
@@ -4479,14 +4067,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr R10
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R10, "Reading R10 register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.R10, "Writing R10 register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.R10, "Reading R10 register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.R10, "Writing R10 register"), value);
         }
 
         /// <summary>
@@ -4498,14 +4080,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr R11
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R11, "Reading R11 register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.R11, "Writing R11 register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.R11, "Reading R11 register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.R11, "Writing R11 register"), value);
         }
 
         /// <summary>
@@ -4517,14 +4093,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr R12
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R12, "Reading R12 register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.R12, "Writing R12 register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.R12, "Reading R12 register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.R12, "Writing R12 register"), value);
         }
 
         /// <summary>
@@ -4536,14 +4106,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr R13
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R13, "Reading R13 register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.R13, "Writing R13 register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.R13, "Reading R13 register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.R13, "Writing R13 register"), value);
         }
 
         /// <summary>
@@ -4555,14 +4119,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr R14
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R14, "Reading R14 register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.R14, "Writing R14 register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.R14, "Reading R14 register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.R14, "Writing R14 register"), value);
         }
 
         /// <summary>
@@ -4574,14 +4132,8 @@ namespace NetScriptFramework
         /// </value>
         public IntPtr R15
         {
-            get
-            {
-                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R15, "Reading R15 register"));
-            }
-            set
-            {
-                Memory.WritePointer(this.Address + VerifyOffset(Offsets.R15, "Writing R15 register"), value);
-            }
+            get => Memory.ReadPointer(Address  + VerifyOffset(Offsets.R15, "Reading R15 register"));
+            set => Memory.WritePointer(Address + VerifyOffset(Offsets.R15, "Writing R15 register"), value);
         }
 
         /// <summary>
@@ -4595,17 +4147,17 @@ namespace NetScriptFramework
         {
             get
             {
-                int o = VerifyOffset(Offsets.ST0, "Reading ST0 register");
-                if (this.STCount <= 0)
+                var o = VerifyOffset(Offsets.ST0, "Reading ST0 register");
+                if (STCount <= 0)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                return Memory.ReadDouble(this.Address + o);
+                return Memory.ReadDouble(Address + o);
             }
             set
             {
-                int o = VerifyOffset(Offsets.ST0, "Writing ST0 register");
-                if (this.STCount <= 0)
+                var o = VerifyOffset(Offsets.ST0, "Writing ST0 register");
+                if (STCount <= 0)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                Memory.WriteDouble(this.Address + o, value);
+                Memory.WriteDouble(Address + o, value);
             }
         }
 
@@ -4620,17 +4172,17 @@ namespace NetScriptFramework
         {
             get
             {
-                int o = VerifyOffset(Offsets.ST1, "Reading ST1 register");
-                if (this.STCount <= 1)
+                var o = VerifyOffset(Offsets.ST1, "Reading ST1 register");
+                if (STCount <= 1)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                return Memory.ReadDouble(this.Address + o);
+                return Memory.ReadDouble(Address + o);
             }
             set
             {
-                int o = VerifyOffset(Offsets.ST1, "Writing ST1 register");
-                if (this.STCount <= 1)
+                var o = VerifyOffset(Offsets.ST1, "Writing ST1 register");
+                if (STCount <= 1)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                Memory.WriteDouble(this.Address + o, value);
+                Memory.WriteDouble(Address + o, value);
             }
         }
 
@@ -4645,17 +4197,17 @@ namespace NetScriptFramework
         {
             get
             {
-                int o = VerifyOffset(Offsets.ST2, "Reading ST2 register");
-                if (this.STCount <= 2)
+                var o = VerifyOffset(Offsets.ST2, "Reading ST2 register");
+                if (STCount <= 2)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                return Memory.ReadDouble(this.Address + o);
+                return Memory.ReadDouble(Address + o);
             }
             set
             {
-                int o = VerifyOffset(Offsets.ST2, "Writing ST2 register");
-                if (this.STCount <= 2)
+                var o = VerifyOffset(Offsets.ST2, "Writing ST2 register");
+                if (STCount <= 2)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                Memory.WriteDouble(this.Address + o, value);
+                Memory.WriteDouble(Address + o, value);
             }
         }
 
@@ -4670,17 +4222,17 @@ namespace NetScriptFramework
         {
             get
             {
-                int o = VerifyOffset(Offsets.ST3, "Reading ST3 register");
-                if (this.STCount <= 3)
+                var o = VerifyOffset(Offsets.ST3, "Reading ST3 register");
+                if (STCount <= 3)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                return Memory.ReadDouble(this.Address + o);
+                return Memory.ReadDouble(Address + o);
             }
             set
             {
-                int o = VerifyOffset(Offsets.ST3, "Writing ST3 register");
-                if (this.STCount <= 3)
+                var o = VerifyOffset(Offsets.ST3, "Writing ST3 register");
+                if (STCount <= 3)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                Memory.WriteDouble(this.Address + o, value);
+                Memory.WriteDouble(Address + o, value);
             }
         }
 
@@ -4695,17 +4247,17 @@ namespace NetScriptFramework
         {
             get
             {
-                int o = VerifyOffset(Offsets.ST4, "Reading ST4 register");
-                if (this.STCount <= 4)
+                var o = VerifyOffset(Offsets.ST4, "Reading ST4 register");
+                if (STCount <= 4)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                return Memory.ReadDouble(this.Address + o);
+                return Memory.ReadDouble(Address + o);
             }
             set
             {
-                int o = VerifyOffset(Offsets.ST4, "Writing ST4 register");
-                if (this.STCount <= 4)
+                var o = VerifyOffset(Offsets.ST4, "Writing ST4 register");
+                if (STCount <= 4)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                Memory.WriteDouble(this.Address + o, value);
+                Memory.WriteDouble(Address + o, value);
             }
         }
 
@@ -4720,17 +4272,17 @@ namespace NetScriptFramework
         {
             get
             {
-                int o = VerifyOffset(Offsets.ST5, "Reading ST5 register");
-                if (this.STCount <= 5)
+                var o = VerifyOffset(Offsets.ST5, "Reading ST5 register");
+                if (STCount <= 5)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                return Memory.ReadDouble(this.Address + o);
+                return Memory.ReadDouble(Address + o);
             }
             set
             {
-                int o = VerifyOffset(Offsets.ST5, "Writing ST5 register");
-                if (this.STCount <= 5)
+                var o = VerifyOffset(Offsets.ST5, "Writing ST5 register");
+                if (STCount <= 5)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                Memory.WriteDouble(this.Address + o, value);
+                Memory.WriteDouble(Address + o, value);
             }
         }
 
@@ -4745,17 +4297,17 @@ namespace NetScriptFramework
         {
             get
             {
-                int o = VerifyOffset(Offsets.ST6, "Reading ST6 register");
-                if (this.STCount <= 6)
+                var o = VerifyOffset(Offsets.ST6, "Reading ST6 register");
+                if (STCount <= 6)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                return Memory.ReadDouble(this.Address + o);
+                return Memory.ReadDouble(Address + o);
             }
             set
             {
-                int o = VerifyOffset(Offsets.ST6, "Writing ST6 register");
-                if (this.STCount <= 6)
+                var o = VerifyOffset(Offsets.ST6, "Writing ST6 register");
+                if (STCount <= 6)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                Memory.WriteDouble(this.Address + o, value);
+                Memory.WriteDouble(Address + o, value);
             }
         }
 
@@ -4770,17 +4322,17 @@ namespace NetScriptFramework
         {
             get
             {
-                int o = VerifyOffset(Offsets.ST7, "Reading ST7 register");
-                if (this.STCount <= 7)
+                var o = VerifyOffset(Offsets.ST7, "Reading ST7 register");
+                if (STCount <= 7)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                return Memory.ReadDouble(this.Address + o);
+                return Memory.ReadDouble(Address + o);
             }
             set
             {
-                int o = VerifyOffset(Offsets.ST7, "Writing ST7 register");
-                if (this.STCount <= 7)
+                var o = VerifyOffset(Offsets.ST7, "Writing ST7 register");
+                if (STCount <= 7)
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
-                Memory.WriteDouble(this.Address + o, value);
+                Memory.WriteDouble(Address + o, value);
             }
         }
 
@@ -4794,15 +4346,15 @@ namespace NetScriptFramework
         {
             get
             {
-                int o = VerifyOffset(Offsets.STCount, "Reading STCount");
-                var r = Memory.ReadPointer(this.Address + o).ToInt64();
-                return (int)r;
+                var o = VerifyOffset(Offsets.STCount, "Reading STCount");
+                var r = Memory.ReadPointer(Address + o).ToInt64();
+                return (int) r;
             }
         }
-        
-        #endregion
 
-        #region Internal members
+    #endregion
+
+    #region Internal members
 
         /// <summary>
         /// Writes debug info to log.
@@ -4810,70 +4362,72 @@ namespace NetScriptFramework
         internal void WriteToLog()
         {
             Main.Log.AppendLine("--------------------------------------------------------------------------------");
-            Main.Log.AppendLine("CPURegisters(0x" + Memory.Convert(this.Address).ToString("X") + "):");
-            Main.Log.AppendLine("AX: 0x" + Memory.Convert(this.AX).ToString("X"));
-            Main.Log.AppendLine("BX: 0x" + Memory.Convert(this.BX).ToString("X"));
-            Main.Log.AppendLine("CX: 0x" + Memory.Convert(this.CX).ToString("X"));
-            Main.Log.AppendLine("DX: 0x" + Memory.Convert(this.DX).ToString("X"));
-            Main.Log.AppendLine("DI: 0x" + Memory.Convert(this.DI).ToString("X"));
-            Main.Log.AppendLine("SI: 0x" + Memory.Convert(this.SI).ToString("X"));
-            Main.Log.AppendLine("BP: 0x" + Memory.Convert(this.BP).ToString("X"));
-            Main.Log.AppendLine("SP: 0x" + Memory.Convert(this.SP).ToString("X"));
-            Main.Log.AppendLine("FLAGS: 0x" + Memory.Convert(this.FLAGS).ToString("X"));
-            Main.Log.AppendLine("IP: 0x" + Memory.Convert(this.IP).ToString("X"));
-            if (this.IsFromHook != null)
+            Main.Log.AppendLine("CPURegisters(0x" + Memory.Convert(Address).ToString("X") + "):");
+            Main.Log.AppendLine("AX: 0x"          + Memory.Convert(AX).ToString("X"));
+            Main.Log.AppendLine("BX: 0x"          + Memory.Convert(BX).ToString("X"));
+            Main.Log.AppendLine("CX: 0x"          + Memory.Convert(CX).ToString("X"));
+            Main.Log.AppendLine("DX: 0x"          + Memory.Convert(DX).ToString("X"));
+            Main.Log.AppendLine("DI: 0x"          + Memory.Convert(DI).ToString("X"));
+            Main.Log.AppendLine("SI: 0x"          + Memory.Convert(SI).ToString("X"));
+            Main.Log.AppendLine("BP: 0x"          + Memory.Convert(BP).ToString("X"));
+            Main.Log.AppendLine("SP: 0x"          + Memory.Convert(SP).ToString("X"));
+            Main.Log.AppendLine("FLAGS: 0x"       + Memory.Convert(FLAGS).ToString("X"));
+            Main.Log.AppendLine("IP: 0x"          + Memory.Convert(IP).ToString("X"));
+            if (IsFromHook != null)
             {
-                Main.Log.AppendLine("Hook: 0x" + Memory.Convert(this.Hook).ToString("X"));
-                Main.Log.AppendLine("Include: 0x" + this.Include.ToString("X"));
+                Main.Log.AppendLine("Hook: 0x"    + Memory.Convert(Hook).ToString("X"));
+                Main.Log.AppendLine("Include: 0x" + Include.ToString("X"));
             }
-            Main.Log.AppendLine("XMM0: " + this.XMM0);
-            Main.Log.AppendLine("XMM1: " + this.XMM1);
-            Main.Log.AppendLine("XMM2: " + this.XMM2);
-            Main.Log.AppendLine("XMM3: " + this.XMM3);
-            Main.Log.AppendLine("XMM4: " + this.XMM4);
-            Main.Log.AppendLine("XMM5: " + this.XMM5);
-            Main.Log.AppendLine("XMM6: " + this.XMM6);
-            Main.Log.AppendLine("XMM7: " + this.XMM7);
+
+            Main.Log.AppendLine("XMM0: " + XMM0);
+            Main.Log.AppendLine("XMM1: " + XMM1);
+            Main.Log.AppendLine("XMM2: " + XMM2);
+            Main.Log.AppendLine("XMM3: " + XMM3);
+            Main.Log.AppendLine("XMM4: " + XMM4);
+            Main.Log.AppendLine("XMM5: " + XMM5);
+            Main.Log.AppendLine("XMM6: " + XMM6);
+            Main.Log.AppendLine("XMM7: " + XMM7);
             if (Main.Is64Bit)
             {
-                Main.Log.AppendLine("XMM8: " + this.XMM8);
-                Main.Log.AppendLine("XMM9: " + this.XMM9);
-                Main.Log.AppendLine("XMM10: " + this.XMM10);
-                Main.Log.AppendLine("XMM11: " + this.XMM11);
-                Main.Log.AppendLine("XMM12: " + this.XMM12);
-                Main.Log.AppendLine("XMM13: " + this.XMM13);
-                Main.Log.AppendLine("XMM14: " + this.XMM14);
-                Main.Log.AppendLine("XMM15: " + this.XMM15);
-                Main.Log.AppendLine("R8: 0x" + Memory.Convert(this.R8).ToString("X"));
-                Main.Log.AppendLine("R9: 0x" + Memory.Convert(this.R9).ToString("X"));
-                Main.Log.AppendLine("R10: 0x" + Memory.Convert(this.R10).ToString("X"));
-                Main.Log.AppendLine("R11: 0x" + Memory.Convert(this.R11).ToString("X"));
-                Main.Log.AppendLine("R12: 0x" + Memory.Convert(this.R12).ToString("X"));
-                Main.Log.AppendLine("R13: 0x" + Memory.Convert(this.R13).ToString("X"));
-                Main.Log.AppendLine("R14: 0x" + Memory.Convert(this.R14).ToString("X"));
-                Main.Log.AppendLine("R15: 0x" + Memory.Convert(this.R15).ToString("X"));
+                Main.Log.AppendLine("XMM8: "  + XMM8);
+                Main.Log.AppendLine("XMM9: "  + XMM9);
+                Main.Log.AppendLine("XMM10: " + XMM10);
+                Main.Log.AppendLine("XMM11: " + XMM11);
+                Main.Log.AppendLine("XMM12: " + XMM12);
+                Main.Log.AppendLine("XMM13: " + XMM13);
+                Main.Log.AppendLine("XMM14: " + XMM14);
+                Main.Log.AppendLine("XMM15: " + XMM15);
+                Main.Log.AppendLine("R8: 0x"  + Memory.Convert(R8).ToString("X"));
+                Main.Log.AppendLine("R9: 0x"  + Memory.Convert(R9).ToString("X"));
+                Main.Log.AppendLine("R10: 0x" + Memory.Convert(R10).ToString("X"));
+                Main.Log.AppendLine("R11: 0x" + Memory.Convert(R11).ToString("X"));
+                Main.Log.AppendLine("R12: 0x" + Memory.Convert(R12).ToString("X"));
+                Main.Log.AppendLine("R13: 0x" + Memory.Convert(R13).ToString("X"));
+                Main.Log.AppendLine("R14: 0x" + Memory.Convert(R14).ToString("X"));
+                Main.Log.AppendLine("R15: 0x" + Memory.Convert(R15).ToString("X"));
             }
             else
             {
-                int stc = this.STCount;
+                var stc = STCount;
                 Main.Log.AppendLine("STCount: " + stc);
                 if (stc > 0)
-                    Main.Log.AppendLine("ST0: " + this.ST0);
+                    Main.Log.AppendLine("ST0: " + ST0);
                 if (stc > 1)
-                    Main.Log.AppendLine("ST1: " + this.ST1);
+                    Main.Log.AppendLine("ST1: " + ST1);
                 if (stc > 2)
-                    Main.Log.AppendLine("ST2: " + this.ST2);
+                    Main.Log.AppendLine("ST2: " + ST2);
                 if (stc > 3)
-                    Main.Log.AppendLine("ST3: " + this.ST3);
+                    Main.Log.AppendLine("ST3: " + ST3);
                 if (stc > 4)
-                    Main.Log.AppendLine("ST4: " + this.ST4);
+                    Main.Log.AppendLine("ST4: " + ST4);
                 if (stc > 5)
-                    Main.Log.AppendLine("ST5: " + this.ST5);
+                    Main.Log.AppendLine("ST5: " + ST5);
                 if (stc > 6)
-                    Main.Log.AppendLine("ST6: " + this.ST6);
+                    Main.Log.AppendLine("ST6: " + ST6);
                 if (stc > 7)
-                    Main.Log.AppendLine("ST7: " + this.ST7);
+                    Main.Log.AppendLine("ST7: " + ST7);
             }
+
             Main.Log.AppendLine("--------------------------------------------------------------------------------");
         }
 
@@ -4893,13 +4447,7 @@ namespace NetScriptFramework
         /// <value>
         /// The size of.
         /// </value>
-        internal static int SizeOf
-        {
-            get
-            {
-                return Offsets.Size;
-            }
-        }
+        internal static int SizeOf => Offsets.Size;
 
         /// <summary>
         /// Container for offsets in the unmanaged memory.
@@ -4911,105 +4459,105 @@ namespace NetScriptFramework
             /// </summary>
             internal CPUOffsets()
             {
-                this.Size = GetContextOffset(0);
-                this.AX = GetContextOffset(1);
-                this.BX = GetContextOffset(2);
-                this.CX = GetContextOffset(3);
-                this.DX = GetContextOffset(4);
-                this.SI = GetContextOffset(5);
-                this.DI = GetContextOffset(6);
-                this.SP = GetContextOffset(7);
-                this.IP = GetContextOffset(8);
-                this.FLAGS = GetContextOffset(9);
-                this.R8 = GetContextOffset(10);
-                this.R9 = GetContextOffset(11);
-                this.R10 = GetContextOffset(12);
-                this.R11 = GetContextOffset(13);
-                this.R12 = GetContextOffset(14);
-                this.R13 = GetContextOffset(15);
-                this.R14 = GetContextOffset(16);
-                this.R15 = GetContextOffset(17);
-                this.XMM0 = GetContextOffset(18);
-                this.XMM1 = GetContextOffset(19);
-                this.XMM2 = GetContextOffset(20);
-                this.XMM3 = GetContextOffset(21);
-                this.XMM4 = GetContextOffset(22);
-                this.XMM5 = GetContextOffset(23);
-                this.XMM6 = GetContextOffset(24);
-                this.XMM7 = GetContextOffset(25);
-                this.XMM8 = GetContextOffset(26);
-                this.XMM9 = GetContextOffset(27);
-                this.XMM10 = GetContextOffset(28);
-                this.XMM11 = GetContextOffset(29);
-                this.XMM12 = GetContextOffset(30);
-                this.XMM13 = GetContextOffset(31);
-                this.XMM14 = GetContextOffset(32);
-                this.XMM15 = GetContextOffset(33);
-                this.Depth = GetContextOffset(34);
-                this.ReturnAfter = GetContextOffset(35);
-                this.Hook = GetContextOffset(36);
-                this.BP = GetContextOffset(37);
-                this.Hook_CX = GetContextOffset(38);
-                this.Hook_AX = GetContextOffset(39);
-                this.Hook_OrigReturnAfter = GetContextOffset(40);
+                Size                 = GetContextOffset(0);
+                AX                   = GetContextOffset(1);
+                BX                   = GetContextOffset(2);
+                CX                   = GetContextOffset(3);
+                DX                   = GetContextOffset(4);
+                SI                   = GetContextOffset(5);
+                DI                   = GetContextOffset(6);
+                SP                   = GetContextOffset(7);
+                IP                   = GetContextOffset(8);
+                FLAGS                = GetContextOffset(9);
+                R8                   = GetContextOffset(10);
+                R9                   = GetContextOffset(11);
+                R10                  = GetContextOffset(12);
+                R11                  = GetContextOffset(13);
+                R12                  = GetContextOffset(14);
+                R13                  = GetContextOffset(15);
+                R14                  = GetContextOffset(16);
+                R15                  = GetContextOffset(17);
+                XMM0                 = GetContextOffset(18);
+                XMM1                 = GetContextOffset(19);
+                XMM2                 = GetContextOffset(20);
+                XMM3                 = GetContextOffset(21);
+                XMM4                 = GetContextOffset(22);
+                XMM5                 = GetContextOffset(23);
+                XMM6                 = GetContextOffset(24);
+                XMM7                 = GetContextOffset(25);
+                XMM8                 = GetContextOffset(26);
+                XMM9                 = GetContextOffset(27);
+                XMM10                = GetContextOffset(28);
+                XMM11                = GetContextOffset(29);
+                XMM12                = GetContextOffset(30);
+                XMM13                = GetContextOffset(31);
+                XMM14                = GetContextOffset(32);
+                XMM15                = GetContextOffset(33);
+                Depth                = GetContextOffset(34);
+                ReturnAfter          = GetContextOffset(35);
+                Hook                 = GetContextOffset(36);
+                BP                   = GetContextOffset(37);
+                Hook_CX              = GetContextOffset(38);
+                Hook_AX              = GetContextOffset(39);
+                Hook_OrigReturnAfter = GetContextOffset(40);
             }
 
             [DllImport("NetScriptFramework.Runtime.dll")]
             private static extern int GetContextOffset(int index);
 
-            internal int AX = -1;
-            internal int BX = -1;
-            internal int CX = -1;
-            internal int DX = -1;
-            internal int DI = -1;
-            internal int SI = -1;
-            internal int BP = -1;
-            internal int SP = -1;
-            internal int FLAGS = -1;
-            internal int IP = -1;
-            internal int Hook = -1;
-            internal int XMM0 = -1;
-            internal int XMM1 = -1;
-            internal int XMM2 = -1;
-            internal int XMM3 = -1;
-            internal int XMM4 = -1;
-            internal int XMM5 = -1;
-            internal int XMM6 = -1;
-            internal int XMM7 = -1;
-            internal int XMM8 = -1;
-            internal int XMM9 = -1;
-            internal int XMM10 = -1;
-            internal int XMM11 = -1;
-            internal int XMM12 = -1;
-            internal int XMM13 = -1;
-            internal int XMM14 = -1;
-            internal int XMM15 = -1;
-            internal int ST0 = -1;
-            internal int ST1 = -1;
-            internal int ST2 = -1;
-            internal int ST3 = -1;
-            internal int ST4 = -1;
-            internal int ST5 = -1;
-            internal int ST6 = -1;
-            internal int ST7 = -1;
-            internal int STCount = -1;
-            internal int R8 = -1;
-            internal int R9 = -1;
-            internal int R10 = -1;
-            internal int R11 = -1;
-            internal int R12 = -1;
-            internal int R13 = -1;
-            internal int R14 = -1;
-            internal int R15 = -1;
-            internal int Size = -1;
-            internal int Depth = -1;
-            internal int ReturnAfter = -1;
-            internal int Hook_AX = -1;
-            internal int Hook_CX = -1;
+            internal int AX                   = -1;
+            internal int BX                   = -1;
+            internal int CX                   = -1;
+            internal int DX                   = -1;
+            internal int DI                   = -1;
+            internal int SI                   = -1;
+            internal int BP                   = -1;
+            internal int SP                   = -1;
+            internal int FLAGS                = -1;
+            internal int IP                   = -1;
+            internal int Hook                 = -1;
+            internal int XMM0                 = -1;
+            internal int XMM1                 = -1;
+            internal int XMM2                 = -1;
+            internal int XMM3                 = -1;
+            internal int XMM4                 = -1;
+            internal int XMM5                 = -1;
+            internal int XMM6                 = -1;
+            internal int XMM7                 = -1;
+            internal int XMM8                 = -1;
+            internal int XMM9                 = -1;
+            internal int XMM10                = -1;
+            internal int XMM11                = -1;
+            internal int XMM12                = -1;
+            internal int XMM13                = -1;
+            internal int XMM14                = -1;
+            internal int XMM15                = -1;
+            internal int ST0                  = -1;
+            internal int ST1                  = -1;
+            internal int ST2                  = -1;
+            internal int ST3                  = -1;
+            internal int ST4                  = -1;
+            internal int ST5                  = -1;
+            internal int ST6                  = -1;
+            internal int ST7                  = -1;
+            internal int STCount              = -1;
+            internal int R8                   = -1;
+            internal int R9                   = -1;
+            internal int R10                  = -1;
+            internal int R11                  = -1;
+            internal int R12                  = -1;
+            internal int R13                  = -1;
+            internal int R14                  = -1;
+            internal int R15                  = -1;
+            internal int Size                 = -1;
+            internal int Depth                = -1;
+            internal int ReturnAfter          = -1;
+            internal int Hook_AX              = -1;
+            internal int Hook_CX              = -1;
             internal int Hook_OrigReturnAfter = -1;
         }
 
-        #endregion
+    #endregion
     }
 
     /// <summary>
@@ -5022,10 +4570,7 @@ namespace NetScriptFramework
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns></returns>
-        public static string ToHexString(this IntPtr value)
-        {
-            return "0x" + value.ToInt64().ToString("X", System.Globalization.CultureInfo.InvariantCulture);
-        }
+        public static string ToHexString(this IntPtr value) { return "0x" + value.ToInt64().ToString("X", System.Globalization.CultureInfo.InvariantCulture); }
 
         /// <summary>
         /// Converts the value of this instance to a boolean.
@@ -5046,7 +4591,7 @@ namespace NetScriptFramework
         public static byte ToUInt8(this IntPtr value)
         {
             var q = ToInternal32(value);
-            return (byte)(q & 0xFF);
+            return (byte) (q & 0xFF);
         }
 
         /// <summary>
@@ -5054,10 +4599,7 @@ namespace NetScriptFramework
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns></returns>
-        public static sbyte ToInt8(this IntPtr value)
-        {
-            return unchecked((sbyte)value.ToUInt8());
-        }
+        public static sbyte ToInt8(this IntPtr value) { return unchecked((sbyte) value.ToUInt8()); }
 
         /// <summary>
         /// Converts the value of this instance to a 16-bit unicode character.
@@ -5066,7 +4608,7 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static char ToChar(this IntPtr value)
         {
-            byte[] bt = BitConverter.GetBytes(value.ToUInt16());
+            var bt = BitConverter.GetBytes(value.ToUInt16());
             return BitConverter.ToChar(bt, 0);
         }
 
@@ -5075,10 +4617,7 @@ namespace NetScriptFramework
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns></returns>
-        public static short ToInt16(this IntPtr value)
-        {
-            return unchecked((short)value.ToUInt16());
-        }
+        public static short ToInt16(this IntPtr value) { return unchecked((short) value.ToUInt16()); }
 
         /// <summary>
         /// Converts the value of this instance to a 16-bit unsigned integer.
@@ -5088,7 +4627,7 @@ namespace NetScriptFramework
         public static ushort ToUInt16(this IntPtr value)
         {
             var q = ToInternal32(value);
-            return (ushort)(q & 0xFFFF);
+            return (ushort) (q & 0xFFFF);
         }
 
         /// <summary>
@@ -5099,7 +4638,7 @@ namespace NetScriptFramework
         public static uint ToUInt32(this IntPtr value)
         {
             var q = ToInternal32(value);
-            return (uint)(q & 0xFFFFFFFF);
+            return (uint) (q & 0xFFFFFFFF);
         }
 
         /// <summary>
@@ -5107,10 +4646,7 @@ namespace NetScriptFramework
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns></returns>
-        public static int ToInt32Safe(this IntPtr value)
-        {
-            return unchecked((int)value.ToUInt32());
-        }
+        public static int ToInt32Safe(this IntPtr value) { return unchecked((int) value.ToUInt32()); }
 
         /// <summary>
         /// Converts the value of this instance to a 64-bit unsigned integer.
@@ -5122,7 +4658,7 @@ namespace NetScriptFramework
         {
             if (!Main.Is64Bit)
                 throw new InvalidCastException("Unable to cast a pointer to a 64-bit unsigned integer!");
-            return unchecked((ulong)value.ToInt64());
+            return unchecked((ulong) value.ToInt64());
         }
 
         /// <summary>
@@ -5159,7 +4695,7 @@ namespace NetScriptFramework
         {
             if (Main.Is64Bit)
                 return value.ToUInt64();
-            return unchecked((uint)value.ToInt32());
+            return unchecked((uint) value.ToInt32());
         }
 
         /// <summary>
@@ -5173,16 +4709,16 @@ namespace NetScriptFramework
             if (value == other)
                 return 0;
 
-            if(Main.Is64Bit)
+            if (Main.Is64Bit)
             {
-                ulong a = value.ToUInt64();
-                ulong b = other.ToUInt64();
+                var a = value.ToUInt64();
+                var b = other.ToUInt64();
                 return a.CompareTo(b);
             }
             else
             {
-                uint a = value.ToUInt32();
-                uint b = other.ToUInt32();
+                var a = value.ToUInt32();
+                var b = other.ToUInt32();
                 return a.CompareTo(b);
             }
         }
@@ -5197,10 +4733,7 @@ namespace NetScriptFramework
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryAccessException"/> class.
         /// </summary>
-        public MemoryAccessException() : base("Trying to access protected or unallocated memory!")
-        {
-
-        }
+        public MemoryAccessException() : base("Trying to access protected or unallocated memory!") { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryAccessException"/> class.
@@ -5208,29 +4741,23 @@ namespace NetScriptFramework
         /// <param name="address">The address.</param>
         /// <param name="length">The length.</param>
         /// <param name="protectForRead">The protect for read.</param>
-        internal MemoryAccessException(IntPtr address, int length, int protectForRead) : base("Failed to modify memory protection flags for " + (protectForRead > 0 ? "reading" : "writing") + " at address " + address.ToHexString() + " to " + (address + length).ToHexString() + "!")
-        {
-
-        }
+        internal MemoryAccessException(IntPtr address, int length, int protectForRead) : base(
+            "Failed to modify memory protection flags for " + (protectForRead > 0 ? "reading" : "writing") + " at address " + address.ToHexString() + " to " +
+            (address + length).ToHexString()                + "!") { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryAccessException"/> class.
         /// </summary>
         /// <param name="address">The address.</param>
-        public MemoryAccessException(IntPtr address) : base("Trying to access protected or unallocated memory at address " + address.ToHexString() + "!")
-        {
-
-        }
+        public MemoryAccessException(IntPtr address) : base("Trying to access protected or unallocated memory at address " + address.ToHexString() + "!") { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryAccessException"/> class.
         /// </summary>
         /// <param name="address">The address.</param>
         /// <param name="length">The length.</param>
-        public MemoryAccessException(IntPtr address, int length) : base("Trying to access protected or unallocated memory at address " + address.ToHexString() + " to " + (address + length).ToHexString() + "!")
-        {
-
-        }
+        public MemoryAccessException(IntPtr address, int length) : base("Trying to access protected or unallocated memory at address " + address.ToHexString() + " to " +
+                                                                        (address + length).ToHexString() + "!") { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryAccessException"/> class.
@@ -5238,19 +4765,16 @@ namespace NetScriptFramework
         /// <param name="address">The address.</param>
         /// <param name="length">The length.</param>
         /// <param name="write">if set to <c>true</c> [write].</param>
-        public MemoryAccessException(IntPtr address, int length, bool write) : base("Trying to " + (write ? "write to" : "read from") + " protected or unallocated memory at address " + address.ToHexString() + " to " + (address + length).ToHexString() + "!")
-        {
-
-        }
+        public MemoryAccessException(IntPtr address, int length, bool write) : base("Trying to " + (write ? "write to" : "read from") +
+                                                                                    " protected or unallocated memory at address " + address.ToHexString() + " to " +
+                                                                                    (address + length).ToHexString()               + "!") { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryAccessException"/> class.
         /// </summary>
         /// <param name="address">The address.</param>
         /// <param name="write">if set to <c>true</c> [write].</param>
-        public MemoryAccessException(IntPtr address, bool write) : base("Trying to " + (write ? "write to" : "read from") + " protected or unallocated memory at address " + address.ToHexString() + "!")
-        {
-
-        }
+        public MemoryAccessException(IntPtr address, bool write) : base("Trying to " + (write ? "write to" : "read from") + " protected or unallocated memory at address " +
+                                                                        address.ToHexString() + "!") { }
     }
 }

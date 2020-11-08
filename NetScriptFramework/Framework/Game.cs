@@ -12,7 +12,7 @@ namespace NetScriptFramework
     /// </summary>
     public abstract class Game
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Game"/> class.
@@ -23,9 +23,9 @@ namespace NetScriptFramework
                 throw new InvalidOperationException("Game header information can not be manually created! Use Main.Game property to fetch current game information.");
         }
 
-        #endregion
+    #endregion
 
-        #region Game members
+    #region Game members
 
         /// <summary>
         /// Gets the short name of current game. For example "Skyrim".
@@ -33,10 +33,7 @@ namespace NetScriptFramework
         /// <value>
         /// The short name.
         /// </value>
-        public abstract string ShortName
-        {
-            get;
-        }
+        public abstract string ShortName { get; }
 
         /// <summary>
         /// Gets the full name of current game. For example "The Elder Scrolls V: Skyrim"
@@ -44,10 +41,7 @@ namespace NetScriptFramework
         /// <value>
         /// The full name.
         /// </value>
-        public abstract string FullName
-        {
-            get;
-        }
+        public abstract string FullName { get; }
 
         /// <summary>
         /// Gets the name of the executable of current game including file extension. For example "TESV.exe".
@@ -55,10 +49,7 @@ namespace NetScriptFramework
         /// <value>
         /// The name of the executable.
         /// </value>
-        public abstract string ExecutableName
-        {
-            get;
-        }
+        public abstract string ExecutableName { get; }
 
         /// <summary>
         /// Gets the name of the target module. This is usually equal to ExecutableName but sometimes we may want to target a DLL inside the process instead in which case they would be different.
@@ -66,10 +57,7 @@ namespace NetScriptFramework
         /// <value>
         /// The name of the module.
         /// </value>
-        public abstract string ModuleName
-        {
-            get;
-        }
+        public abstract string ModuleName { get; }
 
         /// <summary>
         /// Gets the version library hash that is required to be loaded.
@@ -77,10 +65,7 @@ namespace NetScriptFramework
         /// <value>
         /// The version library hash.
         /// </value>
-        public abstract ulong VersionLibraryHash
-        {
-            get;
-        }
+        public abstract ulong VersionLibraryHash { get; }
 
         /// <summary>
         /// Gets the version of current game. It is read from the executable. This is a list of four integers always.
@@ -90,10 +75,7 @@ namespace NetScriptFramework
         /// <value>
         /// The version of game.
         /// </value>
-        public abstract IReadOnlyList<int> GameVersion
-        {
-            get;
-        }
+        public abstract IReadOnlyList<int> GameVersion { get; }
 
         /// <summary>
         /// Gets the library version. This is separate from game's version. Multiple library versions may exist for the same
@@ -102,10 +84,7 @@ namespace NetScriptFramework
         /// <value>
         /// The library version.
         /// </value>
-        public abstract int LibraryVersion
-        {
-            get;
-        }
+        public abstract int LibraryVersion { get; }
 
         /// <summary>
         /// Gets a value indicating whether currently loaded game version is a valid version supported by this library.
@@ -114,23 +93,17 @@ namespace NetScriptFramework
         /// <value>
         /// <c>true</c> if this instance is valid version; otherwise, <c>false</c>.
         /// </value>
-        public abstract bool IsValidVersion
-        {
-            get;
-        }
+        public abstract bool IsValidVersion { get; }
 
         /// <summary>
         /// Initializes the game library.
         /// </summary>
-        protected virtual void Initialize()
-        {
+        protected virtual void Initialize() { }
 
-        }
-
-        private readonly Dictionary<uint, Type> _InterfaceTypeMap = new Dictionary<uint, Type>();
-        private readonly Dictionary<uint, Type> _ImplementationTypeMap = new Dictionary<uint, Type>();
-        private readonly Dictionary<ulong, Type> _ImplementationVidMap = new Dictionary<ulong, Type>();
-        private readonly Dictionary<ulong, Type> _InterfaceVidMap = new Dictionary<ulong, Type>();
+        private readonly Dictionary<uint, Type>  _InterfaceTypeMap      = new Dictionary<uint, Type>();
+        private readonly Dictionary<uint, Type>  _ImplementationTypeMap = new Dictionary<uint, Type>();
+        private readonly Dictionary<ulong, Type> _ImplementationVidMap  = new Dictionary<ulong, Type>();
+        private readonly Dictionary<ulong, Type> _InterfaceVidMap       = new Dictionary<ulong, Type>();
 
         /// <summary>
         /// Gets the implementation by identifier.
@@ -140,7 +113,7 @@ namespace NetScriptFramework
         internal Type GetImplementationById(ulong vid)
         {
             Type t = null;
-            if (this._ImplementationVidMap.TryGetValue(vid, out t))
+            if (_ImplementationVidMap.TryGetValue(vid, out t))
                 return t;
             return null;
         }
@@ -153,7 +126,7 @@ namespace NetScriptFramework
         public Type GetInterfaceById(ulong vid)
         {
             Type t = null;
-            if (this._InterfaceVidMap.TryGetValue(vid, out t))
+            if (_InterfaceVidMap.TryGetValue(vid, out t))
                 return t;
             return null;
         }
@@ -166,12 +139,12 @@ namespace NetScriptFramework
         /// <param name="vid">The unique identifier of type.</param>
         protected void RegisterInterfaceType(uint id, Type type, ulong vid)
         {
-            if (this._InterfaceTypeMap.ContainsKey(id))
+            if (_InterfaceTypeMap.ContainsKey(id))
                 throw new ArgumentException("An interface with the identifier " + id + " was already registered!");
 
-            this._InterfaceTypeMap[id] = type;
-            if (vid != 0 && !this._InterfaceVidMap.ContainsKey(vid))
-                this._InterfaceVidMap[vid] = type;
+            _InterfaceTypeMap[id] = type;
+            if (vid != 0 && !_InterfaceVidMap.ContainsKey(vid))
+                _InterfaceVidMap[vid] = type;
         }
 
         /// <summary>
@@ -182,40 +155,40 @@ namespace NetScriptFramework
         /// <param name="vid">The unique identifier of type.</param>
         protected void RegisterImplementationType(uint id, Type type, ulong vid)
         {
-            if (this._ImplementationTypeMap.ContainsKey(id))
+            if (_ImplementationTypeMap.ContainsKey(id))
                 throw new ArgumentException("An implementation with identifier " + id + " was already registered!");
 
-            this._ImplementationTypeMap[id] = type;
-            if(vid != 0)
-                this._ImplementationVidMap[vid] = type;
+            _ImplementationTypeMap[id] = type;
+            if (vid != 0)
+                _ImplementationVidMap[vid] = type;
         }
 
         internal void _initialize()
         {
-            this.RegisterType(IntPtr.Zero, typeof(unknown), typeof(impl_unknown), null, 0);
-            this.RegisterType(IntPtr.Zero, typeof(VoidGenericArgument), typeof(impl_VoidGenericArgument), null, 0);
+            RegisterType(IntPtr.Zero, typeof(unknown), typeof(impl_unknown), null, 0);
+            RegisterType(IntPtr.Zero, typeof(VoidGenericArgument), typeof(impl_VoidGenericArgument), null, 0);
 
-            this.Initialize();
+            Initialize();
 
             var info = Main.GameInfo;
             if (info != null)
             {
                 var module = Main.GetMainTargetedModule();
-                var ptr = module.BaseAddress;
+                var ptr    = module.BaseAddress;
                 foreach (var r in info.registrationList)
                 {
                     Type interfaceType;
                     Type implementationType;
 
-                    if (!this._InterfaceTypeMap.TryGetValue(r.InterfaceId, out interfaceType) || interfaceType == null)
+                    if (!_InterfaceTypeMap.TryGetValue(r.InterfaceId, out interfaceType) || interfaceType == null)
                         throw new ArgumentOutOfRangeException("Didn't find interface type with identifier " + r.InterfaceId + " in game library!");
-                    if (!this._ImplementationTypeMap.TryGetValue(r.ImplementationId, out implementationType) || implementationType == null)
+                    if (!_ImplementationTypeMap.TryGetValue(r.ImplementationId, out implementationType) || implementationType == null)
                         throw new ArgumentOutOfRangeException("Didn't find implementation type with identifier " + r.ImplementationId + " in game library!");
 
                     IntPtr? vtable = null;
                     if (r.VTableOffset >= 0)
                         vtable = ptr + r.VTableOffset;
-                    this.RegisterType(ptr, interfaceType, implementationType, vtable, r.OffsetInType);
+                    RegisterType(ptr, interfaceType, implementationType, vtable, r.OffsetInType);
                 }
             }
         }
@@ -233,10 +206,10 @@ namespace NetScriptFramework
         public static int[] GetModuleVersion(System.Diagnostics.FileVersionInfo ver)
         {
             int[] arr;
-            if ((arr = Game.ParseVersion(ver.ProductVersion, 0, 0, 0, 0)) != null && arr.Length != 0) return arr;
-            if ((arr = Game.ParseVersion(ver.FileVersion, 0, 0, 0, 0)) != null && arr.Length != 0) return arr;
-            if ((arr = Game.ParseVersion(null, ver.ProductMajorPart, ver.ProductMinorPart, ver.ProductBuildPart, ver.ProductPrivatePart)) != null && arr.Length != 0) return arr;
-            if ((arr = Game.ParseVersion(null, ver.FileMajorPart, ver.FileMinorPart, ver.FileBuildPart, ver.FilePrivatePart)) != null && arr.Length != 0) return arr;
+            if ((arr = ParseVersion(ver.ProductVersion, 0, 0, 0, 0))                                                                 != null && arr.Length != 0) return arr;
+            if ((arr = ParseVersion(ver.FileVersion, 0, 0, 0, 0))                                                                    != null && arr.Length != 0) return arr;
+            if ((arr = ParseVersion(null, ver.ProductMajorPart, ver.ProductMinorPart, ver.ProductBuildPart, ver.ProductPrivatePart)) != null && arr.Length != 0) return arr;
+            if ((arr = ParseVersion(null, ver.FileMajorPart, ver.FileMinorPart, ver.FileBuildPart, ver.FilePrivatePart))             != null && arr.Length != 0) return arr;
             return null;
         }
 
@@ -251,27 +224,28 @@ namespace NetScriptFramework
         /// <returns></returns>
         public static int[] ParseVersion(string str, int a, int b, int c, int d)
         {
-            if(!string.IsNullOrEmpty(str))
+            if (!string.IsNullOrEmpty(str))
             {
-                string[] spl = str.Split(new[] { "." }, StringSplitOptions.None);
+                var spl = str.Split(new[] {"."}, StringSplitOptions.None);
                 if (spl.Length > 4 || spl.Length == 0)
                     return null;
 
-                int[] result = new int[4];
-                for(int i = 0; i < result.Length; i++)
+                var result = new int[4];
+                for (var i = 0; i < result.Length; i++)
                 {
-                    int t = 0;
+                    var t = 0;
                     if (!int.TryParse(spl[i], out t) || t < 0 || t >= 65536)
                         return null;
                     result[i] = t;
                 }
+
                 if (IsBadVersion(result))
                     return null;
                 return result;
             }
 
             {
-                int[] result = new int[] { a, b, c, d };
+                var result = new int[] {a, b, c, d};
                 if (IsBadVersion(result))
                     return null;
                 return result;
@@ -288,17 +262,15 @@ namespace NetScriptFramework
             if (r.All(q => q == 0))
                 return true;
 
-            if(r[0] == 1)
+            if (r[0] == 1)
             {
-                bool yes = true;
-                for(int i = 1; i < r.Length; i++)
-                {
-                    if(r[i] != 0)
+                var yes = true;
+                for (var i = 1; i < r.Length; i++)
+                    if (r[i] != 0)
                     {
                         yes = false;
                         break;
                     }
-                }
 
                 if (yes)
                     return true;
@@ -306,7 +278,7 @@ namespace NetScriptFramework
 
             return false;
         }
-        
+
         /// <summary>
         /// Registers the type to library. This must be done for all types.
         /// </summary>
@@ -338,7 +310,8 @@ namespace NetScriptFramework
             if (implementationType.IsAbstract)
                 throw new ArgumentException("Implementation type must not be abstract!", "implementationType");
             if (!interfaceType.IsAssignableFrom(implementationType))
-                throw new ArgumentException("Interface type must be assignable from implementation! The implementation is `" + implementationType.Name + "` and interface is `" + interfaceType.Name + "`.");
+                throw new ArgumentException("Interface type must be assignable from implementation! The implementation is `" + implementationType.Name + "` and interface is `" +
+                                            interfaceType.Name                                                               + "`.");
             if (offsetInFullType < 0)
                 throw new ArgumentOutOfRangeException("offsetInFullType");
 
@@ -349,54 +322,56 @@ namespace NetScriptFramework
 
             ConstructorInfo ci = null;
             {
-                var cis = implementationType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(q => !q.IsStatic && q.GetParameters().Length == 0).ToList();
+                var cis = implementationType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                                            .Where(q => !q.IsStatic && q.GetParameters().Length == 0).ToList();
                 if (cis.Count != 1)
                     throw new ArgumentException("A valid parameterless constructor was not found on type \"" + implementationType.Name + "\"!");
                 ci = cis[0];
             }
 
-            t = new TypeDescriptor();
-            t.InterfaceType = interfaceType;
+            t                    = new TypeDescriptor();
+            t.InterfaceType      = interfaceType;
             t.ImplementationType = implementationType;
-            t.VTable = vtable;
-            t.OffsetInFullType = offsetInFullType;
-            t.Module = module;
-            
-            var builder = new System.Reflection.Emit.DynamicMethod("Creator", typeof(MemoryObject), new Type[0], true);
+            t.VTable             = vtable;
+            t.OffsetInFullType   = offsetInFullType;
+            t.Module             = module;
+
+            var builder   = new System.Reflection.Emit.DynamicMethod("Creator", typeof(MemoryObject), new Type[0], true);
             var generator = builder.GetILGenerator();
             generator.Emit(System.Reflection.Emit.OpCodes.Newobj, ci);
             generator.Emit(System.Reflection.Emit.OpCodes.Ret);
-            t.Creator = (TypeDescriptor.CreatorDelegate)builder.CreateDelegate(typeof(TypeDescriptor.CreatorDelegate));
+            t.Creator = (TypeDescriptor.CreatorDelegate) builder.CreateDelegate(typeof(TypeDescriptor.CreatorDelegate));
 
             List<TypeDescriptor> ls = null;
-            if (!this.Types.TypesByImplementation.TryGetValue(t.ImplementationType, out ls))
+            if (!Types.TypesByImplementation.TryGetValue(t.ImplementationType, out ls))
             {
-                ls = new List<TypeDescriptor>(2);
-                this.Types.TypesByImplementation[t.ImplementationType] = ls;
+                ls                                                = new List<TypeDescriptor>(2);
+                Types.TypesByImplementation[t.ImplementationType] = ls;
             }
+
             ls.Add(t);
-            
-            this.Types.All.Add(t);
+
+            Types.All.Add(t);
 
             if (vtable.HasValue)
             {
-                if (this.Types.TypesByVTable.ContainsKey(vtable.Value))
+                if (Types.TypesByVTable.ContainsKey(vtable.Value))
                     throw new ArgumentException("Multiple type registrations with same vtable address! (" + t.InterfaceType.Name + ")");
-                this.Types.TypesByVTable[vtable.Value] = t;
-                this.Types.TypesWithVTable.Add(t.InterfaceType);
+                Types.TypesByVTable[vtable.Value] = t;
+                Types.TypesWithVTable.Add(t.InterfaceType);
             }
             else
             {
-                if (this.Types.TypesByNoVTable.ContainsKey(t.InterfaceType))
+                if (Types.TypesByNoVTable.ContainsKey(t.InterfaceType))
                     throw new ArgumentException("Multiple type registrations with same interface type and without vtable address! (" + t.InterfaceType.Name + ")");
-                this.Types.TypesByNoVTable[t.InterfaceType] = t;
+                Types.TypesByNoVTable[t.InterfaceType] = t;
             }
         }
-        
-        #endregion
+
+    #endregion
     }
 
-    #region TypeCache class
+#region TypeCache class
 
     /// <summary>
     /// The registered type cache for library.
@@ -422,16 +397,16 @@ namespace NetScriptFramework
         /// The types by implementation.
         /// </summary>
         internal readonly Dictionary<Type, List<TypeDescriptor>> TypesByImplementation = new Dictionary<Type, List<TypeDescriptor>>();
-        
+
         /// <summary>
         /// All types.
         /// </summary>
         internal readonly List<TypeDescriptor> All = new List<TypeDescriptor>();
     }
 
-    #endregion
+#endregion
 
-    #region TypeDescriptor class
+#region TypeDescriptor class
 
     /// <summary>
     /// Implement registered type info.
@@ -447,7 +422,7 @@ namespace NetScriptFramework
         /// The implementation (internal) type.
         /// </summary>
         internal Type ImplementationType;
-        
+
         /// <summary>
         /// The virtual function table address.
         /// </summary>
@@ -475,9 +450,9 @@ namespace NetScriptFramework
         internal delegate MemoryObject CreatorDelegate();
     }
 
-    #endregion
+#endregion
 
-    #region Value generic argument handlers
+#region Value generic argument handlers
 
     /// <summary>
     /// Base interface for a generic argument that is a constant value.
@@ -490,10 +465,7 @@ namespace NetScriptFramework
         /// <value>
         /// The base value.
         /// </value>
-        object BaseValue
-        {
-            get;
-        }
+        object BaseValue { get; }
     }
 
     /// <summary>
@@ -508,10 +480,7 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        bool Value
-        {
-            get;
-        }
+        bool Value { get; }
     }
 
     /// <summary>
@@ -526,10 +495,7 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        char Value
-        {
-            get;
-        }
+        char Value { get; }
     }
 
     /// <summary>
@@ -544,10 +510,7 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        sbyte Value
-        {
-            get;
-        }
+        sbyte Value { get; }
     }
 
     /// <summary>
@@ -562,10 +525,7 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        byte Value
-        {
-            get;
-        }
+        byte Value { get; }
     }
 
     /// <summary>
@@ -580,10 +540,7 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        short Value
-        {
-            get;
-        }
+        short Value { get; }
     }
 
     /// <summary>
@@ -598,10 +555,7 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        ushort Value
-        {
-            get;
-        }
+        ushort Value { get; }
     }
 
     /// <summary>
@@ -616,10 +570,7 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        int Value
-        {
-            get;
-        }
+        int Value { get; }
     }
 
     /// <summary>
@@ -634,10 +585,7 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        uint Value
-        {
-            get;
-        }
+        uint Value { get; }
     }
 
     /// <summary>
@@ -652,10 +600,7 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        long Value
-        {
-            get;
-        }
+        long Value { get; }
     }
 
     /// <summary>
@@ -670,10 +615,7 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        ulong Value
-        {
-            get;
-        }
+        ulong Value { get; }
     }
 
     /// <summary>
@@ -688,10 +630,7 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        float Value
-        {
-            get;
-        }
+        float Value { get; }
     }
 
     /// <summary>
@@ -706,10 +645,7 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        double Value
-        {
-            get;
-        }
+        double Value { get; }
     }
 
     /// <summary>
@@ -724,24 +660,18 @@ namespace NetScriptFramework
         /// <value>
         /// The value.
         /// </value>
-        IntPtr Value
-        {
-            get;
-        }
+        IntPtr Value { get; }
     }
 
     /// <summary>
     /// Interface for an unknown value generic argument.
     /// </summary>
     /// <seealso cref="NetScriptFramework.IValueGenericArgument" />
-    public interface IUnknownValueGenericArgument : IValueGenericArgument
-    {
+    public interface IUnknownValueGenericArgument : IValueGenericArgument { }
 
-    }
+#endregion
 
-    #endregion
-
-    #region Caching
+#region Caching
 
     /// <summary>
     /// This is a helper class for caching an address value.
@@ -752,10 +682,7 @@ namespace NetScriptFramework
         /// Initializes a new instance of the <see cref="CachedVid"/> struct.
         /// </summary>
         /// <param name="_arg">The argument.</param>
-        private CachedVid(IntPtr? _arg)
-        {
-            this._result = _arg;
-        }
+        private CachedVid(IntPtr? _arg) { _result = _arg; }
 
         /// <summary>
         /// The cached result.
@@ -773,10 +700,11 @@ namespace NetScriptFramework
         {
             get
             {
-                if (!this._result.HasValue)
-                    throw new NotSupportedException("Trying to use an address that failed to initialize! This could mean the code being executed is not supported in current version of application.");
+                if (!_result.HasValue)
+                    throw new NotSupportedException(
+                        "Trying to use an address that failed to initialize! This could mean the code being executed is not supported in current version of application.");
 
-                return this._result.Value;
+                return _result.Value;
             }
         }
 
@@ -784,10 +712,7 @@ namespace NetScriptFramework
         /// Tries to get the value. This will not throw an exception.
         /// </summary>
         /// <returns></returns>
-        public IntPtr? TryGetValue()
-        {
-            return this._result;
-        }
+        public IntPtr? TryGetValue() { return _result; }
 
         /// <summary>
         /// Initializes the specified address. This will throw an exception if failed to find.
@@ -830,10 +755,7 @@ namespace NetScriptFramework
         /// Initializes a new instance of the <see cref="CachedFid"/> struct.
         /// </summary>
         /// <param name="_arg">The argument.</param>
-        private CachedFid(int? _arg)
-        {
-            this._result = _arg;
-        }
+        private CachedFid(int? _arg) { _result = _arg; }
 
         /// <summary>
         /// The cached result.
@@ -851,10 +773,11 @@ namespace NetScriptFramework
         {
             get
             {
-                if (!this._result.HasValue)
-                    throw new NotSupportedException("Trying to use a field offset that failed to initialize! This could mean the code being executed is not supported in current version of application.");
+                if (!_result.HasValue)
+                    throw new NotSupportedException(
+                        "Trying to use a field offset that failed to initialize! This could mean the code being executed is not supported in current version of application.");
 
-                return this._result.Value;
+                return _result.Value;
             }
         }
 
@@ -862,10 +785,7 @@ namespace NetScriptFramework
         /// Tries to get the value. This will not throw an exception.
         /// </summary>
         /// <returns></returns>
-        public int? TryGetValue()
-        {
-            return this._result;
-        }
+        public int? TryGetValue() { return _result; }
 
         /// <summary>
         /// Initializes the specified field offset. This will throw an exception if failed to find.
@@ -879,15 +799,15 @@ namespace NetScriptFramework
             if (t == null)
                 throw new ArgumentException("Unable to initialize field offset due to type with unique ID of " + typeId + " was not found!");
 
-            var ls = t.Fields;
+            var                    ls  = t.Fields;
             GameInfo.GameFieldInfo fld = null;
-            if(ls != null)
+            if (ls != null)
             {
                 // Save some time, usually field id is also index.
-                if(fieldId > 0 && fieldId <= int.MaxValue)
+                if (fieldId > 0 && fieldId <= int.MaxValue)
                 {
-                    int index = (int)fieldId - 1;
-                    if(index < ls.Count)
+                    var index = (int) fieldId - 1;
+                    if (index < ls.Count)
                     {
                         var x = ls[index];
                         if (x.FieldId == fieldId)
@@ -895,24 +815,21 @@ namespace NetScriptFramework
                     }
                 }
 
-                if(fld == null)
-                {
-                    foreach(var x in ls)
-                    {
-                        if(x.FieldId == fieldId)
+                if (fld == null)
+                    foreach (var x in ls)
+                        if (x.FieldId == fieldId)
                         {
                             fld = x;
                             break;
                         }
-                    }
-                }
             }
 
             if (fld == null)
                 throw new ArgumentException("Unable to initialize field offset due to field with ID " + fieldId + " was not found in type " + (t.Name ?? "") + " (" + t.Id + ")!");
 
             if (!fld.Begin.HasValue)
-                throw new ArgumentException("Unable to initialize field offset due to field with ID " + fieldId + " in type " + (t.Name ?? "") + " (" + t.Id + ") did not have a known offset!");
+                throw new ArgumentException("Unable to initialize field offset due to field with ID " + fieldId + " in type " + (t.Name ?? "") + " (" + t.Id +
+                                            ") did not have a known offset!");
 
             return new CachedFid(fld.Begin.Value);
         }
@@ -936,7 +853,7 @@ namespace NetScriptFramework
                     // Save some time, usually field id is also index.
                     if (fieldId > 0 && fieldId <= int.MaxValue)
                     {
-                        int index = (int)fieldId - 1;
+                        var index = (int) fieldId - 1;
                         if (index < ls.Count)
                         {
                             var x = ls[index];
@@ -946,16 +863,12 @@ namespace NetScriptFramework
                     }
 
                     if (fld == null)
-                    {
                         foreach (var x in ls)
-                        {
                             if (x.FieldId == fieldId)
                             {
                                 fld = x;
                                 break;
                             }
-                        }
-                    }
 
                     if (fld != null && fld.Begin.HasValue)
                         return new CachedFid(fld.Begin.Value);
@@ -975,16 +888,13 @@ namespace NetScriptFramework
         /// Initializes a new instance of the <see cref="CachedLibValue"/> struct.
         /// </summary>
         /// <param name="value">The value.</param>
-        public CachedLibValue(int? value)
-        {
-            this._value = value;
-        }
+        public CachedLibValue(int? value) { _value = value; }
 
         /// <summary>
         /// The value.
         /// </summary>
         private readonly int? _value;
-        
+
         /// <summary>
         /// Gets the value. This may throw an exception if the value is not valid.
         /// </summary>
@@ -996,10 +906,11 @@ namespace NetScriptFramework
         {
             get
             {
-                if (!this._value.HasValue)
-                    throw new NotSupportedException("Version specific value was not found in version library! This could mean the function or field being accessed is not supported in current version of executable!");
+                if (!_value.HasValue)
+                    throw new NotSupportedException(
+                        "Version specific value was not found in version library! This could mean the function or field being accessed is not supported in current version of executable!");
 
-                return this._value.Value;
+                return _value.Value;
             }
         }
 
@@ -1009,14 +920,8 @@ namespace NetScriptFramework
         /// <value>
         /// The value safe.
         /// </value>
-        public int? ValueSafe
-        {
-            get
-            {
-                return this._value;
-            }
-        }
+        public int? ValueSafe => _value;
     }
 
-    #endregion
+#endregion
 }

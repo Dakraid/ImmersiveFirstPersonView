@@ -24,14 +24,15 @@ namespace NetScriptFramework
             var modules = System.Diagnostics.Process.GetCurrentProcess().Modules;
             foreach (System.Diagnostics.ProcessModule m in modules)
             {
-                string n = m.ModuleName;
-                if(!string.IsNullOrEmpty(n))
-                    this.Modules.Add(new KeyValuePair<string, IntPtr>(n, m.BaseAddress));
+                var n = m.ModuleName;
+                if (!string.IsNullOrEmpty(n))
+                    Modules.Add(new KeyValuePair<string, IntPtr>(n, m.BaseAddress));
             }
-            this.Modules.Sort((u, v) => v.Key.Length.CompareTo(u.Key.Length));
 
-            this.Formula = formula;
-            this.Build();
+            Modules.Sort((u, v) => v.Key.Length.CompareTo(u.Key.Length));
+
+            Formula = formula;
+            Build();
         }
 
         /// <summary>
@@ -54,21 +55,21 @@ namespace NetScriptFramework
         /// </summary>
         private void Build()
         {
-            StatementBlock b = this.Root;
-            string input = this.Formula;
+            var b     = Root;
+            var input = Formula;
 
             input = input.Replace(" ", "").ToLowerInvariant();
 
-            while (this.Parse(ref b, ref input))
+            while (Parse(ref b, ref input))
                 continue;
 
             if (!string.IsNullOrEmpty(input))
                 throw new InvalidOperationException();
 
-            if (b != this.Root)
+            if (b != Root)
                 throw new FormatException("Expected ']' or ')'!");
 
-            this.Root.Finish();
+            Root.Finish();
         }
 
         /// <summary>
@@ -79,8 +80,8 @@ namespace NetScriptFramework
         /// <exception cref="System.ArgumentException">this.Formula</exception>
         public IntPtr? Evaluate(CPURegisters cpu)
         {
-            List<IntPtr> stack = new List<IntPtr>(4);
-            if (!this.Root.Process(cpu, null, stack))
+            var stack = new List<IntPtr>(4);
+            if (!Root.Process(cpu, null, stack))
                 return null;
             if (stack.Count != 1)
                 throw new ArgumentException("this.Formula");
@@ -107,10 +108,7 @@ namespace NetScriptFramework
             /// <value>
             /// The consumes.
             /// </value>
-            internal abstract int Consumes
-            {
-                get;
-            }
+            internal abstract int Consumes { get; }
 
             /// <summary>
             /// Gets the amount of stack produced.
@@ -118,10 +116,7 @@ namespace NetScriptFramework
             /// <value>
             /// The produces.
             /// </value>
-            internal abstract int Produces
-            {
-                get;
-            }
+            internal abstract int Produces { get; }
         }
 
         /// <summary>
@@ -143,10 +138,7 @@ namespace NetScriptFramework
             /// <summary>
             /// Prevents a default instance of the <see cref="StatementRegister"/> class from being created.
             /// </summary>
-            private StatementRegister()
-            {
-
-            }
+            private StatementRegister() { }
 
             /// <summary>
             /// Gets the amount of stack consumed.
@@ -154,13 +146,7 @@ namespace NetScriptFramework
             /// <value>
             /// The consumes.
             /// </value>
-            internal override int Consumes
-            {
-                get
-                {
-                    return 0;
-                }
-            }
+            internal override int Consumes => 0;
 
             /// <summary>
             /// Gets the amount of stack produced.
@@ -168,13 +154,7 @@ namespace NetScriptFramework
             /// <value>
             /// The produces.
             /// </value>
-            internal override int Produces
-            {
-                get
-                {
-                    return 1;
-                }
-            }
+            internal override int Produces => 1;
 
             /// <summary>
             /// The function to access.
@@ -189,7 +169,7 @@ namespace NetScriptFramework
             /// <returns></returns>
             internal static StatementRegister Create(string input, ref int length)
             {
-                for (int i = 0; i < Registers.Length; i++)
+                for (var i = 0; i < Registers.Length; i++)
                 {
                     var t = Registers[i];
                     if (input.StartsWith(t.Item1))
@@ -201,6 +181,7 @@ namespace NetScriptFramework
                         };
                     }
                 }
+
                 return null;
             }
 
@@ -213,7 +194,7 @@ namespace NetScriptFramework
             /// <returns></returns>
             internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack)
             {
-                var ptr = this.Func(cpu);
+                var ptr = Func(cpu);
                 stack.Add(ptr);
                 return true;
             }
@@ -225,47 +206,47 @@ namespace NetScriptFramework
             {
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rax", q => q.AX),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("eax", q => Op(q.AX, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("ax", q => Op(q.AX, u => u & 0xFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("al", q => Op(q.AX, u => u & 0xFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("ax", q => Op(q.AX, u => u  & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("al", q => Op(q.AX, u => u  & 0xFF)),
 
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rbx", q => q.BX),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("ebx", q => Op(q.BX, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("bx", q => Op(q.BX, u => u & 0xFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("bl", q => Op(q.BX, u => u & 0xFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("bx", q => Op(q.BX, u => u  & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("bl", q => Op(q.BX, u => u  & 0xFF)),
 
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rcx", q => q.CX),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("ecx", q => Op(q.CX, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("cx", q => Op(q.CX, u => u & 0xFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("cl", q => Op(q.CX, u => u & 0xFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("cx", q => Op(q.CX, u => u  & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("cl", q => Op(q.CX, u => u  & 0xFF)),
 
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rdx", q => q.DX),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("edx", q => Op(q.DX, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("dx", q => Op(q.DX, u => u & 0xFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("dl", q => Op(q.DX, u => u & 0xFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("dx", q => Op(q.DX, u => u  & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("dl", q => Op(q.DX, u => u  & 0xFF)),
 
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rbp", q => q.BP),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("ebp", q => Op(q.BP, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("bp", q => Op(q.BP, u => u & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("bp", q => Op(q.BP, u => u  & 0xFFFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("bpl", q => Op(q.BP, u => u & 0xFF)),
 
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rsp", q => q.SP),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("esp", q => Op(q.SP, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("sp", q => Op(q.SP, u => u & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("sp", q => Op(q.SP, u => u  & 0xFFFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("spl", q => Op(q.SP, u => u & 0xFF)),
 
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rsi", q => q.SI),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("esi", q => Op(q.SI, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("si", q => Op(q.SI, u => u & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("si", q => Op(q.SI, u => u  & 0xFFFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("sil", q => Op(q.SI, u => u & 0xFF)),
 
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rdi", q => q.DI),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("edi", q => Op(q.DI, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("di", q => Op(q.DI, u => u & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("di", q => Op(q.DI, u => u  & 0xFFFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("dil", q => Op(q.DI, u => u & 0xFF)),
 
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rip", q => q.IP),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("eip", q => Op(q.IP, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("ip", q => Op(q.IP, u => u & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("ip", q => Op(q.IP, u => u  & 0xFFFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("ipl", q => Op(q.IP, u => u & 0xFF)),
 
                 new Tuple<string, Func<CPURegisters, IntPtr>>("r8", q => q.R8),
@@ -306,7 +287,7 @@ namespace NetScriptFramework
                 new Tuple<string, Func<CPURegisters, IntPtr>>("r15", q => q.R15),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("r15d", q => Op(q.R15, u => u & 0xFFFFFFFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("r15w", q => Op(q.R15, u => u & 0xFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("r15b", q => Op(q.R15, u => u & 0xFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("r15b", q => Op(q.R15, u => u & 0xFF))
             };
         }
 
@@ -337,13 +318,7 @@ namespace NetScriptFramework
             /// <value>
             /// The consumes.
             /// </value>
-            internal override int Consumes
-            {
-                get
-                {
-                    return 0;
-                }
-            }
+            internal override int Consumes => 0;
 
             /// <summary>
             /// Gets the amount of stack produced.
@@ -351,39 +326,33 @@ namespace NetScriptFramework
             /// <value>
             /// The produces.
             /// </value>
-            internal override int Produces
-            {
-                get
-                {
-                    return 1;
-                }
-            }
+            internal override int Produces => 1;
 
             /// <summary>
             /// Finishes this instance.
             /// </summary>
             internal void Finish()
             {
-                this.ImplementOperators();
+                ImplementOperators();
 
-                int stackAmount = this.Consumes;
-                for(int i = 0; i < this.Statements.Count; i++)
+                var stackAmount = Consumes;
+                for (var i = 0; i < Statements.Count; i++)
                 {
-                    var s = this.Statements[i];
+                    var s = Statements[i];
                     if (s.Consumes > stackAmount)
                         throw new FormatException("Trying to consume value that is not present!");
                     stackAmount -= s.Consumes;
                     stackAmount += s.Produces;
                 }
 
-                if (stackAmount != this.Produces)
+                if (stackAmount != Produces)
                     throw new FormatException("Producing too many values to parse!");
 
-                if (this.Statements.Count != 1)
+                if (Statements.Count != 1)
                     throw new InvalidOperationException();
 
-                this.One = this.Statements[0];
-                this.Statements = null;
+                One        = Statements[0];
+                Statements = null;
             }
 
             /// <summary>
@@ -391,37 +360,37 @@ namespace NetScriptFramework
             /// </summary>
             private void ImplementOperators()
             {
-                while(true)
+                while (true)
                 {
-                    int bestPriority = int.MinValue;
-                    int bestIndex = -1;
-                    StatementOperator best = null;
+                    var               bestPriority = int.MinValue;
+                    var               bestIndex    = -1;
+                    StatementOperator best         = null;
 
-                    for(int i = 0; i < this.Statements.Count; i++)
+                    for (var i = 0; i < Statements.Count; i++)
                     {
-                        var s = this.Statements[i];
+                        var s = Statements[i];
                         if (!(s is StatementOperator))
                             continue;
 
-                        var ops = (StatementOperator)s;
-                        int p = ops.Priority;
-                        if(p > bestPriority)
+                        var ops = (StatementOperator) s;
+                        var p   = ops.Priority;
+                        if (p > bestPriority)
                         {
                             bestPriority = p;
-                            bestIndex = i;
-                            best = ops;
+                            bestIndex    = i;
+                            best         = ops;
                         }
                     }
 
                     if (best == null)
                         break;
 
-                    if (bestIndex == 0 || bestIndex == this.Statements.Count - 1)
+                    if (bestIndex == 0 || bestIndex == Statements.Count - 1)
                         throw new FormatException("Found operator without an operand!");
 
-                    Statement operand1 = this.Statements[bestIndex - 1];
-                    Statement operand2 = this.Statements[bestIndex + 1];
-                    this.Statements.RemoveRange(bestIndex - 1, 3);
+                    var operand1 = Statements[bestIndex - 1];
+                    var operand2 = Statements[bestIndex + 1];
+                    Statements.RemoveRange(bestIndex - 1, 3);
 
                     var impl = new StatementOperatorImpl()
                     {
@@ -429,7 +398,7 @@ namespace NetScriptFramework
                         Operand2 = operand2,
                         Operator = best
                     };
-                    this.Statements.Insert(bestIndex - 1, impl);
+                    Statements.Insert(bestIndex - 1, impl);
                 }
             }
 
@@ -440,20 +409,14 @@ namespace NetScriptFramework
             /// <param name="parent">The parent.</param>
             /// <param name="stack">The stack.</param>
             /// <returns></returns>
-            internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack)
-            {
-                return this.One.Process(cpu, this, stack);
-            }
+            internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack) { return One.Process(cpu, this, stack); }
         }
 
         /// <summary>
         /// Statement group (parenthesis).
         /// </summary>
         /// <seealso cref="NetScriptFramework.MemoryParser.StatementBlock" />
-        private sealed class StatementGroup : StatementBlock
-        {
-
-        }
+        private sealed class StatementGroup : StatementBlock { }
 
         /// <summary>
         /// Tries to read the value at statement.
@@ -486,7 +449,7 @@ namespace NetScriptFramework
         /// <seealso cref="NetScriptFramework.MemoryParser.Statement" />
         private sealed class StatementOperator : Statement
         {
-            internal int Priority = 0;
+            internal int                         Priority = 0;
             internal Func<IntPtr, ulong, IntPtr> Func;
 
             /// <summary>
@@ -496,13 +459,7 @@ namespace NetScriptFramework
             /// The consumes.
             /// </value>
             /// <exception cref="System.NotImplementedException"></exception>
-            internal override int Consumes
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
+            internal override int Consumes => throw new NotImplementedException();
 
             /// <summary>
             /// Gets the amount of stack produced.
@@ -511,13 +468,7 @@ namespace NetScriptFramework
             /// The produces.
             /// </value>
             /// <exception cref="System.NotImplementedException"></exception>
-            internal override int Produces
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
+            internal override int Produces => throw new NotImplementedException();
 
             /// <summary>
             /// Processes the statement with specified cpu context. Returns false if we couldn't read due to invalid memory address.
@@ -527,10 +478,7 @@ namespace NetScriptFramework
             /// <param name="stack">The stack.</param>
             /// <returns></returns>
             /// <exception cref="System.InvalidOperationException"></exception>
-            internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack)
-            {
-                throw new InvalidOperationException();
-            }
+            internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack) { throw new InvalidOperationException(); }
 
             /// <summary>
             /// Creates the operator from specified input. Returns null if couldn't parse.
@@ -540,7 +488,7 @@ namespace NetScriptFramework
             /// <returns></returns>
             internal static StatementOperator Create(string input, ref int length)
             {
-                for(int i = 0; i < Operators.Length; i++)
+                for (var i = 0; i < Operators.Length; i++)
                 {
                     var t = Operators[i];
                     if (!input.StartsWith(t.Item1))
@@ -549,9 +497,10 @@ namespace NetScriptFramework
                     return new StatementOperator()
                     {
                         Priority = t.Item2,
-                        Func = t.Item3
+                        Func     = t.Item3
                     };
                 }
+
                 return null;
             }
 
@@ -560,12 +509,12 @@ namespace NetScriptFramework
             /// </summary>
             private static readonly Tuple<string, int, Func<IntPtr, ulong, IntPtr>>[] Operators = new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>[]
             {
-                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("+", 1, (op1, op2) => Op(op1, u => u + op2)),
-                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("-", 1, (op1, op2) => Op(op1, u => u - op2)),
-                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("*", 5, (op1, op2) => Op(op1, u => u * op2)),
-                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("/", 5, (op1, op2) => Op(op1, u => u / op2)),
-                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>(">>", 10, (op1, op2) => Op(op1, u => u >> (int)op2)),
-                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("<<", 10, (op1, op2) => Op(op1, u => u << (int)op2)),
+                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("+", 1, (op1,   op2) => Op(op1, u => u + op2)),
+                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("-", 1, (op1,   op2) => Op(op1, u => u - op2)),
+                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("*", 5, (op1,   op2) => Op(op1, u => u * op2)),
+                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("/", 5, (op1,   op2) => Op(op1, u => u / op2)),
+                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>(">>", 10, (op1, op2) => Op(op1, u => u >> (int) op2)),
+                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("<<", 10, (op1, op2) => Op(op1, u => u << (int) op2))
             };
         }
 
@@ -575,8 +524,8 @@ namespace NetScriptFramework
         /// <seealso cref="NetScriptFramework.MemoryParser.Statement" />
         private sealed class StatementOperatorImpl : Statement
         {
-            internal Statement Operand1;
-            internal Statement Operand2;
+            internal Statement         Operand1;
+            internal Statement         Operand2;
             internal StatementOperator Operator;
 
             /// <summary>
@@ -588,19 +537,19 @@ namespace NetScriptFramework
             /// <returns></returns>
             internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack)
             {
-                if (!this.Operand1.Process(cpu, parent, stack))
+                if (!Operand1.Process(cpu, parent, stack))
                     return false;
-                IntPtr op1 = stack[stack.Count - 1];
+                var op1 = stack[stack.Count - 1];
                 stack.RemoveAt(stack.Count - 1);
 
-                if (!this.Operand2.Process(cpu, parent, stack))
+                if (!Operand2.Process(cpu, parent, stack))
                     return false;
-                IntPtr op2 = stack[stack.Count - 1];
+                var op2 = stack[stack.Count - 1];
                 stack.RemoveAt(stack.Count - 1);
 
-                ulong op2_t = Main.Is64Bit ? op2.ToUInt64() : op2.ToUInt32();
+                var op2_t = Main.Is64Bit ? op2.ToUInt64() : op2.ToUInt32();
 
-                IntPtr result = this.Operator.Func(op1, op2_t);
+                var result = Operator.Func(op1, op2_t);
                 stack.Add(result);
                 return true;
             }
@@ -611,13 +560,7 @@ namespace NetScriptFramework
             /// <value>
             /// The consumes.
             /// </value>
-            internal override int Consumes
-            {
-                get
-                {
-                    return 0;
-                }
-            }
+            internal override int Consumes => 0;
 
             /// <summary>
             /// Gets the amount of stack produced.
@@ -625,13 +568,7 @@ namespace NetScriptFramework
             /// <value>
             /// The produces.
             /// </value>
-            internal override int Produces
-            {
-                get
-                {
-                    return 1;
-                }
-            }
+            internal override int Produces => 1;
         }
 
 
@@ -644,9 +581,7 @@ namespace NetScriptFramework
             /// <summary>
             /// Prevents a default instance of the <see cref="StatementConstant"/> class from being created.
             /// </summary>
-            private StatementConstant()
-            {
-            }
+            private StatementConstant() { }
 
             /// <summary>
             /// Gets the amount of stack consumed.
@@ -654,13 +589,7 @@ namespace NetScriptFramework
             /// <value>
             /// The consumes.
             /// </value>
-            internal override int Consumes
-            {
-                get
-                {
-                    return 0;
-                }
-            }
+            internal override int Consumes => 0;
 
             /// <summary>
             /// Gets the amount of stack produced.
@@ -668,13 +597,7 @@ namespace NetScriptFramework
             /// <value>
             /// The produces.
             /// </value>
-            internal override int Produces
-            {
-                get
-                {
-                    return 1;
-                }
-            }
+            internal override int Produces => 1;
 
             /// <summary>
             /// The value.
@@ -690,7 +613,7 @@ namespace NetScriptFramework
             /// <returns></returns>
             internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack)
             {
-                stack.Add(this.Value);
+                stack.Add(Value);
                 return true;
             }
 
@@ -703,15 +626,15 @@ namespace NetScriptFramework
             /// <exception cref="System.FormatException"></exception>
             internal static StatementConstant Create(string input, ref int length)
             {
-                int i = 0;
-                int j = 0;
+                var i = 0;
+                var j = 0;
                 if (input.StartsWith("0x"))
                     i = 2;
-                StringBuilder bld = new StringBuilder(16);
-                while(i < input.Length)
+                var bld = new StringBuilder(16);
+                while (i < input.Length)
                 {
                     var ch = input[i];
-                    if((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f'))
+                    if (ch >= '0' && ch <= '9' || ch >= 'a' && ch <= 'f')
                     {
                         bld.Append(ch);
                         i++;
@@ -730,14 +653,13 @@ namespace NetScriptFramework
                     return null;
 
                 IntPtr val;
-                if (Main.Is64Bit)
-                    val = new IntPtr(unchecked((long)u));
+                if (Main.Is64Bit) { val = new IntPtr(unchecked((long) u)); }
                 else
                 {
                     if ((u & 0xFFFFFFFF) != u)
                         throw new FormatException(u.ToString("X") + " does not fit into a 32 bit pointer!");
-                    uint ux = (uint)u;
-                    val = new IntPtr(unchecked((int)ux));
+                    var ux = (uint) u;
+                    val = new IntPtr(unchecked((int) ux));
                 }
 
                 length = i;
@@ -757,9 +679,7 @@ namespace NetScriptFramework
             /// <summary>
             /// Prevents a default instance of the <see cref="StatementModule"/> class from being created.
             /// </summary>
-            private StatementModule()
-            {
-            }
+            private StatementModule() { }
 
             /// <summary>
             /// Gets the amount of stack consumed.
@@ -767,13 +687,7 @@ namespace NetScriptFramework
             /// <value>
             /// The consumes.
             /// </value>
-            internal override int Consumes
-            {
-                get
-                {
-                    return 0;
-                }
-            }
+            internal override int Consumes => 0;
 
             /// <summary>
             /// Gets the amount of stack produced.
@@ -781,13 +695,7 @@ namespace NetScriptFramework
             /// <value>
             /// The produces.
             /// </value>
-            internal override int Produces
-            {
-                get
-                {
-                    return 1;
-                }
-            }
+            internal override int Produces => 1;
 
             /// <summary>
             /// The value.
@@ -803,7 +711,7 @@ namespace NetScriptFramework
             /// <returns></returns>
             internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack)
             {
-                stack.Add(this.Value);
+                stack.Add(Value);
                 return true;
             }
 
@@ -817,7 +725,7 @@ namespace NetScriptFramework
             /// <exception cref="System.FormatException"></exception>
             internal static StatementModule Create(List<KeyValuePair<string, IntPtr>> ls, string input, ref int length)
             {
-                for(int i = 0; i < ls.Count; i++)
+                for (var i = 0; i < ls.Count; i++)
                 {
                     if (!input.StartsWith(ls[i].Key, StringComparison.OrdinalIgnoreCase))
                         continue;
@@ -862,9 +770,9 @@ namespace NetScriptFramework
                 return true;
             }
 
-            if(input[0] == ']')
+            if (input[0] == ']')
             {
-                if (parent == this.Root || !(parent is StatementRead))
+                if (parent == Root || !(parent is StatementRead))
                     throw new FormatException("Unexpected ']'!");
                 var sb = parent;
                 parent = parent.Parent;
@@ -886,7 +794,7 @@ namespace NetScriptFramework
 
             if (input[0] == ')')
             {
-                if (parent == this.Root || !(parent is StatementGroup))
+                if (parent == Root || !(parent is StatementGroup))
                     throw new FormatException("Unexpected ')'!");
                 var sb = parent;
                 parent = parent.Parent;
@@ -895,9 +803,9 @@ namespace NetScriptFramework
                 return true;
             }
 
-            int len = 0;
+            var       len     = 0;
             Statement created = StatementOperator.Create(input, ref len);
-            if(created != null)
+            if (created != null)
             {
                 input = input.Substring(len);
                 parent.Statements.Add(created);
@@ -905,14 +813,14 @@ namespace NetScriptFramework
             }
 
             created = StatementRegister.Create(input, ref len);
-            if(created != null)
+            if (created != null)
             {
                 input = input.Substring(len);
                 parent.Statements.Add(created);
                 return true;
             }
 
-            created = StatementModule.Create(this.Modules, input, ref len);
+            created = StatementModule.Create(Modules, input, ref len);
             if (created != null)
             {
                 input = input.Substring(len);
@@ -921,7 +829,7 @@ namespace NetScriptFramework
             }
 
             created = StatementConstant.Create(input, ref len);
-            if(created != null)
+            if (created != null)
             {
                 input = input.Substring(len);
                 parent.Statements.Add(created);
@@ -939,15 +847,16 @@ namespace NetScriptFramework
         /// <returns></returns>
         private static IntPtr Op(IntPtr ptr, Func<ulong, ulong> func)
         {
-            ulong u = Main.Is64Bit ? ptr.ToUInt64() : ptr.ToUInt32();
+            var u = Main.Is64Bit ? ptr.ToUInt64() : ptr.ToUInt32();
             if (func != null)
                 u = func(u);
             if (!Main.Is64Bit)
             {
-                uint ux = (uint)(u & 0xFFFFFFFF);
-                return new IntPtr(unchecked((int)ux));
+                var ux = (uint) (u & 0xFFFFFFFF);
+                return new IntPtr(unchecked((int) ux));
             }
-            return new IntPtr(unchecked((long)u));
+
+            return new IntPtr(unchecked((long) u));
         }
     }
 }

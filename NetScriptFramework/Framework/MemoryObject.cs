@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NetScriptFramework
 {
-    #region MemoryObject class
+#region MemoryObject class
 
     /// <summary>
     /// Base implementation of a wrapper for an object that exists in memory.
@@ -15,11 +15,11 @@ namespace NetScriptFramework
     /// <seealso cref="NetScriptFramework.Tools.IArgument" />
     public abstract class MemoryObject : IMemoryObject, Tools.IArgument
     {
-        #region Constructors
+    #region Constructors
 
-        #endregion
+    #endregion
 
-        #region MemoryObject members
+    #region MemoryObject members
 
         /// <summary>
         /// Gets the base address of the object in memory.
@@ -27,11 +27,7 @@ namespace NetScriptFramework
         /// <value>
         /// The base address of object in memory.
         /// </value>
-        public IntPtr Address
-        {
-            get;
-            internal set;
-        } = IntPtr.Zero;
+        public IntPtr Address { get; internal set; } = IntPtr.Zero;
 
         /// <summary>
         /// Returns true if memory object is valid and can be accessed for reading. It is possible for this to return true even if
@@ -44,16 +40,16 @@ namespace NetScriptFramework
         {
             get
             {
-                if (this.Address == IntPtr.Zero)
+                if (Address == IntPtr.Zero)
                     return false;
 
-                int size = IntPtr.Size;
+                var size = IntPtr.Size;
 
-                var ti = this.TypeInfo.Info;
+                var ti = TypeInfo.Info;
                 if (ti != null && ti.Size.HasValue)
                     size = ti.Size.Value;
 
-                return Memory.IsValidRegion(this.Address, size, true, false, false);
+                return Memory.IsValidRegion(Address, size, true, false, false);
             }
         }
 
@@ -63,13 +59,7 @@ namespace NetScriptFramework
         /// <value>
         /// The type instance information of the complete type.
         /// </value>
-        public GameInfo.GameTypeInstanceInfo TypeInfo
-        {
-            get
-            {
-                return this.TypeInfos[0];
-            }
-        }
+        public GameInfo.GameTypeInstanceInfo TypeInfo => TypeInfos[0];
 
         /// <summary>
         /// Gets the type identifier of this complete type. This will be zero if not available.
@@ -81,7 +71,7 @@ namespace NetScriptFramework
         {
             get
             {
-                var info = this.TypeInfo;
+                var info = TypeInfo;
                 if (info != null && info.Info != null)
                     return info.Info.Id;
                 return 0;
@@ -94,10 +84,7 @@ namespace NetScriptFramework
         /// <value>
         /// The type infos.
         /// </value>
-        public abstract IReadOnlyList<GameInfo.GameTypeInstanceInfo> TypeInfos
-        {
-            get;
-        }
+        public abstract IReadOnlyList<GameInfo.GameTypeInstanceInfo> TypeInfos { get; }
 
         /// <summary>
         /// Get an object in memory from specified base address.
@@ -108,13 +95,13 @@ namespace NetScriptFramework
         public static T FromAddress<T>(IntPtr address) where T : IMemoryObject
         {
             var game = Main.Game;
-            if(game == null)
+            if (game == null)
                 throw new ArgumentException("Game library is not loaded! Unable to use types.");
 
             if (address != IntPtr.Zero)
             {
-                var type = typeof(T);
-                TypeDescriptor t = null;
+                var            type = typeof(T);
+                TypeDescriptor t    = null;
 
                 // VTable types are handled differently.
                 if (game.Types.TypesWithVTable.Contains(type))
@@ -128,7 +115,7 @@ namespace NetScriptFramework
                         object result = mo;
 
                         // May cause invalid cast exception and that is fine.
-                        return (T)result;
+                        return (T) result;
                     }
 
                     return default(T);
@@ -142,13 +129,13 @@ namespace NetScriptFramework
                     var mo = t.Creator();
                     mo.Address = address - t.OffsetInFullType;
                     object result = mo;
-                    return (T)result;
+                    return (T) result;
                 }
             }
 
             return default(T);
         }
-        
+
         /// <summary>
         /// Get an object in memory from specified base address.
         /// </summary>
@@ -238,9 +225,9 @@ namespace NetScriptFramework
                     throw new ArgumentException("Type " + impl.Name + " does not have any registered descriptors!");
 
                 TypeDescriptor td = null;
-                foreach(var x in ls)
+                foreach (var x in ls)
                 {
-                    if(x.OffsetInFullType == 0)
+                    if (x.OffsetInFullType == 0)
                     {
                         td = x;
                         break;
@@ -251,7 +238,7 @@ namespace NetScriptFramework
                 }
 
                 // Special case, we still want to detect if the cast is valid.
-                if(td.VTable.HasValue)
+                if (td.VTable.HasValue)
                     return VirtualObject.FromAddress(address);
 
                 var mo = td.Creator();
@@ -276,7 +263,7 @@ namespace NetScriptFramework
         /// <returns></returns>
         public virtual IntPtr VTable<T>() where T : IVirtualObject
         {
-            var ptr = this.Cast<T>();
+            var ptr = Cast<T>();
             if (ptr != IntPtr.Zero)
                 return Memory.ReadPointer(ptr);
 
@@ -287,23 +274,17 @@ namespace NetScriptFramework
         /// Gathers the objects for crash log.
         /// </summary>
         /// <param name="gatherer">The gatherer.</param>
-        public virtual void GatherObjectsForCrashLog(InterestingCrashLogObjects gatherer)
-        {
-
-        }
+        public virtual void GatherObjectsForCrashLog(InterestingCrashLogObjects gatherer) { }
 
         /// <summary>
         /// Gathers the string for crash log.
         /// </summary>
         /// <returns></returns>
-        public virtual string GatherStringForCrashLog()
-        {
-            return this.ToString();
-        }
+        public virtual string GatherStringForCrashLog() { return ToString(); }
 
-        #endregion
-        
-        #region Object members
+    #endregion
+
+    #region Object members
 
         /// <summary>
         /// Returns a hash code for this instance.
@@ -311,10 +292,7 @@ namespace NetScriptFramework
         /// <returns>
         /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
         /// </returns>
-        public override int GetHashCode()
-        {
-            return this.Address.GetHashCode();
-        }
+        public override int GetHashCode() { return Address.GetHashCode(); }
 
         /// <summary>
         /// Determines whether the specified <see cref="System.Object" />, is equal to this instance. If the specified object
@@ -328,7 +306,7 @@ namespace NetScriptFramework
         {
             var mo = obj as MemoryObject;
             if (mo != null)
-                return this.Address == mo.Address;
+                return Address == mo.Address;
             return false;
         }
 
@@ -344,10 +322,10 @@ namespace NetScriptFramework
         {
             var mo = obj as MemoryObject;
             if (mo != null)
-                return this.Address == mo.Address;
+                return Address == mo.Address;
             return false;
         }
-        
+
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.
         /// </summary>
@@ -356,13 +334,13 @@ namespace NetScriptFramework
         /// </returns>
         public override string ToString()
         {
-            var ti = this.TypeInfo.Info;
-            return ti != null ? (ti.Name ?? "unknown") : "unknown";
+            var ti = TypeInfo.Info;
+            return ti != null ? ti.Name ?? "unknown" : "unknown";
         }
 
-        #endregion
+    #endregion
 
-        #region IArgument members
+    #region IArgument members
 
         /// <summary>
         /// Parse an argument from this object.
@@ -373,7 +351,7 @@ namespace NetScriptFramework
         /// <returns></returns>
         public Tools.IArgument ParseArgument(string key, Tools.Message message, Tools.Parser parser)
         {
-            var prop = this._GetProperty(key);
+            var prop = _GetProperty(key);
             if (prop == null || prop.GetMethod == null)
                 return null;
 
@@ -390,20 +368,20 @@ namespace NetScriptFramework
         /// <returns></returns>
         public string ParseVariable(string key, Tools.Message message, Tools.Parser parser)
         {
-            var prop = this._GetProperty(key);
+            var prop = _GetProperty(key);
             if (prop == null || prop.GetMethod == null)
                 return null;
 
             object instance = prop.GetMethod.IsStatic ? null : this;
-            object result = prop.GetMethod.Invoke(instance, new object[0]);
-            if (object.ReferenceEquals(result, null))
+            var    result   = prop.GetMethod.Invoke(instance, new object[0]);
+            if (ReferenceEquals(result, null))
                 return null;
             if (result is float)
-                return ((float)result).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                return ((float) result).ToString(System.Globalization.CultureInfo.InvariantCulture);
             if (result is double)
-                return ((double)result).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                return ((double) result).ToString(System.Globalization.CultureInfo.InvariantCulture);
             if (result is IntPtr)
-                return ((IntPtr)result).ToHexString();
+                return ((IntPtr) result).ToHexString();
             return result.ToString();
         }
 
@@ -415,10 +393,7 @@ namespace NetScriptFramework
         /// <param name="message">Message to parse for.</param>
         /// <param name="parser">Parser that is currently processing message.</param>
         /// <returns></returns>
-        public string ParseFunction(string key, string[] args, Tools.Message message, Tools.Parser parser)
-        {
-            return null;
-        }
+        public string ParseFunction(string key, string[] args, Tools.Message message, Tools.Parser parser) { return null; }
 
         /// <summary>
         /// Get a property of this object by its name.
@@ -430,19 +405,19 @@ namespace NetScriptFramework
             if (string.IsNullOrEmpty(name))
                 return null;
 
-            var t = this.GetType();
-            while(t != null)
+            var t = GetType();
+            while (t != null)
             {
                 try
                 {
-                    var prop = t.GetProperty(name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.DeclaredOnly);
+                    var prop = t.GetProperty(
+                        name,
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.DeclaredOnly);
                     if (prop != null)
                         return prop;
                 }
-                catch(System.Reflection.AmbiguousMatchException)
-                {
-
-                }
+                catch (System.Reflection.AmbiguousMatchException) { }
 
                 t = t.BaseType;
             }
@@ -450,12 +425,12 @@ namespace NetScriptFramework
             return null;
         }
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 
-    #region IMemoryObject interface
+#region IMemoryObject interface
 
     /// <summary>
     /// Base implementation of a wrapper for an object that exists in memory. Use the Equals methods to check
@@ -469,10 +444,7 @@ namespace NetScriptFramework
         /// <value>
         /// The base address of object in memory.
         /// </value>
-        IntPtr Address
-        {
-            get;
-        }
+        IntPtr Address { get; }
 
         /// <summary>
         /// Returns true if memory object is valid and can be accessed. It is possible for this to return true even if
@@ -481,10 +453,7 @@ namespace NetScriptFramework
         /// <value>
         ///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
         /// </value>
-        bool IsValid
-        {
-            get;
-        }
+        bool IsValid { get; }
 
         /// <summary>
         /// Gets the type instance information of this complete type.
@@ -492,10 +461,7 @@ namespace NetScriptFramework
         /// <value>
         /// The type instance information of the complete type.
         /// </value>
-        GameInfo.GameTypeInstanceInfo TypeInfo
-        {
-            get;
-        }
+        GameInfo.GameTypeInstanceInfo TypeInfo { get; }
 
         /// <summary>
         /// Gets the type identifier of this complete type. This will be zero if not available.
@@ -503,10 +469,7 @@ namespace NetScriptFramework
         /// <value>
         /// The type identifier of the complete type.
         /// </value>
-        ulong TypeId
-        {
-            get;
-        }
+        ulong TypeId { get; }
 
         /// <summary>
         /// Gets all the type infos of this complete type.
@@ -514,10 +477,7 @@ namespace NetScriptFramework
         /// <value>
         /// The type infos.
         /// </value>
-        IReadOnlyList<GameInfo.GameTypeInstanceInfo> TypeInfos
-        {
-            get;
-        }
+        IReadOnlyList<GameInfo.GameTypeInstanceInfo> TypeInfos { get; }
 
         /// <summary>
         /// Returns the address if this instance was cast into another type. Returns zero if not possible to cast.
@@ -546,18 +506,15 @@ namespace NetScriptFramework
         string GatherStringForCrashLog();
     }
 
-    #endregion
+#endregion
 
-    #region Unknown type
+#region Unknown type
 
     /// <summary>
     /// This is an unknown type.
     /// </summary>
     /// <seealso cref="NetScriptFramework.IMemoryObject" />
-    public interface unknown : IMemoryObject
-    {
-
-    }
+    public interface unknown : IMemoryObject { }
 
     /// <summary>
     /// The implementation for unknown type.
@@ -571,18 +528,12 @@ namespace NetScriptFramework
         /// <value>
         /// The type infos.
         /// </value>
-        public override IReadOnlyList<GameInfo.GameTypeInstanceInfo> TypeInfos
-        {
-            get
-            {
-                return _TypeInfos;
-            }
-        }
+        public override IReadOnlyList<GameInfo.GameTypeInstanceInfo> TypeInfos => _TypeInfos;
 
         /// <summary>
         /// The type info.
         /// </summary>
-        private static readonly GameInfo.GameTypeInstanceInfo[] _TypeInfos = new GameInfo.GameTypeInstanceInfo[] { new GameInfo.GameTypeInstanceInfo(0, null, null) };
+        private static readonly GameInfo.GameTypeInstanceInfo[] _TypeInfos = new GameInfo.GameTypeInstanceInfo[] {new GameInfo.GameTypeInstanceInfo(0, null, null)};
 
         /// <summary>
         /// Returns the address if this instance was cast into another type. Returns zero if not possible to cast.
@@ -593,24 +544,21 @@ namespace NetScriptFramework
         {
             var t = typeof(T);
             if (t == typeof(unknown))
-                return this.Address;
+                return Address;
 
             return IntPtr.Zero;
         }
     }
 
-    #endregion
+#endregion
 
-    #region Void generic argument type
+#region Void generic argument type
 
     /// <summary>
     /// This is a void generic argument.
     /// </summary>
     /// <seealso cref="NetScriptFramework.IMemoryObject" />
-    public interface VoidGenericArgument : IMemoryObject
-    {
-
-    }
+    public interface VoidGenericArgument : IMemoryObject { }
 
     /// <summary>
     /// The implementation for void generic argument.
@@ -624,18 +572,12 @@ namespace NetScriptFramework
         /// <value>
         /// The type infos.
         /// </value>
-        public override IReadOnlyList<GameInfo.GameTypeInstanceInfo> TypeInfos
-        {
-            get
-            {
-                return _TypeInfos;
-            }
-        }
+        public override IReadOnlyList<GameInfo.GameTypeInstanceInfo> TypeInfos => _TypeInfos;
 
         /// <summary>
         /// The type info.
         /// </summary>
-        private static readonly GameInfo.GameTypeInstanceInfo[] _TypeInfos = new GameInfo.GameTypeInstanceInfo[] { new GameInfo.GameTypeInstanceInfo(0, null, null) };
+        private static readonly GameInfo.GameTypeInstanceInfo[] _TypeInfos = new GameInfo.GameTypeInstanceInfo[] {new GameInfo.GameTypeInstanceInfo(0, null, null)};
 
         /// <summary>
         /// Returns the address if this instance was cast into another type. Returns zero if not possible to cast.
@@ -646,11 +588,11 @@ namespace NetScriptFramework
         {
             var t = typeof(T);
             if (t == typeof(VoidGenericArgument))
-                return this.Address;
+                return Address;
 
             return IntPtr.Zero;
         }
     }
 
-    #endregion
+#endregion
 }

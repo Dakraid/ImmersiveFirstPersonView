@@ -22,10 +22,10 @@ namespace NetScriptFramework
         /// <param name="result">The result is set here. Result may be set even when an exception is thrown.</param>
         public static void Load(FileInfo file, ref Assembly result)
         {
-            lock(Locker)
+            lock (Locker)
             {
-                AssemblyLoadResult r = Loaded.FirstOrDefault(q => q.FileName.Equals(file.Name, StringComparison.OrdinalIgnoreCase));
-                if(r != null)
+                var r = Loaded.FirstOrDefault(q => q.FileName.Equals(file.Name, StringComparison.OrdinalIgnoreCase));
+                if (r != null)
                 {
                     result = r.Assembly;
                     if (r.Exception != null)
@@ -35,13 +35,13 @@ namespace NetScriptFramework
 
                 if (!file.Exists)
                     throw new FileNotFoundException("Specified assembly file was not found!", file.FullName);
-                
-                // Must use LoadFile instead of LoadFrom or the load context will not allow types to match up.
-                Assembly a = Assembly.LoadFile(file.FullName);
 
-                r = new AssemblyLoadResult();
-                r.Assembly = a;
-                r.FileName = file.Name;
+                // Must use LoadFile instead of LoadFrom or the load context will not allow types to match up.
+                var a = Assembly.LoadFile(file.FullName);
+
+                r           = new AssemblyLoadResult();
+                r.Assembly  = a;
+                r.FileName  = file.Name;
                 r.Exception = null;
 
                 Loaded.Add(r);
@@ -60,15 +60,13 @@ namespace NetScriptFramework
             if (name == Main.FrameworkName)
                 return Assembly.GetExecutingAssembly();
 
-            lock(Locker)
+            lock (Locker)
             {
-                foreach(var a in Loaded)
-                {
+                foreach (var a in Loaded)
                     if (a.Assembly != null && a.Assembly.GetName().Name == name)
                         return a.Assembly;
-                }
 
-                string[] paths = new string[3];
+                var paths = new string[3];
                 paths[0] = null;
                 paths[1] = null;
                 paths[2] = string.Empty;
@@ -85,19 +83,19 @@ namespace NetScriptFramework
                         paths[1] = plugin.ToString();
                 }
 
-                for (int i = 0; i < paths.Length; i++)
+                for (var i = 0; i < paths.Length; i++)
                 {
-                    string p = paths[i];
+                    var p = paths[i];
                     if (p == null)
                         continue;
 
-                    string fileName = System.IO.Path.Combine(p, name + ".dll");
-                    FileInfo fileInfo = new FileInfo(fileName);
+                    var fileName = Path.Combine(p, name + ".dll");
+                    var fileInfo = new FileInfo(fileName);
                     if (!fileInfo.Exists)
                     {
-                        fileName = System.IO.Path.Combine(p, name + ".exe");
+                        fileName = Path.Combine(p, name + ".exe");
                         fileInfo = new FileInfo(fileName);
-                        if(!fileInfo.Exists)
+                        if (!fileInfo.Exists)
                             continue;
                     }
 
@@ -121,7 +119,7 @@ namespace NetScriptFramework
         private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs e)
         {
             // Get name for custom loading.
-            string name = e.Name;
+            var name = e.Name;
             if (name != null && name.Contains(","))
                 name = name.Substring(0, name.IndexOf(","));
 
@@ -133,7 +131,7 @@ namespace NetScriptFramework
             // Pass to regular loader if wasn't one of our assemblies.
             return null;
         }
-        
+
         /// <summary>
         /// Initializes the assembly loader.
         /// </summary>
@@ -144,16 +142,12 @@ namespace NetScriptFramework
             // Set up custom dependency path for plugins. When plugins use custom dependency with DllImport for example they
             // can store them in the appropriate path instead of having to put them in the main executable folder.
             var path = Main.Config.GetValue(Main._Config_Plugin_Lib_Path);
-            if(path != null)
+            if (path != null)
             {
-                string pString = path.ToString();
+                var pString = path.ToString();
                 if (!string.IsNullOrEmpty(pString) && pString != ".")
-                {
-                    try
-                    {
-                        AddDLLSearchPath(pString);
-                    }
-                    catch(Exception ex)
+                    try { AddDLLSearchPath(pString); }
+                    catch (Exception ex)
                     {
                         if (Main.Log != null)
                         {
@@ -161,7 +155,6 @@ namespace NetScriptFramework
                             Main.Log.Append(ex);
                         }
                     }
-                }
             }
         }
 
@@ -170,14 +163,14 @@ namespace NetScriptFramework
             if (string.IsNullOrEmpty(path) || path == ".")
                 return;
 
-            string fullPath = Path.GetFullPath(path);
+            var fullPath = Path.GetFullPath(path);
 
             //SetDllDirectory(fullPath);
 
             if (!Path.IsPathRooted(path))
                 path = Path.GetFullPath(path);
 
-            string pathVar = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+            var pathVar = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
             Environment.SetEnvironmentVariable("PATH", pathVar + ";" + path);
         }
 

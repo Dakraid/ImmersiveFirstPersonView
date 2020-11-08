@@ -118,6 +118,12 @@
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /S /Q /Y /F "$(OutDir)$(TargetName).dll" "$(SolutionDir)Build\Data\DLLPlugins\$(TargetName).dll*"
+xcopy /S /Q /Y /F "$(OutDir)$(TargetName).pdb" "$(SolutionDir)Build\Data\DLLPlugins\$(TargetName).pdb*"
+xcopy /S /Q /Y /F "$(OutDir)$(TargetName).runtimeconfig.json" "$(SolutionDir)Build\Data\DLLPlugins\$(TargetName).runtimeconfig.json*"
+xcopy /S /Q /Y /F "$(OutDir)Ijwhost.dll" "$(SolutionDir)Build\Data\DLLPlugins\Ijwhost.dll*"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -147,6 +153,12 @@
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /S /Q /Y /F "$(OutDir)$(TargetName).dll" "$(SolutionDir)Build\Data\DLLPlugins\$(TargetName).dll*"
+xcopy /S /Q /Y /F "$(OutDir)$(TargetName).pdb" "$(SolutionDir)Build\Data\DLLPlugins\$(TargetName).pdb*"
+xcopy /S /Q /Y /F "$(OutDir)$(TargetName).runtimeconfig.json" "$(SolutionDir)Build\Data\DLLPlugins\$(TargetName).runtimeconfig.json*"
+xcopy /S /Q /Y /F "$(OutDir)Ijwhost.dll" "$(SolutionDir)Build\Data\DLLPlugins\Ijwhost.dll*"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ReplaceImport.h" />

@@ -8,39 +8,31 @@ using System.Threading.Tasks;
 
 namespace NetScriptFramework.Tools
 {
-    #region Timer class
+#region Timer class
 
     /// <summary>
     /// This helps measure time. The timer is not started automatically.
     /// </summary>
     public sealed class Timer
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         /// Create a new timer. The timer is not started automatically.
         /// </summary>
-        public Timer()
-        {
-        }
+        public Timer() { }
 
-        #endregion
+    #endregion
 
-        #region Timer members
+    #region Timer members
 
         /// <summary>
         /// Get or set time offset. This will be added to time.
         /// </summary>
         public long Offset
         {
-            get
-            {
-                return Interlocked.Read(ref this._offset);
-            }
-            set
-            {
-                Interlocked.Exchange(ref this._offset, value);
-            }
+            get => Interlocked.Read(ref _offset);
+            set => Interlocked.Exchange(ref _offset, value);
         }
 
         /// <summary>
@@ -50,10 +42,10 @@ namespace NetScriptFramework.Tools
         {
             get
             {
-                if (!this.ManualUpdate)
-                    this.Update();
+                if (!ManualUpdate)
+                    Update();
 
-                return Interlocked.Read(ref this._value) + this.Offset;
+                return Interlocked.Read(ref _value) + Offset;
             }
         }
 
@@ -64,80 +56,56 @@ namespace NetScriptFramework.Tools
         /// </summary>
         public bool ManualUpdate
         {
-            get
-            {
-                return this._manual;
-            }
-            set
-            {
-                this._manual = value;
-            }
+            get => _manual;
+            set => _manual = value;
         }
 
         /// <summary>
         /// Perform manual time update now.
         /// </summary>
-        public void Update()
-        {
-            Interlocked.Exchange(ref this._value, this._timer.ElapsedTicks * 1000 / Stopwatch.Frequency);
-        }
+        public void Update() { Interlocked.Exchange(ref _value, _timer.ElapsedTicks * 1000 / Stopwatch.Frequency); }
 
         /// <summary>
         /// Start timer.
         /// </summary>
-        public void Start()
-        {
-            this._timer.Start();
-        }
+        public void Start() { _timer.Start(); }
 
         /// <summary>
         /// Stop timer.
         /// </summary>
         public void Stop()
         {
-            this._timer.Stop();
-            if(!this.ManualUpdate)
-                this.Update();
+            _timer.Stop();
+            if (!ManualUpdate)
+                Update();
         }
 
         /// <summary>
         /// Check if timer is started and is currently running.
         /// </summary>
-        public bool IsRunning
-        {
-            get
-            {
-                return this._timer.IsRunning;
-            }
-        }
+        public bool IsRunning => _timer.IsRunning;
 
         /// <summary>
         /// Reset and stop timer. Offset is not cleared.
         /// </summary>
-        public void Reset()
-        {
-            this._timer.Reset();
-        }
+        public void Reset() { _timer.Reset(); }
 
         /// <summary>
         /// Reset and start timer. Offset is not cleared.
         /// </summary>
-        public void Restart()
-        {
-            this._timer.Restart();
-        }
-
-        #endregion
-
-        #region Internal members
-
-        private readonly Stopwatch _timer = new Stopwatch();
-        private long _offset = 0;
-        private long _value = 0;
-        private bool _manual = false;
-
-        #endregion
-    }
+        public void Restart() { _timer.Restart(); }
 
     #endregion
+
+    #region Internal members
+
+        private readonly Stopwatch _timer  = new Stopwatch();
+        private          long      _offset = 0;
+        private          long      _value  = 0;
+        private          bool      _manual = false;
+
+    #endregion
+    }
+
+#endregion
 }

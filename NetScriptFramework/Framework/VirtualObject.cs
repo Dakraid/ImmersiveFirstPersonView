@@ -13,7 +13,7 @@ namespace NetScriptFramework
     /// <seealso cref="NetScriptFramework.MemoryObject" />
     public abstract class VirtualObject : MemoryObject, IVirtualObject
     {
-        #region Members
+    #region Members
 
         /// <summary>
         /// Invokes a "thiscall" native function from the virtual table of this object.
@@ -23,11 +23,11 @@ namespace NetScriptFramework
         /// <returns></returns>
         public IntPtr InvokeVTableThisCall<T>(int offset, params InvokeArgument[] args) where T : IVirtualObject
         {
-            var self = this.Cast<T>();
+            var self = Cast<T>();
             if (self == IntPtr.Zero)
                 throw new InvalidCastException("Unable to cast object to " + typeof(T).Name + "!");
 
-            var vtable = this.VTable<T>();
+            var vtable = VTable<T>();
             if (vtable == IntPtr.Zero)
                 throw new NullReferenceException("Virtual function table was null!");
 
@@ -44,11 +44,11 @@ namespace NetScriptFramework
         /// <returns></returns>
         public float InvokeVTableThisCallF<T>(int offset, params InvokeArgument[] args) where T : IVirtualObject
         {
-            var self = this.Cast<T>();
+            var self = Cast<T>();
             if (self == IntPtr.Zero)
                 throw new InvalidCastException("Unable to cast object to " + typeof(T).Name + "!");
 
-            var vtable = this.VTable<T>();
+            var vtable = VTable<T>();
             if (vtable == IntPtr.Zero)
                 throw new NullReferenceException("Virtual function table was null!");
 
@@ -65,11 +65,11 @@ namespace NetScriptFramework
         /// <returns></returns>
         public double InvokeVTableThisCallD<T>(int offset, params InvokeArgument[] args) where T : IVirtualObject
         {
-            var self = this.Cast<T>();
+            var self = Cast<T>();
             if (self == IntPtr.Zero)
                 throw new InvalidCastException("Unable to cast object to " + typeof(T).Name + "!");
 
-            var vtable = this.VTable<T>();
+            var vtable = VTable<T>();
             if (vtable == IntPtr.Zero)
                 throw new NullReferenceException("Virtual function table was null!");
 
@@ -100,8 +100,8 @@ namespace NetScriptFramework
                 {
                     var mo = td.Creator();
                     mo.Address = address - td.OffsetInFullType;
-                    if(mo is VirtualObject)
-                        return (VirtualObject)mo;
+                    if (mo is VirtualObject)
+                        return (VirtualObject) mo;
                 }
 
                 return null;
@@ -110,10 +110,10 @@ namespace NetScriptFramework
             return null;
         }
 
-        #endregion
+    #endregion
     }
 
-    #region IVirtualObject interface
+#region IVirtualObject interface
 
     /// <summary>
     /// Base implementation of a type that has a virtual table.
@@ -146,5 +146,5 @@ namespace NetScriptFramework
         double InvokeVTableThisCallD<T>(int offset, params InvokeArgument[] args) where T : IVirtualObject;
     }
 
-    #endregion
+#endregion
 }

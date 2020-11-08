@@ -16,19 +16,20 @@ namespace NetScriptFramework.Tools
         /// </summary>
         internal UIDGenerator()
         {
-            var now = DateTime.UtcNow;
-            var min = new DateTime(1990, 1, 1);
+            var   now  = DateTime.UtcNow;
+            var   min  = new DateTime(1990, 1, 1);
             ulong high = 0;
             if (now >= min)
             {
-                high = unchecked((ulong)((now - min).TotalSeconds));
-                if (high > (ulong)int.MaxValue)
+                high = unchecked((ulong) (now - min).TotalSeconds);
+                if (high > (ulong) int.MaxValue)
                     high = 0;
             }
-            if(high == 0)
-                high = (ulong)Randomizer.NextInt(1, int.MaxValue);
 
-            this.HighPart = high << 32;
+            if (high == 0)
+                high = (ulong) Randomizer.NextInt(1, int.MaxValue);
+
+            HighPart = high << 32;
         }
 
         /// <summary>
@@ -47,15 +48,16 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         internal long Generate()
         {
-            ulong result = this.HighPart;
-            int low = System.Threading.Interlocked.Increment(ref this.LowPart);
+            var result = HighPart;
+            var low    = System.Threading.Interlocked.Increment(ref LowPart);
             if (low == 0)
             {
                 Main.CriticalException("UIDGenerator encountered an overflow! Too many IDs were generated.", true);
                 return 0;
             }
-            result |= unchecked((uint)low);
-            return unchecked((long)result);
+
+            result |= unchecked((uint) low);
+            return unchecked((long) result);
         }
     }
 }

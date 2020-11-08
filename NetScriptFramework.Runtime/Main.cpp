@@ -60,7 +60,6 @@ auto show_error(const std::string& name = nullptr) -> void
 		if (!fLog.is_open())
 		{
 			MessageBox(nullptr, L"Could not open netruntime.log", L".NET Script Framework - Runtime", MB_ICONINFORMATION | MB_OK);
-			throw 420;
 		}
 	}
 

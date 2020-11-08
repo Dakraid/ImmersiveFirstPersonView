@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace NetScriptFramework.Tools
 {
-    #region Randomizer class
+#region Randomizer class
 
     /// <summary>
     /// Random number generator. Thread safe.
     /// </summary>
     public static class Randomizer
     {
-        #region Randomizer members
+    #region Randomizer members
 
         /// <summary>
         /// Generate a double between 0 and 1.
@@ -67,11 +67,11 @@ namespace NetScriptFramework.Tools
             if (list.Count == 0)
                 throw new ArgumentOutOfRangeException("list");
 
-            int chosen = 0;
+            var chosen = 0;
             if (list.Count != 1)
                 chosen = NextInt(0, list.Count);
 
-            T obj = list[chosen];
+            var obj = list[chosen];
             if (remove)
                 list.RemoveAt(chosen);
 
@@ -95,7 +95,7 @@ namespace NetScriptFramework.Tools
             if (list.Count == 0)
                 throw new ArgumentOutOfRangeException("list");
 
-            double max = list.Sum(q => q.Value);
+            var max = list.Sum(q => q.Value);
             return NextEntry<T>(list, ref max, remove);
         }
 
@@ -117,15 +117,15 @@ namespace NetScriptFramework.Tools
             if (list.Count == 0)
                 throw new ArgumentOutOfRangeException("list");
 
-            double chooseValue = max * NextDouble();
+            var chooseValue = max * NextDouble();
 
-            int chosen = -1;
-            for (int i = 0; i < list.Count; i++)
+            var chosen = -1;
+            for (var i = 0; i < list.Count; i++)
             {
                 if (list[i].Value <= 0.0)
                     continue;
 
-                chosen = i;
+                chosen      =  i;
                 chooseValue -= list[i].Value;
                 if (chooseValue < 0.0)
                 {
@@ -137,7 +137,7 @@ namespace NetScriptFramework.Tools
             if (chosen == -1)
                 chosen = 0;
 
-            T obj = list[chosen].Key;
+            var obj = list[chosen].Key;
             if (remove)
                 list.RemoveAt(chosen);
 
@@ -163,16 +163,16 @@ namespace NetScriptFramework.Tools
             if (list.Count == 0)
                 throw new ArgumentOutOfRangeException("list");
 
-            double chooseValue = max * NextDouble();
+            var chooseValue = max * NextDouble();
 
-            int chosen = -1;
-            for (int i = 0; i < list.Count; i++)
+            var chosen = -1;
+            for (var i = 0; i < list.Count; i++)
             {
-                double w = weightSelector(list[i]);
+                var w = weightSelector(list[i]);
                 if (w <= 0.0)
                     continue;
 
-                chosen = i;
+                chosen      =  i;
                 chooseValue -= w;
                 if (chooseValue < 0.0)
                 {
@@ -184,16 +184,16 @@ namespace NetScriptFramework.Tools
             if (chosen == -1)
                 chosen = 0;
 
-            T obj = list[chosen];
+            var obj = list[chosen];
             if (remove)
                 list.RemoveAt(chosen);
 
             return obj;
         }
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         /// Make sure generator is initialize for current thread.
@@ -203,17 +203,13 @@ namespace NetScriptFramework.Tools
             if (RNG != null)
                 return;
 
-            lock (Locker)
-            {
-                RNG = new System.Random(Generator.Next(0, int.MaxValue));
-            }
+            lock (Locker) { RNG = new Random(Generator.Next(0, int.MaxValue)); }
         }
 
         /// <summary>
         /// RNG for current thread.
         /// </summary>
-        [ThreadStatic]
-        private static System.Random RNG = null;
+        [ThreadStatic] private static Random RNG = null;
 
         /// <summary>
         /// Locker for generating a generator.
@@ -223,10 +219,10 @@ namespace NetScriptFramework.Tools
         /// <summary>
         /// Seed generator.
         /// </summary>
-        private static readonly System.Random Generator = new System.Random();
-
-        #endregion
-    }
+        private static readonly Random Generator = new Random();
 
     #endregion
+    }
+
+#endregion
 }

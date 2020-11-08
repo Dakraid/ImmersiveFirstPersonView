@@ -8,18 +8,18 @@ using System.Threading.Tasks;
 
 namespace NetScriptFramework
 {
-    #region Main class
+#region Main class
 
     /// <summary>
     /// Implement framework runtime methods. This will deal with initialization and shutdown.
     /// </summary>
     public static class Main
     {
-        #region Constructors
+    #region Constructors
 
-        #endregion
+    #endregion
 
-        #region Main members
+    #region Main members
 
         /// <summary>
         /// The name of running framework.
@@ -39,11 +39,7 @@ namespace NetScriptFramework
         /// <summary>
         /// Gets the framework assembly.
         /// </summary>
-        internal static System.Reflection.Assembly FrameworkAssembly
-        {
-            get;
-            private set;
-        }
+        internal static System.Reflection.Assembly FrameworkAssembly { get; private set; }
 
         /// <summary>
         /// Gets the game instance. This will contain type implementations and interfaces. If no valid game instance is found this will be null, plugins may still be loaded into an unknown process.
@@ -51,11 +47,7 @@ namespace NetScriptFramework
         /// <value>
         /// The game instance or null.
         /// </value>
-        public static Game Game
-        {
-            get;
-            private set;
-        }
+        public static Game Game { get; private set; }
 
         /// <summary>
         /// Gets the game version library. This will contain information about types, offsets, functions. If no version information is loaded it will be null and we will not be able to provide
@@ -64,12 +56,8 @@ namespace NetScriptFramework
         /// <value>
         /// The game information.
         /// </value>
-        public static GameInfo GameInfo
-        {
-            get;
-            private set;
-        }
-        
+        public static GameInfo GameInfo { get; private set; }
+
         /// <summary>
         /// Gets a value indicating whether this process is currently running in 64 bit mode.
         /// </summary>
@@ -80,12 +68,13 @@ namespace NetScriptFramework
         {
             get
             {
-                int result = EnvironmentType;
-                if(result == 0)
+                var result = EnvironmentType;
+                if (result == 0)
                 {
-                    result = IntPtr.Size == 4 ? -1 : 1;
+                    result          = IntPtr.Size == 4 ? -1 : 1;
                     EnvironmentType = result;
                 }
+
                 return result > 0;
             }
         }
@@ -96,11 +85,7 @@ namespace NetScriptFramework
         /// <value>
         /// The main framework configuration.
         /// </value>
-        public static Tools.ConfigFile Config
-        {
-            get;
-            private set;
-        }
+        public static Tools.ConfigFile Config { get; private set; }
 
         /// <summary>
         /// Gets the main framework log file.
@@ -108,11 +93,7 @@ namespace NetScriptFramework
         /// <value>
         /// The main framework log.
         /// </value>
-        public static Tools.LogFile Log
-        {
-            get;
-            private set;
-        }
+        public static Tools.LogFile Log { get; private set; }
 
         /// <summary>
         /// Gets a pointer to a valid memory region, usable for any purpose. Size is 1 KB. Not thread safe!
@@ -120,11 +101,7 @@ namespace NetScriptFramework
         /// <value>
         /// The trash memory.
         /// </value>
-        public static IntPtr TrashMemory
-        {
-            get;
-            private set;
-        }
+        public static IntPtr TrashMemory { get; private set; }
 
         /// <summary>
         /// Stops the application, displays an error message box and exits after user has clicked Ok.
@@ -133,21 +110,23 @@ namespace NetScriptFramework
         /// <param name="kill">Should we kill the process or exit normally.</param>
         public static void CriticalException(Exception e, bool kill)
         {
-            StringBuilder message = new StringBuilder();
+            var message = new StringBuilder();
             message.AppendLine("A critical or unhandled managed exception has occurred!");
             if (e != null)
             {
-                if(e is MissingMethodException || (e.InnerException != null && e.InnerException is MissingMethodException))
+                if (e is MissingMethodException || e.InnerException != null && e.InnerException is MissingMethodException)
                 {
                     message.AppendLine();
-                    message.AppendLine("MissingMethodException is usually almost always caused by outdated framework or plugin versions. Please update your framework or plugins to latest version. Check which plugin may be causing the issue in the below stack trace.");
+                    message.AppendLine(
+                        "MissingMethodException is usually almost always caused by outdated framework or plugin versions. Please update your framework or plugins to latest version. Check which plugin may be causing the issue in the below stack trace.");
                 }
+
                 message.AppendLine();
                 var lines = Tools.LogFile.GetExceptionText(e);
                 foreach (var x in lines)
                     message.AppendLine(x);
             }
-            
+
             CriticalException(message.ToString(), kill);
         }
 
@@ -158,9 +137,9 @@ namespace NetScriptFramework
         /// <param name="kill">Should we kill the process or exit normally.</param>
         public static void CriticalException(string message, bool kill)
         {
-            if(Log != null)
+            if (Log != null)
             {
-                string[] spl = message.Replace("\r\n", "\n").Replace("\r", "\n").Split(new[] { "\n" }, StringSplitOptions.None);
+                var spl = message.Replace("\r\n", "\n").Replace("\r", "\n").Split(new[] {"\n"}, StringSplitOptions.None);
                 foreach (var x in spl)
                     Log.AppendLine(x);
             }
@@ -185,10 +164,7 @@ namespace NetScriptFramework
         /// Generates a unique identifier.
         /// </summary>
         /// <returns></returns>
-        public static long GenerateGuid()
-        {
-            return IDGenerator.Generate();
-        }
+        public static long GenerateGuid() { return IDGenerator.Generate(); }
 
         /// <summary>
         /// Gets the runtime version.
@@ -203,11 +179,7 @@ namespace NetScriptFramework
         /// <value>
         /// The framework path.
         /// </value>
-        public static string FrameworkPath
-        {
-            get;
-            private set;
-        }
+        public static string FrameworkPath { get; private set; }
 
         /// <summary>
         /// Parameters for initializing the framework. This is only used by the C runtime DLL.
@@ -217,10 +189,7 @@ namespace NetScriptFramework
             /// <summary>
             /// Initializes a new instance of the <see cref="FrameworkInitializationParameters"/> class.
             /// </summary>
-            public FrameworkInitializationParameters()
-            {
-
-            }
+            public FrameworkInitializationParameters() { }
 
             /// <summary>
             /// Gets or sets the framework path.
@@ -228,11 +197,7 @@ namespace NetScriptFramework
             /// <value>
             /// The framework path.
             /// </value>
-            public string FrameworkPath
-            {
-                get;
-                set;
-            }
+            public string FrameworkPath { get; set; }
 
             /// <summary>
             /// Gets or sets the delayed initialize. If this is greater than zero it will create a new thread that will initialize after this many milliseconds.
@@ -240,13 +205,9 @@ namespace NetScriptFramework
             /// <value>
             /// The delayed initialize.
             /// </value>
-            public int DelayedInitialize
-            {
-                get;
-                set;
-            }
+            public int DelayedInitialize { get; set; }
         }
-        
+
         /// <summary>
         /// Initializes the framework.
         /// </summary>
@@ -279,7 +240,7 @@ namespace NetScriptFramework
                 }
 
                 // Prepare and load configuration file.
-                bool loadedConfiguration = PrepareAndLoadConfiguration();
+                var loadedConfiguration = PrepareAndLoadConfiguration();
 
                 // Initialize log file.
                 InitializeLog();
@@ -304,10 +265,9 @@ namespace NetScriptFramework
                     var t = new Thread(_Run_Delayed_Initialize);
                     t.Start();
                 }
-                else
-                    _Initialize_Actual(p);
+                else { _Initialize_Actual(p); }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (Log != null)
                     Log.Append(ex);
@@ -337,14 +297,8 @@ namespace NetScriptFramework
             while (sw.ElapsedMilliseconds < p.DelayedInitialize)
                 Thread.Sleep(1);
 
-            try
-            {
-                _Initialize_Actual(p);
-            }
-            catch(Exception ex)
-            {
-                CriticalException(ex, false);
-            }
+            try { _Initialize_Actual(p); }
+            catch (Exception ex) { CriticalException(ex, false); }
         }
 
         /// <summary>
@@ -375,13 +329,7 @@ namespace NetScriptFramework
         /// <value>
         /// <c>true</c> if this instance is shutdown; otherwise, <c>false</c>.
         /// </value>
-        public static bool IsShutdown
-        {
-            get
-            {
-                return Interlocked.CompareExchange(ref Status, 0, 0) == 2;
-            }
-        }
+        public static bool IsShutdown => Interlocked.CompareExchange(ref Status, 0, 0) == 2;
 
         /// <summary>
         /// Shuts the framework down.
@@ -410,36 +358,24 @@ namespace NetScriptFramework
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
-        {
-            Shutdown();
-        }
+        private static void CurrentDomain_ProcessExit(object sender, EventArgs e) { Shutdown(); }
 
         /// <summary>
         /// Called when detached thread.
         /// </summary>
-        private static void OnDetachThread()
-        {
-            PluginManager.DetachThread();
-        }
+        private static void OnDetachThread() { PluginManager.DetachThread(); }
 
         /// <summary>
         /// Called when attached thread.
         /// </summary>
-        private static void OnAttachThread()
-        {
-            PluginManager.AttachThread();
-        }
+        private static void OnAttachThread() { PluginManager.AttachThread(); }
 
         /// <summary>
         /// Handles the UnhandledException event of the CurrentDomain control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="UnhandledExceptionEventArgs"/> instance containing the event data.</param>
-        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            ProcessManagedUnhandledException(e.ExceptionObject as Exception);
-        }
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e) { ProcessManagedUnhandledException(e.ExceptionObject as Exception); }
 
         /// <summary>
         /// Processes the managed unhandled exception.
@@ -448,17 +384,12 @@ namespace NetScriptFramework
         internal static void ProcessManagedUnhandledException(Exception ex)
         {
             if (ex != null)
-            {
                 try
                 {
                     var cl = new ManagedCrashLog(ex);
                     cl.Write();
                 }
-                catch(Exception ex2)
-                {
-                    Log.Append(ex2);
-                }
-            }
+                catch (Exception ex2) { Log.Append(ex2); }
 
             CriticalException(ex, true);
         }
@@ -470,8 +401,9 @@ namespace NetScriptFramework
         /// <returns></returns>
         internal static bool UnhandledExceptionFilter(CPURegisters cpu)
         {
-            int handled = 0;
-            string logmsg = "Unhandled native exception occurred at " + cpu.IP.ToHexString() + CrashLog.GetAddressInModule(cpu.IP, System.Diagnostics.Process.GetCurrentProcess().Modules, " ") + " on thread " + Memory.GetCurrentNativeThreadId() + "!";
+            var handled = 0;
+            var logmsg = "Unhandled native exception occurred at "                                                        + cpu.IP.ToHexString() +
+                         CrashLog.GetAddressInModule(cpu.IP, System.Diagnostics.Process.GetCurrentProcess().Modules, " ") + " on thread " + Memory.GetCurrentNativeThreadId() + "!";
 
             try
             {
@@ -481,10 +413,7 @@ namespace NetScriptFramework
                 if (cl.Skipped)
                     logmsg = null;
             }
-            catch(Exception ex2)
-            {
-                Main.Log.Append(ex2);
-            }
+            catch (Exception ex2) { Log.Append(ex2); }
 
             if (logmsg != null)
                 Log.AppendLine(logmsg);
@@ -511,16 +440,14 @@ namespace NetScriptFramework
             if (nativeThreadId == int.MinValue)
                 nativeThreadId = Memory.GetCurrentNativeThreadId();
 
-            int handled = 0;
+            var handled = 0;
             try
             {
                 var cl = new NativeCrashLog(cpu);
                 handled = cl.Write(true, filePath, true);
             }
-            catch (Exception ex2)
-            {
-                Main.Log.Append(ex2);
-            }
+            catch (Exception ex2) { Log.Append(ex2); }
+
             return handled > 0;
         }
 
@@ -530,22 +457,12 @@ namespace NetScriptFramework
         /// <value>
         /// <c>true</c> if plugins are initializing; otherwise, <c>false</c>.
         /// </value>
-        public static bool IsInitializing
-        {
-            get
-            {
-                return _is_initializing_plugin > 0;
-            }
-        }
+        public static bool IsInitializing => _is_initializing_plugin > 0;
 
         /// <summary>
         /// Gets or sets the internal value of plugin initialize state.
         /// </summary>
-        internal static int _is_initializing_plugin
-        {
-            get;
-            set;
-        } = 0;
+        internal static int _is_initializing_plugin { get; set; } = 0;
 
         /// <summary>
         /// The debug listeners.
@@ -571,10 +488,10 @@ namespace NetScriptFramework
             if (listener == null)
                 return;
 
-            lock(DebugLocker)
+            lock (DebugLocker)
             {
                 DebugListeners.Add(listener);
-                System.Threading.Interlocked.Increment(ref HasDebugListeners);
+                Interlocked.Increment(ref HasDebugListeners);
             }
         }
 
@@ -589,10 +506,10 @@ namespace NetScriptFramework
                 return false;
 
             bool removed;
-            lock(DebugLocker)
+            lock (DebugLocker)
             {
                 removed = DebugListeners.Remove(listener);
-                System.Threading.Interlocked.Decrement(ref HasDebugListeners);
+                Interlocked.Decrement(ref HasDebugListeners);
             }
 
             return removed;
@@ -604,7 +521,7 @@ namespace NetScriptFramework
         /// <param name="message">The message.</param>
         public static void WriteDebugMessage(string message)
         {
-            if (message == null || System.Threading.Interlocked.CompareExchange(ref HasDebugListeners, 0, 0) == 0)
+            if (message == null || Interlocked.CompareExchange(ref HasDebugListeners, 0, 0) == 0)
                 return;
 
             Plugin sender = null;
@@ -614,18 +531,13 @@ namespace NetScriptFramework
                 if (asm != null)
                     sender = PluginManager.GetPlugin(asm);
             }
-            catch
-            {
+            catch { }
 
-            }
-
-            lock(DebugLocker)
+            lock (DebugLocker)
             {
-                if(DebugListeners.Count != 0)
-                {
-                    for (int i = DebugListeners.Count - 1; i >= 0; i--)
+                if (DebugListeners.Count != 0)
+                    for (var i = DebugListeners.Count - 1; i >= 0; i--)
                         DebugListeners[i].OnMessage(sender, message);
-                }
             }
         }
 
@@ -640,12 +552,12 @@ namespace NetScriptFramework
             if (Game == null)
                 return proc.MainModule;
 
-            string want = Game.ModuleName ?? string.Empty;
+            var want = Game.ModuleName ?? string.Empty;
             if (want.Length == 0)
                 return proc.MainModule;
 
             var modules = proc.Modules;
-            foreach(System.Diagnostics.ProcessModule m in modules)
+            foreach (System.Diagnostics.ProcessModule m in modules)
             {
                 if (!want.Equals(m.ModuleName, StringComparison.OrdinalIgnoreCase))
                     continue;
@@ -655,10 +567,10 @@ namespace NetScriptFramework
 
             throw new FileNotFoundException("Main targeted module was not found in process!");
         }
-        
-        #endregion
 
-        #region Internal members
+    #endregion
+
+    #region Internal members
 
         /// <summary>
         /// The status of framework.
@@ -683,10 +595,7 @@ namespace NetScriptFramework
         /// <summary>
         /// Initializes the log file.
         /// </summary>
-        private static void InitializeLog()
-        {
-            Log = new Tools.LogFile();
-        }
+        private static void InitializeLog() { Log = new Tools.LogFile(); }
 
         /// <summary>
         /// Prepares the configuration instance. This doesn't load from file automatically!
@@ -694,13 +603,15 @@ namespace NetScriptFramework
         private static void PrepareConfiguration()
         {
             Config = new Tools.ConfigFile();
-            Config.AddSetting(Main._Config_Plugin_Path, System.IO.Path.Combine(Config.Path, "Plugins"), "Path to plugins", "Relative or absolute path to plugin files.");
-            Config.AddSetting(Main._Config_Plugin_Lib_Path, System.IO.Path.Combine(Config.Path, "Plugins", "Lib"), "Path to plugin libraries", "Relative or absolute path to plugin dependency libraries. You can place any additional DLL files your plugin requires here. These DLL files will not attempt to automatically load as plugins, you can also use DllImport attribute and it will search for the DLL's in this path. Any .NET libraries referenced by your plugin project will also search for them here.");
-            Config.AddSetting(Main._Config_Debug_CrashLog_Enabled, new Tools.Value((int)1), "Enable crash logs", "Enable writing crash logs when the game crashes.");
-            Config.AddSetting(Main._Config_Debug_CrashLog_Path, System.IO.Path.Combine(Config.Path, "Crash"), "Path to crash logs", "The path where to write crash logs if enabled.");
-            Config.AddSetting(Main._Config_Debug_CrashLog_Append, new Tools.Value((int)0), "Append crash logs", "Append all crash logs to same file or create a separate file for each crash.");
-            Config.AddSetting(Main._Config_Debug_CrashLog_StackCount, new Tools.Value((int)512), "Stack count", "How many values to print from stack.");
-            Config.AddSetting(Main._Config_Debug_CrashLog_Modules, new Tools.Value(true), "Modules", "Write loaded modules of process to crash log?");
+            Config.AddSetting(_Config_Plugin_Path, Path.Combine(Config.Path, "Plugins"), "Path to plugins", "Relative or absolute path to plugin files.");
+            Config.AddSetting(_Config_Plugin_Lib_Path, Path.Combine(Config.Path, "Plugins", "Lib"), "Path to plugin libraries",
+                              "Relative or absolute path to plugin dependency libraries. You can place any additional DLL files your plugin requires here. These DLL files will not attempt to automatically load as plugins, you can also use DllImport attribute and it will search for the DLL's in this path. Any .NET libraries referenced by your plugin project will also search for them here.");
+            Config.AddSetting(_Config_Debug_CrashLog_Enabled, new Tools.Value((int) 1), "Enable crash logs", "Enable writing crash logs when the game crashes.");
+            Config.AddSetting(_Config_Debug_CrashLog_Path, Path.Combine(Config.Path, "Crash"), "Path to crash logs", "The path where to write crash logs if enabled.");
+            Config.AddSetting(_Config_Debug_CrashLog_Append, new Tools.Value((int) 0), "Append crash logs",
+                              "Append all crash logs to same file or create a separate file for each crash.");
+            Config.AddSetting(_Config_Debug_CrashLog_StackCount, new Tools.Value((int) 512), "Stack count", "How many values to print from stack.");
+            Config.AddSetting(_Config_Debug_CrashLog_Modules, new Tools.Value(true), "Modules", "Write loaded modules of process to crash log?");
         }
 
         /// <summary>
@@ -708,18 +619,19 @@ namespace NetScriptFramework
         /// </summary>
         private static void LoadGameInfo()
         {
-            Main.Log.AppendLine("Loading game library.");
-            List<FileInfo> found = new List<FileInfo>();
-            DirectoryInfo dir = new DirectoryInfo(FrameworkPath);
+            Log.AppendLine("Loading game library.");
+            var found = new List<FileInfo>();
+            var dir   = new DirectoryInfo(FrameworkPath);
             var files = dir.GetFiles();
-            foreach(var x in files)
+            foreach (var x in files)
             {
-                string fileName = x.Name;
-                if (!fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) || !fileName.StartsWith(Main.FrameworkName + ".", StringComparison.OrdinalIgnoreCase) || fileName.Equals(Main.FrameworkName + ".dll", StringComparison.OrdinalIgnoreCase) || fileName.EndsWith(".implementations.dll", StringComparison.OrdinalIgnoreCase))
+                var fileName = x.Name;
+                if (!fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)              || !fileName.StartsWith(FrameworkName + ".", StringComparison.OrdinalIgnoreCase) ||
+                    fileName.Equals(FrameworkName + ".dll", StringComparison.OrdinalIgnoreCase) || fileName.EndsWith(".implementations.dll", StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                fileName = fileName.Substring(Main.FrameworkName.Length + 1);
-                fileName = fileName.Substring(0, fileName.Length - 4);
+                fileName = fileName.Substring(FrameworkName.Length + 1);
+                fileName = fileName.Substring(0, fileName.Length   - 4);
 
                 if (fileName.Length == 0 || fileName.Equals("Runtime", StringComparison.OrdinalIgnoreCase))
                     continue;
@@ -727,27 +639,27 @@ namespace NetScriptFramework
                 found.Add(x);
             }
 
-            if(found.Count == 0)
+            if (found.Count == 0)
             {
-                Main.Log.AppendLine("No game library DLL found! Game definitions will not be loaded but plugins may still load.");
+                Log.AppendLine("No game library DLL found! Game definitions will not be loaded but plugins may still load.");
                 return;
             }
 
-            if(found.Count > 1)
+            if (found.Count > 1)
             {
-                string fstr = string.Join(", ", found.Select(q => q.Name));
+                var fstr = string.Join(", ", found.Select(q => q.Name));
                 throw new InvalidOperationException("Found more than one game library DLL! Only one game library may be active at a time. [" + fstr + "]");
             }
 
             {
-                var versionFile = found[0];
-                string versionFileName = versionFile.Name;
-                int ptIdx = versionFileName.LastIndexOf('.');
+                var versionFile     = found[0];
+                var versionFileName = versionFile.Name;
+                var ptIdx           = versionFileName.LastIndexOf('.');
                 if (ptIdx >= 0)
                 {
-                    string verss = string.Join("_", Memory.GetMainModuleVersion());
-                    versionFileName = versionFileName.Substring(0, ptIdx) + "." + verss + ".bin";
-                    VersionLibraryFile = new FileInfo(System.IO.Path.Combine(versionFile.DirectoryName, versionFileName));
+                    var verss = string.Join("_", Memory.GetMainModuleVersion());
+                    versionFileName    = versionFileName.Substring(0, ptIdx) + "." + verss + ".bin";
+                    VersionLibraryFile = new FileInfo(Path.Combine(versionFile.DirectoryName, versionFileName));
                     InitializeVersionInfo();
                 }
             }
@@ -757,9 +669,9 @@ namespace NetScriptFramework
             if (assembly == null)
                 throw new InvalidOperationException();
 
-            var types = assembly.GetTypes();
+            var  types = assembly.GetTypes();
             Type valid = null;
-            foreach(var t in types)
+            foreach (var t in types)
             {
                 if (!t.IsSubclassOf(typeof(Game)))
                     continue;
@@ -779,35 +691,32 @@ namespace NetScriptFramework
             if (valid == null)
                 throw new InvalidOperationException("Found game library but no valid game header type!");
 
-            GameCreate = 1;
-            Main._is_initializing_plugin += 2;
+            GameCreate              =  1;
+            _is_initializing_plugin += 2;
             try
             {
-                Game result = (Game)Activator.CreateInstance(valid);
-                string print = "`" + result.FullName + "` (" + result.LibraryVersion + ")";
-                Main.Log.AppendLine("Loaded game library for " + print + ".");
-                Main.Log.AppendLine("Running game version is " + string.Join(".", result.GameVersion));
-                string supportedExecutable = result.ExecutableName;
-                string haveExecutable = System.Diagnostics.Process.GetCurrentProcess().MainModule.ModuleName;
+                var result = (Game) Activator.CreateInstance(valid);
+                var print  = "`"                          + result.FullName + "` (" + result.LibraryVersion + ")";
+                Log.AppendLine("Loaded game library for " + print           + ".");
+                Log.AppendLine("Running game version is " + string.Join(".", result.GameVersion));
+                var supportedExecutable = result.ExecutableName;
+                var haveExecutable      = System.Diagnostics.Process.GetCurrentProcess().MainModule.ModuleName;
                 if (!haveExecutable.Equals(supportedExecutable, StringComparison.OrdinalIgnoreCase))
                     throw new InvalidOperationException("Game library " + print + " expected game executable `" + supportedExecutable + "` but have `" + haveExecutable + "`!");
                 if (!result.IsValidVersion)
                     throw new InvalidOperationException("Game library " + print + " does not support game version " + string.Join(".", result.GameVersion) + "!");
 
-                Main.Game = result;
+                Game = result;
                 ValidateVersionLibrary();
 
                 if (VersionLibraryError != null)
                     throw new InvalidOperationException("Version library error: " + VersionLibraryError + "!");
-                if (Main.GameInfo == null && result.VersionLibraryHash != 0)
+                if (GameInfo == null && result.VersionLibraryHash != 0)
                     throw new InvalidOperationException("Game library " + print + " requires a version library but one is not loaded!");
 
                 result._initialize();
             }
-            finally
-            {
-                Main._is_initializing_plugin -= 2;
-            }
+            finally { _is_initializing_plugin -= 2; }
         }
 
         /// <summary>
@@ -818,21 +727,19 @@ namespace NetScriptFramework
             if (GameInfo == null && VersionLibraryError == null)
             {
                 if (VersionLibraryFile != null && VersionLibraryFile.Exists)
-                {
                     try
                     {
-                        var mainModule = Main.GetMainTargetedModule();
-                        ulong baseOffset = mainModule.BaseAddress.ToUInt64();
-                        GameInfo = new GameInfo(baseOffset, Main.Is64Bit);
+                        var mainModule = GetMainTargetedModule();
+                        var baseOffset = mainModule.BaseAddress.ToUInt64();
+                        GameInfo = new GameInfo(baseOffset, Is64Bit);
                         GameInfo.ReadFromFile(VersionLibraryFile, 0);
                         ValidateVersionLibrary();
                     }
                     catch (Exception ex)
                     {
-                        GameInfo = null;
+                        GameInfo            = null;
                         VersionLibraryError = "Exception when loading (" + ex.GetType().Name + "): " + ex.Message;
                     }
-                }
                 else if (VersionLibraryFile != null)
                     VersionLibraryError = "File not found (" + VersionLibraryFile.Name + ")";
                 else
@@ -843,16 +750,12 @@ namespace NetScriptFramework
         /// <summary>
         /// The version library file.
         /// </summary>
-        private static System.IO.FileInfo VersionLibraryFile = null;
+        private static FileInfo VersionLibraryFile = null;
 
         /// <summary>
         /// The version library error.
         /// </summary>
-        internal static string VersionLibraryError
-        {
-            get;
-            private set;
-        }
+        internal static string VersionLibraryError { get; private set; }
 
         /// <summary>
         /// Validates the version library.
@@ -863,32 +766,32 @@ namespace NetScriptFramework
             if (info == null || VersionLibraryError != null)
                 return;
 
-            var appVer = Memory.GetMainModuleVersion();
-            int? libver = null;
+            var    appVer  = Memory.GetMainModuleVersion();
+            int?   libver  = null;
             ulong? reqhash = null;
-            if (Main.Game != null)
+            if (Game != null)
             {
-                libver = Main.Game.LibraryVersion;
-                reqhash = Main.Game.VersionLibraryHash;
+                libver  = Game.LibraryVersion;
+                reqhash = Game.VersionLibraryHash;
             }
 
             if (info.FileVersion[0] != appVer[0] || info.FileVersion[1] != appVer[1] || info.FileVersion[2] != appVer[2] || info.FileVersion[3] != appVer[3])
             {
-                GameInfo = null;
+                GameInfo            = null;
                 VersionLibraryError = "File version mismatch, expected " + string.Join(".", info.FileVersion) + " but have " + string.Join(".", appVer);
                 return;
             }
 
-            if(libver.HasValue && libver.Value != info.LibraryVersion)
+            if (libver.HasValue && libver.Value != info.LibraryVersion)
             {
-                GameInfo = null;
+                GameInfo            = null;
                 VersionLibraryError = "DLL version mismatch, expected " + libver.Value + " but have " + info.LibraryVersion;
                 return;
             }
 
-            if(reqhash.HasValue && reqhash.Value != 0 && reqhash.Value != info.HashVersion)
+            if (reqhash.HasValue && reqhash.Value != 0 && reqhash.Value != info.HashVersion)
             {
-                GameInfo = null;
+                GameInfo            = null;
                 VersionLibraryError = "DLL hash mismatch, expected " + reqhash.Value.ToString("X") + " but have " + info.HashVersion.ToString("X");
                 return;
             }
@@ -907,11 +810,11 @@ namespace NetScriptFramework
             {
                 if (noExcept)
                     return null;
-                throw new System.IO.FileNotFoundException("The version library is not currently loaded!");
+                throw new FileNotFoundException("The version library is not currently loaded!");
             }
 
             var dt = info.GetTypeInfo(id);
-            if(dt == null)
+            if (dt == null)
             {
                 if (noExcept)
                     return null;
@@ -921,7 +824,7 @@ namespace NetScriptFramework
             return dt;
         }
 
-        #region Setting names
+    #region Setting names
 
         /// <summary>
         /// The plugin files path.
@@ -958,7 +861,7 @@ namespace NetScriptFramework
         /// </summary>
         internal const string _Config_Debug_CrashLog_Modules = "Debug.CrashLog.Modules";
 
-        #endregion
+    #endregion
 
         /// <summary>
         /// Prepares and loads configuration file. If file failed to load it will attempt to create.
@@ -967,40 +870,40 @@ namespace NetScriptFramework
         private static bool PrepareAndLoadConfiguration()
         {
             PrepareConfiguration();
-            bool loadedConfiguration = false;
-#if !DEBUG
+            var loadedConfiguration = false;
+        #if !DEBUG
             try
             {
-#endif
-                loadedConfiguration = Config.Load();
-#if !DEBUG
+        #endif
+            loadedConfiguration = Config.Load();
+        #if !DEBUG
             }
             catch
             {
 
             }
-#endif
+        #endif
             if (!loadedConfiguration)
             {
-#if !DEBUG
+            #if !DEBUG
                 try
                 {
-#endif
-                    Config.Save();
-#if !DEBUG
+            #endif
+                Config.Save();
+            #if !DEBUG
                 }
                 catch
                 {
 
                 }
-#endif
+            #endif
             }
 
             return loadedConfiguration;
         }
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 }

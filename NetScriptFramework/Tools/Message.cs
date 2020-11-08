@@ -6,23 +6,20 @@ using System.Threading.Tasks;
 
 namespace NetScriptFramework.Tools
 {
-    #region Block class
+#region Block class
 
     /// <summary>
     /// Contains information about one block in a message.
     /// </summary>
     internal sealed class Block
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         /// Create a new block.
         /// </summary>
         /// <param name="message">Message where this block belongs in.</param>
-        internal Block(Message message)
-        {
-            this.Message = message;
-        }
+        internal Block(Message message) { Message = message; }
 
         /// <summary>
         /// Copy a block to new message.
@@ -31,13 +28,13 @@ namespace NetScriptFramework.Tools
         /// <param name="msg">New message.</param>
         internal Block(Block block, Message msg)
         {
-            this.Message = msg;
-            this.Elements = block.Elements;
+            Message  = msg;
+            Elements = block.Elements;
         }
 
-        #endregion
+    #endregion
 
-        #region Block members
+    #region Block members
 
         /// <summary>
         /// Check if this block or any sub block has element with this type.
@@ -46,12 +43,12 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         internal bool HasAnyElementType(BlockElementTypes type)
         {
-            foreach (var x in this.Elements)
+            foreach (var x in Elements)
             {
                 if (x.Key == type)
                     return true;
 
-                if (x.Key == BlockElementTypes.Block && ((Block)x.Value).HasAnyElementType(type))
+                if (x.Key == BlockElementTypes.Block && ((Block) x.Value).HasAnyElementType(type))
                     return true;
             }
 
@@ -77,111 +74,109 @@ namespace NetScriptFramework.Tools
         internal bool ToString(Parser parser, ref string result)
         {
             // Parse into this builder.
-            StringBuilder str = new StringBuilder();
+            var str = new StringBuilder();
 
             // Function temporary data.
-            string fn = null;
+            string       fn   = null;
             List<string> args = null;
 
             // Start to parse.
-            IArgument obj = parser["this"];
-            for (int i = 0; i < this.Elements.Count; i++)
-            {
-                switch (this.Elements[i].Key)
+            var obj = parser["this"];
+            for (var i = 0; i < Elements.Count; i++)
+                switch (Elements[i].Key)
                 {
                     case BlockElementTypes.Argument:
-                        obj = parser.ParseArgument(this.Message, (string)this.Elements[i].Value, obj);
+                        obj = parser.ParseArgument(Message, (string) Elements[i].Value, obj);
                         if (obj == null)
-                            obj = parser[(string)this.Elements[i].Value];
+                            obj = parser[(string) Elements[i].Value];
                         if (obj == null)
                         {
-                            result = "Failed to parse argument \"" + this.Elements[i].Value + "\" on " + (obj != null ? obj.ToString() : "(null)") + "!";
+                            result = "Failed to parse argument \"" + Elements[i].Value + "\" on " + (obj != null ? obj.ToString() : "(null)") + "!";
                             return false;
                         }
+
                         break;
 
                     case BlockElementTypes.Variable:
+                    {
+                        var val = parser.ParseVariable(Message, (string) Elements[i].Value, obj);
+                        if (val == null)
                         {
-                            string val = parser.ParseVariable(this.Message, (string)this.Elements[i].Value, obj);
-                            if (val == null)
-                            {
-                                result = "Failed to parse variable \"" + this.Elements[i].Value + "\" on " + (obj != null ? obj.ToString() : "(null)") + "!";
-                                return false;
-                            }
-
-                            str.Append(val);
+                            result = "Failed to parse variable \"" + Elements[i].Value + "\" on " + (obj != null ? obj.ToString() : "(null)") + "!";
+                            return false;
                         }
+
+                        str.Append(val);
+                    }
                         break;
 
                     case BlockElementTypes.Literal:
                         if (fn != null)
                         {
                             if (args == null)
-                                args = new List<string>() { (string)this.Elements[i].Value };
+                                args = new List<string>() {(string) Elements[i].Value};
                             else
-                                args[args.Count - 1] += (string)this.Elements[i].Value;
+                                args[args.Count - 1] += (string) Elements[i].Value;
                         }
-                        else
-                            str.Append((string)this.Elements[i].Value);
+                        else { str.Append((string) Elements[i].Value); }
+
                         break;
 
                     case BlockElementTypes.Block:
+                    {
+                        string val = null;
+                        var    r   = ((Block) Elements[i].Value).ToString(parser, ref val);
+                        if (!r)
                         {
-                            string val = null;
-                            bool r = ((Block)this.Elements[i].Value).ToString(parser, ref val);
-                            if (!r)
-                            {
-                                result = val;
-                                return r;
-                            }
-
-                            if (fn != null)
-                            {
-                                if (args == null)
-                                    args = new List<string>() { val };
-                                else
-                                    args[args.Count - 1] += val;
-                            }
-                            else
-                                str.Append(val);
+                            result = val;
+                            return r;
                         }
+
+                        if (fn != null)
+                        {
+                            if (args == null)
+                                args = new List<string>() {val};
+                            else
+                                args[args.Count - 1] += val;
+                        }
+                        else { str.Append(val); }
+                    }
                         break;
 
                     case BlockElementTypes.Function:
+                    {
+                        if (fn != null)
                         {
-                            if (fn != null)
-                            {
-                                result = "Found more than one function call in a block!";
-                                return false;
-                            }
-
-                            fn = (string)this.Elements[i].Value;
+                            result = "Found more than one function call in a block!";
+                            return false;
                         }
+
+                        fn = (string) Elements[i].Value;
+                    }
                         break;
 
                     case BlockElementTypes.ParameterDelimiter:
+                    {
+                        if (fn == null)
                         {
-                            if (fn == null)
-                            {
-                                result = "Found invalid parameter delimiter in a block!";
-                                return false;
-                            }
-
-                            if (args == null)
-                                args = new List<string>() { "" };
-                            else
-                                args.Add("");
+                            result = "Found invalid parameter delimiter in a block!";
+                            return false;
                         }
+
+                        if (args == null)
+                            args = new List<string>() {""};
+                        else
+                            args.Add("");
+                    }
                         break;
 
                     default:
                         throw new NotImplementedException();
                 }
-            }
 
             if (fn != null)
             {
-                string val = parser.ParseFunction(this.Message, fn, args != null ? args.ToArray() : new string[0], obj);
+                var val = parser.ParseFunction(Message, fn, args != null ? args.ToArray() : new string[0], obj);
                 if (val == null)
                 {
                     result = "Failed to parse function \"" + fn + "\" on " + (obj != null ? obj.ToString() : "(null)") + "!";
@@ -195,9 +190,9 @@ namespace NetScriptFramework.Tools
             return true;
         }
 
-        #endregion
+    #endregion
 
-        #region Static members
+    #region Static members
 
         /// <summary>
         /// Parse a block from text.
@@ -211,16 +206,16 @@ namespace NetScriptFramework.Tools
         internal static string Parse(Message message, string text, ref int index, ref Block result, bool isBlock)
         {
             // Current token.
-            StringBuilder str = new StringBuilder();
+            var str = new StringBuilder();
 
             // Current state of parse.
-            BlockParseStates state = BlockParseStates.None;
+            var state = BlockParseStates.None;
 
             // Temporary variable.
-            int len = 0;
+            var len = 0;
 
             // Current block to return.
-            Block block = new Block(message);
+            var block = new Block(message);
 
             // Parse until end.
             while (index < text.Length)
@@ -278,7 +273,7 @@ namespace NetScriptFramework.Tools
                 }
 
                 // Ignore symbol.
-                if ((isBlock && Parser.IsSymbol(text, index, ParserActions.BlockIgnore, ref len)) || Parser.IsSymbol(text, index, ParserActions.AlwaysIgnore, ref len))
+                if (isBlock && Parser.IsSymbol(text, index, ParserActions.BlockIgnore, ref len) || Parser.IsSymbol(text, index, ParserActions.AlwaysIgnore, ref len))
                 {
                     // Advance index.
                     index += len;
@@ -318,11 +313,9 @@ namespace NetScriptFramework.Tools
                 {
                     // Only in block.
                     if (isBlock)
-                    {
                         // Sub-blocks are only allowed in parameters.
                         if ((state & BlockParseStates.ParameterList) == BlockParseStates.None)
                             return "Unexpected start of another block at index " + index + " in string \"" + text + "\"!";
-                    }
 
                     // Finish last token.
                     if (str.Length != 0)
@@ -336,7 +329,7 @@ namespace NetScriptFramework.Tools
 
                     // Read another block recursively.
                     Block read = null;
-                    string r = Block.Parse(message, text, ref index, ref read, true);
+                    var   r    = Parse(message, text, ref index, ref read, true);
 
                     // Error occurred while reading sub-block. Return error.
                     if (r != null)
@@ -434,10 +427,8 @@ namespace NetScriptFramework.Tools
 
             // Not allowed to reach here in block.
             if (isBlock)
-            {
                 // Error.
                 return "Reached end of string unexpectedly while parsing block in string \"" + text + "\"!";
-            }
 
             // If have token then it's text.
             if (str.Length != 0)
@@ -451,12 +442,12 @@ namespace NetScriptFramework.Tools
             return null;
         }
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 
-    #region Block enums
+#region Block enums
 
     /// <summary>
     /// All possible states of block parse.
@@ -487,7 +478,7 @@ namespace NetScriptFramework.Tools
         /// <summary>
         /// Already had parameter list.
         /// </summary>
-        HadParameterList = 8,
+        HadParameterList = 8
     }
 
     /// <summary>
@@ -523,19 +514,19 @@ namespace NetScriptFramework.Tools
         /// <summary>
         /// Delimiter of function parameters.
         /// </summary>
-        ParameterDelimiter,
+        ParameterDelimiter
     }
 
-    #endregion
+#endregion
 
-    #region IArgument interface
+#region IArgument interface
 
     /// <summary>
     /// This implements functionality for an argument of message that can be parsed.
     /// </summary>
     public interface IArgument
     {
-        #region IArgument members
+    #region IArgument members
 
         /// <summary>
         /// Parse an argument from this object.
@@ -565,27 +556,27 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         string ParseFunction(string key, string[] args, Message message, Parser parser);
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 
-    #region Message class
+#region Message class
 
     /// <summary>
     /// This contains a message that may contain variables to be parsed by the parser.
     /// </summary>
     public sealed class Message
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         /// Create a new empty message.
         /// </summary>
         public Message()
         {
-            this._text = "";
-            this._block = new Block(this);
+            _text  = "";
+            _block = new Block(this);
         }
 
         /// <summary>
@@ -597,9 +588,9 @@ namespace NetScriptFramework.Tools
             if (text == null)
                 throw new ArgumentNullException("text");
 
-            this._text = text;
-            int index = 0;
-            string r = Block.Parse(this, text, ref index, ref this._block, false);
+            _text = text;
+            var index = 0;
+            var r     = Block.Parse(this, text, ref index, ref _block, false);
             if (!string.IsNullOrEmpty(r))
                 throw new ArgumentException("text", r);
         }
@@ -613,24 +604,22 @@ namespace NetScriptFramework.Tools
             if (msg == null)
                 throw new ArgumentNullException("msg");
 
-            this._text = msg._text;
-            this._block = new Block(msg._block, this);
+            _text  = msg._text;
+            _block = new Block(msg._block, this);
         }
 
-        #endregion
+    #endregion
 
-        #region Message members
+    #region Message members
 
         /// <summary>
         /// Get or set raw text of message.
         /// </summary>
         public string Text
         {
-            get
-            {
+            get =>
                 // Get current text.
-                return this._text;
-            }
+                _text;
             set
             {
                 // Null is not allowed.
@@ -638,15 +627,15 @@ namespace NetScriptFramework.Tools
                     throw new ArgumentNullException("value");
 
                 // Save some resources.
-                if (this._text == value)
+                if (_text == value)
                     return;
 
                 // Set new text.
-                this._text = value;
+                _text = value;
 
                 // Calculate cached block.
-                int index = 0;
-                string r = Block.Parse(this, this._text, ref index, ref this._block, false);
+                var index = 0;
+                var r     = Block.Parse(this, _text, ref index, ref _block, false);
                 if (!string.IsNullOrEmpty(r))
                     throw new ArgumentException("value", r);
             }
@@ -663,7 +652,7 @@ namespace NetScriptFramework.Tools
                 parser = new Parser();
 
             string v = null;
-            bool r = this._block.ToString(parser, ref v);
+            var    r = _block.ToString(parser, ref v);
             if (!r)
                 throw new InvalidOperationException(v);
 
@@ -682,48 +671,48 @@ namespace NetScriptFramework.Tools
                 parser = new Parser();
 
             string v = null;
-            bool r = this._block.ToString(parser, ref v);
+            var    r = _block.ToString(parser, ref v);
             result = v;
             return r;
         }
-        
-        #endregion
-
-        #region Internal members
-        
-        private string _text;
-        private Block _block;
-
-        #endregion
-    }
 
     #endregion
 
-    #region Parser class
+    #region Internal members
+
+        private string _text;
+        private Block  _block;
+
+    #endregion
+    }
+
+#endregion
+
+#region Parser class
 
     /// <summary>
     /// Implements default message parser behavior.
     /// </summary>
     public class Parser
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         /// Perform static initialization.
         /// </summary>
         static Parser()
         {
-            EscapeSymbol = new SymbolList("\\");
-            VariableStartSymbol = new SymbolList("<");
-            VariableEndSymbol = new SymbolList(">");
+            EscapeSymbol            = new SymbolList("\\");
+            VariableStartSymbol     = new SymbolList("<");
+            VariableEndSymbol       = new SymbolList(">");
             VariableDelimiterSymbol = new SymbolList(".");
-            ArgumentStartSymbol = new SymbolList("(");
-            ArgumentEndSymbol = new SymbolList(")");
+            ArgumentStartSymbol     = new SymbolList("(");
+            ArgumentEndSymbol       = new SymbolList(")");
             ArgumentDelimiterSymbol = new SymbolList(",");
-            LiteralStartSymbol = new SymbolList("\"");
-            LiteralEndSymbol = new SymbolList("\"");
-            IgnoreBlockSymbol = new SymbolList(" ", "\t");
-            IgnoreAlwaysSymbol = new SymbolList();
+            LiteralStartSymbol      = new SymbolList("\"");
+            LiteralEndSymbol        = new SymbolList("\"");
+            IgnoreBlockSymbol       = new SymbolList(" ", "\t");
+            IgnoreAlwaysSymbol      = new SymbolList();
 
             // Register if function.
             Functions["if"] = q =>
@@ -733,8 +722,8 @@ namespace NetScriptFramework.Tools
 
                 if (q.Length == 2)
                 {
-                    Value v = new Value(q[0]);
-                    bool qr = false;
+                    var v  = new Value(q[0]);
+                    var qr = false;
                     if (v.TryToBoolean(out qr))
                         return qr ? q[1] : "";
                     return null;
@@ -742,8 +731,8 @@ namespace NetScriptFramework.Tools
 
                 if (q.Length == 3)
                 {
-                    Value v = new Value(q[0]);
-                    bool qr = false;
+                    var v  = new Value(q[0]);
+                    var qr = false;
                     if (v.TryToBoolean(out qr))
                         return qr ? q[1] : q[2];
                     return null;
@@ -759,7 +748,7 @@ namespace NetScriptFramework.Tools
                     return new Value(Randomizer.NextDouble()).ToString();
                 if (q.Length == 1)
                 {
-                    Value v = new Value(q[0]);
+                    var    v = new Value(q[0]);
                     double qv;
                     if (v.TryToDouble(out qv))
                         return Randomizer.Roll(qv) ? "1" : "0";
@@ -767,8 +756,8 @@ namespace NetScriptFramework.Tools
                 }
                 else if (q.Length == 2)
                 {
-                    Value v1 = new Value(q[0]);
-                    Value v2 = new Value(q[1]);
+                    var v1 = new Value(q[0]);
+                    var v2 = new Value(q[1]);
 
                     double qv1, qv2;
                     if (!v1.TryToDouble(out qv1) || !v2.TryToDouble(out qv2))
@@ -782,20 +771,18 @@ namespace NetScriptFramework.Tools
 
                 return null;
             };
-            Functions["rnd"] = Functions["rand"];
+            Functions["rnd"]    = Functions["rand"];
             Functions["random"] = Functions["rand"];
         }
 
         /// <summary>
         /// Create a new parser.
         /// </summary>
-        public Parser()
-        {
-        }
+        public Parser() { }
 
-        #endregion
+    #endregion
 
-        #region Parser members
+    #region Parser members
 
         /// <summary>
         /// Get or set escape sequence symbol. Default is one backslash.
@@ -866,7 +853,7 @@ namespace NetScriptFramework.Tools
                 return obj.ParseArgument(keyword, message, this);
 
             // Check custom arguments.
-            return this.Arguments[keyword];
+            return Arguments[keyword];
         }
 
         /// <summary>
@@ -920,7 +907,7 @@ namespace NetScriptFramework.Tools
                     throw new ArgumentNullException("keyword");
 
                 IArgument v = null;
-                if (this.Arguments.TryGetValue(keyword, out v))
+                if (Arguments.TryGetValue(keyword, out v))
                     return v;
                 return null;
             }
@@ -930,15 +917,15 @@ namespace NetScriptFramework.Tools
                     throw new ArgumentNullException("keyword");
 
                 if (value == null)
-                    this.Arguments.Remove(keyword);
+                    Arguments.Remove(keyword);
                 else
-                    this.Arguments[keyword] = value;
+                    Arguments[keyword] = value;
             }
         }
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         /// Check if text has symbol for current action.
@@ -954,17 +941,39 @@ namespace NetScriptFramework.Tools
             SymbolList list = null;
             switch (action)
             {
-                case ParserActions.Escape: list = EscapeSymbol; break;
-                case ParserActions.VariableStart: list = VariableStartSymbol; break;
-                case ParserActions.VariableEnd: list = VariableEndSymbol; break;
-                case ParserActions.VariableDelimiter: list = VariableDelimiterSymbol; break;
-                case ParserActions.ArgumentStart: list = ArgumentStartSymbol; break;
-                case ParserActions.ArgumentEnd: list = ArgumentEndSymbol; break;
-                case ParserActions.ArgumentDelimiter: list = ArgumentDelimiterSymbol; break;
-                case ParserActions.LiteralStart: list = LiteralStartSymbol; break;
-                case ParserActions.LiteralEnd: list = LiteralEndSymbol; break;
-                case ParserActions.BlockIgnore: list = IgnoreBlockSymbol; break;
-                case ParserActions.AlwaysIgnore: list = IgnoreAlwaysSymbol; break;
+                case ParserActions.Escape:
+                    list = EscapeSymbol;
+                    break;
+                case ParserActions.VariableStart:
+                    list = VariableStartSymbol;
+                    break;
+                case ParserActions.VariableEnd:
+                    list = VariableEndSymbol;
+                    break;
+                case ParserActions.VariableDelimiter:
+                    list = VariableDelimiterSymbol;
+                    break;
+                case ParserActions.ArgumentStart:
+                    list = ArgumentStartSymbol;
+                    break;
+                case ParserActions.ArgumentEnd:
+                    list = ArgumentEndSymbol;
+                    break;
+                case ParserActions.ArgumentDelimiter:
+                    list = ArgumentDelimiterSymbol;
+                    break;
+                case ParserActions.LiteralStart:
+                    list = LiteralStartSymbol;
+                    break;
+                case ParserActions.LiteralEnd:
+                    list = LiteralEndSymbol;
+                    break;
+                case ParserActions.BlockIgnore:
+                    list = IgnoreBlockSymbol;
+                    break;
+                case ParserActions.AlwaysIgnore:
+                    list = IgnoreAlwaysSymbol;
+                    break;
                 default:
                     throw new InvalidOperationException();
             }
@@ -982,12 +991,12 @@ namespace NetScriptFramework.Tools
         /// </summary>
         protected static readonly Dictionary<string, Func<string[], string>> Functions = new Dictionary<string, Func<string[], string>>(StringComparer.OrdinalIgnoreCase);
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 
-    #region Parser enums
+#region Parser enums
 
     /// <summary>
     /// Options for parser.
@@ -995,7 +1004,7 @@ namespace NetScriptFramework.Tools
     [Flags]
     public enum ParserFlags : ulong
     {
-        None = 0,
+        None = 0
     }
 
     /// <summary>
@@ -1059,19 +1068,19 @@ namespace NetScriptFramework.Tools
         /// <summary>
         /// Check for always ignore symbols.
         /// </summary>
-        AlwaysIgnore = 0x400,
+        AlwaysIgnore = 0x400
     }
 
-    #endregion
+#endregion
 
-    #region SymbolList class
+#region SymbolList class
 
     /// <summary>
     /// Represents a list of symbols that can be modified.
     /// </summary>
     public sealed class SymbolList
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         /// Create a new symbol list.
@@ -1079,13 +1088,13 @@ namespace NetScriptFramework.Tools
         /// <param name="defaultSymbols">Default symbols to add to list.</param>
         internal SymbolList(params string[] defaultSymbols)
         {
-            foreach (string x in defaultSymbols)
-                this.Add(x);
+            foreach (var x in defaultSymbols)
+                Add(x);
         }
 
-        #endregion
+    #endregion
 
-        #region SymbolList members
+    #region SymbolList members
 
         /// <summary>
         /// Add a symbol to this list.
@@ -1098,10 +1107,10 @@ namespace NetScriptFramework.Tools
             if (symbol.Length == 0)
                 throw new ArgumentOutOfRangeException("symbol");
 
-            if (this.Symbols.Contains(symbol))
+            if (Symbols.Contains(symbol))
                 return;
 
-            this.Symbols.Add(symbol);
+            Symbols.Add(symbol);
         }
 
         /// <summary>
@@ -1111,20 +1120,14 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public bool Remove(string symbol)
         {
-            if (this.Symbols.Remove(symbol))
-            {
-                return true;
-            }
+            if (Symbols.Remove(symbol)) return true;
             return false;
         }
 
         /// <summary>
         /// Clear all added symbols.
         /// </summary>
-        public void Clear()
-        {
-            this.Symbols.Clear();
-        }
+        public void Clear() { Symbols.Clear(); }
 
         /// <summary>
         /// Test if text at index matches any symbols.
@@ -1136,15 +1139,13 @@ namespace NetScriptFramework.Tools
         public bool Test(string text, int index, ref int length)
         {
             // Check each symbol.
-            foreach (string x in this.Symbols)
-            {
+            foreach (var x in Symbols)
                 // This matched.
                 if (string.Compare(text, index, x, 0, x.Length) == 0)
                 {
                     length = x.Length;
                     return true;
                 }
-            }
 
             // Didn't find.
             return false;
@@ -1153,34 +1154,25 @@ namespace NetScriptFramework.Tools
         /// <summary>
         /// Get count of added symbols.
         /// </summary>
-        public int Count
-        {
-            get
-            {
-                return this.Symbols.Count;
-            }
-        }
+        public int Count => Symbols.Count;
 
         /// <summary>
         /// Return an array of symbols.
         /// </summary>
         /// <returns></returns>
-        public string[] ToArray()
-        {
-            return this.Symbols.ToArray();
-        }
+        public string[] ToArray() { return Symbols.ToArray(); }
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         /// List of symbols.
         /// </summary>
         private readonly List<string> Symbols = new List<string>();
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 }

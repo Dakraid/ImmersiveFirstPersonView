@@ -6,22 +6,19 @@ using System.Threading.Tasks;
 
 namespace NetScriptFramework.Tools
 {
-    #region ValueMap class
+#region ValueMap class
 
     /// <summary>
     /// Implements a map for values with case insensitive string key.
     /// </summary>
     public sealed class ValueMap : IDictionary<string, Value>
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         /// Create a new empty value map.
         /// </summary>
-        public ValueMap()
-        {
-            this.internalDict = new Dictionary<string, Value>(StringComparer.OrdinalIgnoreCase);
-        }
+        public ValueMap() { internalDict = new Dictionary<string, Value>(StringComparer.OrdinalIgnoreCase); }
 
         /// <summary>
         /// Copy an existing value map.
@@ -33,12 +30,12 @@ namespace NetScriptFramework.Tools
             if (map == null)
                 throw new ArgumentNullException("map");
 
-            this.internalDict = new Dictionary<string, Value>(map.internalDict);
+            internalDict = new Dictionary<string, Value>(map.internalDict);
         }
 
-        #endregion
+    #endregion
 
-        #region ValueMap members
+    #region ValueMap members
 
         /// <summary>
         /// Add a value to map.
@@ -79,10 +76,7 @@ namespace NetScriptFramework.Tools
         /// <summary>
         /// Get all added keys.
         /// </summary>
-        public ICollection<string> Keys
-        {
-            get { return internalDict.Keys; }
-        }
+        public ICollection<string> Keys => internalDict.Keys;
 
         /// <summary>
         /// Try to get value and return if we did.
@@ -90,18 +84,12 @@ namespace NetScriptFramework.Tools
         /// <param name="key">Key to get by.</param>
         /// <param name="value">Value to set.</param>
         /// <returns></returns>
-        public bool TryGetValue(string key, out Value value)
-        {
-            return internalDict.TryGetValue(key, out value);
-        }
+        public bool TryGetValue(string key, out Value value) { return internalDict.TryGetValue(key, out value); }
 
         /// <summary>
         /// Get all added values.
         /// </summary>
-        public ICollection<Value> Values
-        {
-            get { return internalDict.Values; }
-        }
+        public ICollection<Value> Values => internalDict.Values;
 
         /// <summary>
         /// Get or set value by key. This is safe and will return null if value is not present.
@@ -123,7 +111,7 @@ namespace NetScriptFramework.Tools
                     throw new ArgumentNullException("key");
 
                 Value v = null;
-                if (this.TryGetValue(key, out v))
+                if (TryGetValue(key, out v))
                     return v;
                 return null;
             }
@@ -133,15 +121,15 @@ namespace NetScriptFramework.Tools
                     throw new ArgumentNullException("key");
 
                 if (value == null)
-                    this.Remove(key);
+                    Remove(key);
                 else
                     internalDict[key] = value;
             }
         }
 
-        #endregion
+    #endregion
 
-        #region Access members
+    #region Access members
 
         /// <summary>
         /// Try convert value by key and return if we did.
@@ -393,7 +381,7 @@ namespace NetScriptFramework.Tools
         public bool ToBool(string key, bool error = false)
         {
             bool result;
-            if (this.TryToBool(key, out result))
+            if (TryToBool(key, out result))
                 return result;
             return error;
         }
@@ -407,7 +395,7 @@ namespace NetScriptFramework.Tools
         public byte ToByte(string key, byte error = 0)
         {
             byte result;
-            if (this.TryToByte(key, out result))
+            if (TryToByte(key, out result))
                 return result;
             return error;
         }
@@ -421,7 +409,7 @@ namespace NetScriptFramework.Tools
         public char ToChar(string key, char error = '\0')
         {
             char result;
-            if (this.TryToChar(key, out result))
+            if (TryToChar(key, out result))
                 return result;
             return error;
         }
@@ -435,7 +423,7 @@ namespace NetScriptFramework.Tools
         public short ToInt16(string key, short error = 0)
         {
             short result;
-            if (this.TryToInt16(key, out result))
+            if (TryToInt16(key, out result))
                 return result;
             return error;
         }
@@ -449,7 +437,7 @@ namespace NetScriptFramework.Tools
         public ushort ToUInt16(string key, ushort error = 0)
         {
             ushort result;
-            if (this.TryToUInt16(key, out result))
+            if (TryToUInt16(key, out result))
                 return result;
             return error;
         }
@@ -463,7 +451,7 @@ namespace NetScriptFramework.Tools
         public int ToInt32(string key, int error = 0)
         {
             int result;
-            if (this.TryToInt32(key, out result))
+            if (TryToInt32(key, out result))
                 return result;
             return error;
         }
@@ -477,7 +465,7 @@ namespace NetScriptFramework.Tools
         public uint ToUInt32(string key, uint error = 0)
         {
             uint result;
-            if (this.TryToUInt32(key, out result))
+            if (TryToUInt32(key, out result))
                 return result;
             return error;
         }
@@ -491,7 +479,7 @@ namespace NetScriptFramework.Tools
         public long ToInt64(string key, long error = 0)
         {
             long result;
-            if (this.TryToInt64(key, out result))
+            if (TryToInt64(key, out result))
                 return result;
             return error;
         }
@@ -505,7 +493,7 @@ namespace NetScriptFramework.Tools
         public ulong ToUInt64(string key, ulong error = 0)
         {
             ulong result;
-            if (this.TryToUInt64(key, out result))
+            if (TryToUInt64(key, out result))
                 return result;
             return error;
         }
@@ -519,7 +507,7 @@ namespace NetScriptFramework.Tools
         public float ToSingle(string key, float error = 0.0f)
         {
             float result;
-            if (this.TryToSingle(key, out result))
+            if (TryToSingle(key, out result))
                 return result;
             return error;
         }
@@ -533,7 +521,7 @@ namespace NetScriptFramework.Tools
         public double ToDouble(string key, double error = 0.0)
         {
             double result;
-            if (this.TryToDouble(key, out result))
+            if (TryToDouble(key, out result))
                 return result;
             return error;
         }
@@ -547,7 +535,7 @@ namespace NetScriptFramework.Tools
         public decimal ToDecimal(string key, decimal error = 0.0m)
         {
             decimal result;
-            if (this.TryToDecimal(key, out result))
+            if (TryToDecimal(key, out result))
                 return result;
             return error;
         }
@@ -561,7 +549,7 @@ namespace NetScriptFramework.Tools
         public string ToString(string key, string error = null)
         {
             string result;
-            if (this.TryToString(key, out result))
+            if (TryToString(key, out result))
                 return result;
             return error;
         }
@@ -575,7 +563,7 @@ namespace NetScriptFramework.Tools
         public sbyte ToSByte(string key, sbyte error = 0)
         {
             sbyte result;
-            if (this.TryToSByte(key, out result))
+            if (TryToSByte(key, out result))
                 return result;
             return error;
         }
@@ -589,31 +577,25 @@ namespace NetScriptFramework.Tools
         public DateTime ToDateTime(string key, DateTime error = new DateTime())
         {
             DateTime result;
-            if (this.TryToDateTime(key, out result))
+            if (TryToDateTime(key, out result))
                 return result;
             return error;
         }
 
-        #endregion
+    #endregion
 
-        #region ICollection members
+    #region ICollection members
 
         /// <summary>
         /// Add item to map.
         /// </summary>
         /// <param name="item">Item to add.</param>
-        public void Add(KeyValuePair<string, Value> item)
-        {
-            internalDict.Add(item.Key, item.Value);
-        }
+        public void Add(KeyValuePair<string, Value> item) { internalDict.Add(item.Key, item.Value); }
 
         /// <summary>
         /// Clear map.
         /// </summary>
-        public void Clear()
-        {
-            internalDict.Clear();
-        }
+        public void Clear() { internalDict.Clear(); }
 
         /// <summary>
         /// Check if map contains item.
@@ -633,24 +615,12 @@ namespace NetScriptFramework.Tools
         /// <summary>
         /// Get count of entries.
         /// </summary>
-        public int Count
-        {
-            get
-            {
-                return internalDict.Count;
-            }
-        }
+        public int Count => internalDict.Count;
 
         /// <summary>
         /// Check if map is read only.
         /// </summary>
-        public bool IsReadOnly
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsReadOnly => false;
 
         /// <summary>
         /// Remove item from map.
@@ -662,9 +632,9 @@ namespace NetScriptFramework.Tools
             if (item.Key == null || item.Value == null)
                 return false;
 
-            Value v = this[item.Key];
+            var v = this[item.Key];
             if (v == item.Value)
-                return this.Remove(item.Key);
+                return Remove(item.Key);
             return false;
         }
 
@@ -678,7 +648,7 @@ namespace NetScriptFramework.Tools
             if (key == null)
                 throw new ArgumentNullException("key");
 
-            return this.internalDict.Remove(key);
+            return internalDict.Remove(key);
         }
 
         /// <summary>
@@ -688,43 +658,37 @@ namespace NetScriptFramework.Tools
         /// <param name="arrayIndex">Index in array when to start copying.</param>
         public void CopyTo(KeyValuePair<string, Value>[] array, int arrayIndex)
         {
-            KeyValuePair<string, Value>[] data = this.internalDict.ToArray();
+            var data = internalDict.ToArray();
             Buffer.BlockCopy(data, 0, array, arrayIndex, data.Length);
         }
 
-        #endregion
+    #endregion
 
-        #region IEnumerable members
-
-        /// <summary>
-        /// Get enumerator.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerator<KeyValuePair<string, Value>> GetEnumerator()
-        {
-            return internalDict.GetEnumerator();
-        }
+    #region IEnumerable members
 
         /// <summary>
         /// Get enumerator.
         /// </summary>
         /// <returns></returns>
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return internalDict.GetEnumerator();
-        }
+        public IEnumerator<KeyValuePair<string, Value>> GetEnumerator() { return internalDict.GetEnumerator(); }
 
-        #endregion
+        /// <summary>
+        /// Get enumerator.
+        /// </summary>
+        /// <returns></returns>
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return internalDict.GetEnumerator(); }
 
-        #region Internal members
+    #endregion
+
+    #region Internal members
 
         /// <summary>
         /// Internal values.
         /// </summary>
         private readonly Dictionary<string, Value> internalDict;
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 }

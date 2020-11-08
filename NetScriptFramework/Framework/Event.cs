@@ -27,7 +27,7 @@ namespace NetScriptFramework
         /// The priority of method.
         /// </summary>
         internal int Priority;
-        
+
         /// <summary>
         /// The options for registration.
         /// </summary>
@@ -68,7 +68,7 @@ namespace NetScriptFramework
         /// <summary>
         /// Skip adding handler to invocation list if it already exists there.
         /// </summary>
-        Distinct = 1,
+        Distinct = 1
     }
 
     /// <summary>
@@ -81,17 +81,17 @@ namespace NetScriptFramework
         /// </summary>
         /// <param name="key">Unique key of event.</param>
         /// <param name="delegateType">Type of the delegate.</param>
-        internal protected EventBase(string key, Type delegateType)
+        protected internal EventBase(string key, Type delegateType)
         {
-#if DEBUG
+        #if DEBUG
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentOutOfRangeException("key");
-#endif
+        #endif
 
-            this.Key = key;
-            this.DelegateType = delegateType;
+            Key          = key;
+            DelegateType = delegateType;
         }
-        
+
         /// <summary>
         /// The key of event. This is the name of field or property usually.
         /// </summary>
@@ -101,7 +101,7 @@ namespace NetScriptFramework
         /// The delegate type, used for loading.
         /// </summary>
         private readonly Type DelegateType;
-        
+
         /// <summary>
         /// The locker for thread safety.
         /// </summary>
@@ -112,10 +112,7 @@ namespace NetScriptFramework
         /// may return a delegate or multi-cast delegate.
         /// </summary>
         /// <returns></returns>
-        internal protected Delegate _GetHandler()
-        {
-            return this.Handler;
-        }
+        protected internal Delegate _GetHandler() { return Handler; }
 
         /// <summary>
         /// The current handler.
@@ -126,26 +123,24 @@ namespace NetScriptFramework
         /// The registrations.
         /// </summary>
         private readonly List<EventRegistration> Registrations = new List<EventRegistration>(32);
-        
+
         /// <summary>
         /// Reduce counts of registrations.
         /// </summary>
         /// <param name="amount">The amount.</param>
-        internal protected bool _ReduceCounts(int amount)
+        protected internal bool _ReduceCounts(int amount)
         {
-            bool removed = false;
-            for (int i = this.Registrations.Count - 1; i >= 0; i--)
+            var removed = false;
+            for (var i = Registrations.Count - 1; i >= 0; i--)
             {
-                var reg = this.Registrations[i];
+                var reg = Registrations[i];
                 if (reg.TotalCount <= 0)
                     continue;
-                
+
                 reg.CurrentCount -= amount;
                 if (reg.CurrentCount <= 0)
-                {
-                    if(this._UnregisterByIndex(i))
+                    if (_UnregisterByIndex(i))
                         removed = true;
-                }
             }
 
             return removed;
@@ -161,15 +156,15 @@ namespace NetScriptFramework
         /// <param name="fromPluginKey">The plugin.</param>
         /// <param name="fromPluginVersion">The plugin version.</param>
         /// <returns></returns>
-        internal protected long _Register(Delegate handler, int priority, int totalCount, EventRegistrationFlags flags, string fromPluginKey, int fromPluginVersion)
+        protected internal long _Register(Delegate handler, int priority, int totalCount, EventRegistrationFlags flags, string fromPluginKey, int fromPluginVersion)
         {
             var registration = new EventRegistration();
-            registration.Guid = Main.GenerateGuid();
-            registration.Handler = handler;
-            registration.Priority = priority;
-            registration.TotalCount = totalCount;
+            registration.Guid         = Main.GenerateGuid();
+            registration.Handler      = handler;
+            registration.Priority     = priority;
+            registration.TotalCount   = totalCount;
             registration.CurrentCount = totalCount;
-            registration.Flags = flags;
+            registration.Flags        = flags;
             if (fromPluginKey != null)
             {
                 registration.PluginKey = fromPluginKey;
@@ -180,8 +175,9 @@ namespace NetScriptFramework
                 registration.PluginKey = null;
                 registration.PluginVer = 0;
             }
-            this._Register(registration);
-            this._Recalculate();
+
+            _Register(registration);
+            _Recalculate();
             return registration.Guid;
         }
 
@@ -191,14 +187,12 @@ namespace NetScriptFramework
         /// <param name="registration">The registration.</param>
         internal void _Register(EventRegistration registration)
         {
-            int index = 0;
-            for (; index < this.Registrations.Count; index++)
-            {
-                if (this.Registrations[index].Priority > registration.Priority)
+            var index = 0;
+            for (; index < Registrations.Count; index++)
+                if (Registrations[index].Priority > registration.Priority)
                     break;
-            }
 
-            this.Registrations.Insert(index, registration);
+            Registrations.Insert(index, registration);
         }
 
         /// <summary>
@@ -206,17 +200,15 @@ namespace NetScriptFramework
         /// </summary>
         /// <param name="guid">The unique identifier.</param>
         /// <returns></returns>
-        internal protected bool _Unregister(long guid)
+        protected internal bool _Unregister(long guid)
         {
-            for (int i = 0; i < this.Registrations.Count; i++)
-            {
-                if (this.Registrations[i].Guid == guid)
+            for (var i = 0; i < Registrations.Count; i++)
+                if (Registrations[i].Guid == guid)
                 {
-                    if(this._UnregisterByIndex(i))
-                        this._Recalculate();
+                    if (_UnregisterByIndex(i))
+                        _Recalculate();
                     return true;
                 }
-            }
 
             return false;
         }
@@ -227,8 +219,8 @@ namespace NetScriptFramework
         /// <param name="index">The index.</param>
         private bool _UnregisterByIndex(int index)
         {
-            var registration = this.Registrations[index];
-            this.Registrations.RemoveAt(index);
+            var registration = Registrations[index];
+            Registrations.RemoveAt(index);
 
             return true;
         }
@@ -236,18 +228,18 @@ namespace NetScriptFramework
         /// <summary>
         /// Forces a recalculation of the event handler delegate.
         /// </summary>
-        internal protected void _Recalculate()
+        protected internal void _Recalculate()
         {
-            bool had = this.Handler != null;
-            this.Handler = null;
+            var had = Handler != null;
+            Handler = null;
 
-            if (this.Registrations.Count != 0)
+            if (Registrations.Count != 0)
             {
-                List<Delegate> list = new List<Delegate>();
+                var list = new List<Delegate>();
 
-                for (int i = 0; i < this.Registrations.Count; i++)
+                for (var i = 0; i < Registrations.Count; i++)
                 {
-                    var reg = this.Registrations[i];
+                    var reg = Registrations[i];
 
                     if (reg.Handler == null)
                         continue;
@@ -259,11 +251,11 @@ namespace NetScriptFramework
                 }
 
                 if (list.Count == 0)
-                    this.Handler = null;
+                    Handler = null;
                 else if (list.Count == 1)
-                    this.Handler = list[0];
+                    Handler = list[0];
                 else
-                    this.Handler = Delegate.Combine(list.ToArray());
+                    Handler = Delegate.Combine(list.ToArray());
             }
         }
     }
@@ -277,10 +269,7 @@ namespace NetScriptFramework
         /// <summary>
         /// Initializes a new instance of the <see cref="Event{T}"/> class.
         /// </summary>
-        public Event(string key) : base(key, typeof(EventHandler))
-        {
-
-        }
+        public Event(string key) : base(key, typeof(EventHandler)) { }
 
         /// <summary>
         /// Registers the specified handler. Returns handle to registration which can be used in Unregister method.
@@ -293,11 +282,11 @@ namespace NetScriptFramework
         public long Register(EventHandler handler, int priority = 0, int count = 0, EventRegistrationFlags flags = EventRegistrationFlags.None)
         {
             string pluginKey = null;
-            int pluginVer = 0;
-            var assembly = System.Reflection.Assembly.GetCallingAssembly();
-            if(assembly != null)
+            var    pluginVer = 0;
+            var    assembly  = Assembly.GetCallingAssembly();
+            if (assembly != null)
             {
-                if(assembly == Main.FrameworkAssembly)
+                if (assembly == Main.FrameworkAssembly)
                 {
                     pluginKey = string.Empty;
                     pluginVer = Main.FrameworkVersion;
@@ -305,17 +294,15 @@ namespace NetScriptFramework
                 else
                 {
                     var plugin = PluginManager.GetPlugin(assembly);
-                    if(plugin != null)
+                    if (plugin != null)
                     {
                         pluginKey = plugin.InternalKey;
                         pluginVer = plugin.InternalVersion;
                     }
                 }
             }
-            lock (this.Locker)
-            {
-                return this._Register(handler, priority, count, flags, pluginKey, pluginVer);
-            }
+
+            lock (Locker) { return _Register(handler, priority, count, flags, pluginKey, pluginVer); }
         }
 
         /// <summary>
@@ -325,10 +312,7 @@ namespace NetScriptFramework
         /// <returns></returns>
         public bool Unregister(long guid)
         {
-            lock (this.Locker)
-            {
-                return this._Unregister(guid);
-            }
+            lock (Locker) { return _Unregister(guid); }
         }
 
         /// <summary>
@@ -339,17 +323,17 @@ namespace NetScriptFramework
         /// <returns></returns>
         public virtual T Raise(Func<T> initArgs)
         {
-            lock (this.Locker)
+            lock (Locker)
             {
-                var handlerBase = this._GetHandler();
+                var handlerBase = _GetHandler();
                 if (handlerBase == null)
                     return null;
 
-                EventHandler handler = (EventHandler)handlerBase;
-                var args = initArgs();
+                var handler = (EventHandler) handlerBase;
+                var args    = initArgs();
                 handler(args);
-                if (this._ReduceCounts(1))
-                    this._Recalculate();
+                if (_ReduceCounts(1))
+                    _Recalculate();
                 return args;
             }
         }
@@ -373,11 +357,7 @@ namespace NetScriptFramework
         /// <value>
         /// The context.
         /// </value>
-        public CPURegisters Context
-        {
-            get;
-            internal set;
-        }
+        public CPURegisters Context { get; internal set; }
     }
 
     /// <summary>
@@ -397,12 +377,12 @@ namespace NetScriptFramework
         /// <param name="afterFunc">The after function.</param>
         public EventHookParameters(IntPtr address, int replaceLength, int includeLength, string pattern, Func<CPURegisters, T> argFunc, Action<CPURegisters, T> afterFunc)
         {
-            this.Address = address;
-            this.ReplaceLength = replaceLength;
-            this.IncludeLength = includeLength;
-            this.Pattern = pattern;
-            this.ArgFunc = argFunc;
-            this.AfterFunc = afterFunc;
+            Address       = address;
+            ReplaceLength = replaceLength;
+            IncludeLength = includeLength;
+            Pattern       = pattern;
+            ArgFunc       = argFunc;
+            AfterFunc     = afterFunc;
         }
 
         /// <summary>
@@ -411,11 +391,7 @@ namespace NetScriptFramework
         /// <value>
         /// The address.
         /// </value>
-        public IntPtr Address
-        {
-            get;
-            internal set;
-        }
+        public IntPtr Address { get; internal set; }
 
         /// <summary>
         /// Gets or sets the length of the replaced code.
@@ -423,11 +399,7 @@ namespace NetScriptFramework
         /// <value>
         /// The length of the replace.
         /// </value>
-        public int ReplaceLength
-        {
-            get;
-            internal set;
-        }
+        public int ReplaceLength { get; internal set; }
 
         /// <summary>
         /// Gets or sets the length of the included code.
@@ -435,11 +407,7 @@ namespace NetScriptFramework
         /// <value>
         /// The length of the include.
         /// </value>
-        public int IncludeLength
-        {
-            get;
-            internal set;
-        }
+        public int IncludeLength { get; internal set; }
 
         /// <summary>
         /// Gets the pattern.
@@ -447,11 +415,7 @@ namespace NetScriptFramework
         /// <value>
         /// The pattern.
         /// </value>
-        public string Pattern
-        {
-            get;
-            internal set;
-        }
+        public string Pattern { get; internal set; }
 
         /// <summary>
         /// Gets or sets the argument function.
@@ -459,11 +423,7 @@ namespace NetScriptFramework
         /// <value>
         /// The argument function.
         /// </value>
-        public Func<CPURegisters, T> ArgFunc
-        {
-            get;
-            internal set;
-        }
+        public Func<CPURegisters, T> ArgFunc { get; internal set; }
 
         /// <summary>
         /// Gets or sets the after function.
@@ -471,11 +431,7 @@ namespace NetScriptFramework
         /// <value>
         /// The after function.
         /// </value>
-        public Action<CPURegisters, T> AfterFunc
-        {
-            get;
-            internal set;
-        }
+        public Action<CPURegisters, T> AfterFunc { get; internal set; }
     }
 
     /// <summary>
@@ -486,7 +442,7 @@ namespace NetScriptFramework
     {
         None = 0,
 
-        AlwaysRun = 1,
+        AlwaysRun = 1
     }
 
     /// <summary>
@@ -505,26 +461,25 @@ namespace NetScriptFramework
         public EventHook(EventHookFlags flags, string key, params EventHookParameters<T>[] args) : base(key)
         {
             if (args == null)
-                throw new ArgumentNullException("args");
+                throw new ArgumentNullException(nameof(args));
             if (args.Any(q => q.ArgFunc == null))
                 throw new ArgumentNullException("args[].ArgFunc");
 
-            this.HookFlags = flags;
+            HookFlags = flags;
 
-            this.Arguments = args.ToArray();
-            for (int i = 0; i < this.Arguments.Length; i++)
+            Arguments = args.ToArray();
+            for (var i = 0; i < Arguments.Length; i++)
             {
-                var a = this.Arguments[i];
+                var a = Arguments[i];
 
-                var p = new HookParameters();
-                p.Address = a.Address;
-                int ix = i;
-                int incl = a.IncludeLength;
+                var p    = new HookParameters {Address = a.Address};
+                var ix   = i;
+                var incl = a.IncludeLength;
                 if (incl >= 0)
                     p.Before = cpu => EventHook_Action(cpu, ix);
                 else
                     p.After = cpu => EventHook_Action(cpu, ix);
-                p.Pattern = a.Pattern;
+                p.Pattern       = a.Pattern;
                 p.IncludeLength = Math.Abs(a.IncludeLength);
                 p.ReplaceLength = a.ReplaceLength;
 
@@ -541,7 +496,7 @@ namespace NetScriptFramework
         /// The hook flags.
         /// </summary>
         private readonly EventHookFlags HookFlags;
-        
+
         /// <summary>
         /// The action to run in the hook, this will invoke the event.
         /// </summary>
@@ -549,29 +504,29 @@ namespace NetScriptFramework
         /// <param name="index">The index.</param>
         private void EventHook_Action(CPURegisters ctx, int index)
         {
-            var a = this.Arguments[index];
-            lock (this.Locker)
+            var a = Arguments[index];
+            lock (Locker)
             {
-                bool valid = true;
-                var handlerBase = this._GetHandler();
+                var valid       = true;
+                var handlerBase = _GetHandler();
                 if (handlerBase == null)
                 {
-                    if((this.HookFlags & EventHookFlags.AlwaysRun) == EventHookFlags.None)
+                    if ((HookFlags & EventHookFlags.AlwaysRun) == EventHookFlags.None)
                         return;
                     valid = false;
                 }
 
-                EventHandler handler = valid ? (EventHandler)handlerBase : null;
-                var args = a.ArgFunc(ctx);
+                var handler = valid ? (EventHandler) handlerBase : null;
+                var args    = a.ArgFunc(ctx);
                 if (args != null)
                 {
                     args.Context = ctx;
-                    if(valid)
+                    if (valid)
                         handler(args);
                     if (a.AfterFunc != null)
                         a.AfterFunc(ctx, args);
-                    if (valid && this._ReduceCounts(1))
-                        this._Recalculate();
+                    if (valid && _ReduceCounts(1))
+                        _Recalculate();
                 }
             }
         }
@@ -583,9 +538,6 @@ namespace NetScriptFramework
         /// <param name="initArgs">The initialize arguments function.</param>
         /// <returns></returns>
         /// <exception cref="System.InvalidOperationException">Manually invoking hooked event is not allowed!</exception>
-        public override T Raise(Func<T> initArgs)
-        {
-            throw new InvalidOperationException("Manually invoking hooked event is not allowed!");
-        }
+        public override T Raise(Func<T> initArgs) { throw new InvalidOperationException("Manually invoking hooked event is not allowed!"); }
     }
 }

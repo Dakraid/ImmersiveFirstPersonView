@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NetScriptFramework.Tools
 {
-    #region LogFile class
+#region LogFile class
 
     /// <summary>
     /// Implement helper class to write log file using default settings. Log file methods are thread-safe.
@@ -15,7 +15,7 @@ namespace NetScriptFramework.Tools
     /// <seealso cref="System.IDisposable" />
     public sealed class LogFile : IDisposable
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LogFile"/> class.
@@ -32,18 +32,18 @@ namespace NetScriptFramework.Tools
             if (keyword.Length == 0)
                 throw new ArgumentOutOfRangeException("keyword");
 
-            this.Keyword = keyword;
+            Keyword = keyword;
             if (Main.Config != null)
             {
                 var value = Main.Config.GetValue(Main._Config_Plugin_Path);
                 if (value != null)
-                    this.Path = value.ToString();
+                    Path = value.ToString();
             }
 
-            this.Flags = flags;
+            Flags = flags;
 
-            if ((this.Flags & LogFileFlags.DelayedOpen) == LogFileFlags.None)
-                this.OpenFile();
+            if ((Flags & LogFileFlags.DelayedOpen) == LogFileFlags.None)
+                OpenFile();
         }
 
         /// <summary>
@@ -51,9 +51,9 @@ namespace NetScriptFramework.Tools
         /// </summary>
         internal LogFile()
         {
-            this.Keyword = Main.FrameworkName;
-            this.Path = Main.FrameworkPath;
-            this.Flags = LogFileFlags.AutoFlush | LogFileFlags.IncludeTimestampInLine;
+            Keyword = Main.FrameworkName;
+            Path    = Main.FrameworkPath;
+            Flags   = LogFileFlags.AutoFlush | LogFileFlags.IncludeTimestampInLine;
         }
 
         /// <summary>
@@ -69,37 +69,22 @@ namespace NetScriptFramework.Tools
         /// <summary>
         /// Get or set prefix of file manually.
         /// </summary>
-        private string Prefix
-        {
-            get;
-            set;
-        } = "";
+        private string Prefix { get; set; } = "";
 
         /// <summary>
         /// Get or set suffix of file manually.
         /// </summary>
-        private string Suffix
-        {
-            get;
-            set;
-        } = "log";
+        private string Suffix { get; set; } = "log";
 
         /// <summary>
         /// Get or set path of file manually.
         /// </summary>
-        private string Path
-        {
-            get;
-            set;
-        } = "";
+        private string Path { get; set; } = "";
 
         /// <summary>
         /// Closes this instance and the underlying file if it is open.
         /// </summary>
-        public void Close()
-        {
-            this.CloseFile();
-        }
+        public void Close() { CloseFile(); }
 
         /// <summary>
         /// Appends the specified text to log file without writing a newline at the end. This will re-open the file if it is not opened!
@@ -115,14 +100,14 @@ namespace NetScriptFramework.Tools
             lock (Locker)
             {
                 // Append timestamp if newline.
-                if (isNewLine && (this.Flags & LogFileFlags.IncludeTimestampInLine) != LogFileFlags.None)
+                if (isNewLine && (Flags & LogFileFlags.IncludeTimestampInLine) != LogFileFlags.None)
                     text = "[" + DateTime.Now.ToLogTimestampString(true) + "] " + text;
 
                 // Write to file.
-                this.OpenFile();
-                this.file.Write(text);
-                if ((this.Flags & LogFileFlags.AutoFlush) != LogFileFlags.None)
-                    this.file.Flush();
+                OpenFile();
+                file.Write(text);
+                if ((Flags & LogFileFlags.AutoFlush) != LogFileFlags.None)
+                    file.Flush();
 
                 // Set newline status.
                 isNewLine = text.EndsWith("\n") || text.EndsWith("\r");
@@ -137,9 +122,9 @@ namespace NetScriptFramework.Tools
         {
             var lines = GetExceptionText(e);
             foreach (var x in lines)
-                this.AppendLine(x);
+                AppendLine(x);
         }
-        
+
         /// <summary>
         /// Gets the exception text lines.
         /// </summary>
@@ -150,53 +135,53 @@ namespace NetScriptFramework.Tools
         internal static List<string> GetExceptionText(Exception e, int wrap = 140, string tab = "  ")
         {
             if (e == null)
-                return new List<string>() { "null" };
+                return new List<string>() {"null"};
 
             if (wrap < 40)
                 wrap = 40;
 
-            List<Exception> full = new List<Exception>();
-            while(e != null)
+            var full = new List<Exception>();
+            while (e != null)
             {
                 full.Add(e);
                 e = e.InnerException;
             }
+
             full.Reverse();
 
-            List<string> result = new List<string>();
-            for(int i = 0; i < full.Count; i++)
+            var result = new List<string>();
+            for (var i = 0; i < full.Count; i++)
             {
-                string thisTab = string.Empty;
-                if(i > 0 && !string.IsNullOrEmpty(tab))
+                var thisTab = string.Empty;
+                if (i > 0 && !string.IsNullOrEmpty(tab))
                 {
-                    StringBuilder tabStr = new StringBuilder();
-                    for (int j = 0; j < i; j++)
+                    var tabStr = new StringBuilder();
+                    for (var j = 0; j < i; j++)
                         tabStr.Append(tab);
                     thisTab = tabStr.ToString();
                 }
 
                 e = full[i];
 
-                int curWrap = wrap - thisTab.Length;
+                var curWrap = wrap - thisTab.Length;
                 if (curWrap < 0)
                     curWrap = 0;
 
                 {
-                    string line = "(" + e.GetType().Name + "): \"" + (e.Message ?? string.Empty) + "\" at";
-                    int ind = ("(" + e.GetType().Name + "): ").Length;
+                    var line = "(" + e.GetType().Name + "): \"" + (e.Message ?? string.Empty) + "\" at";
+                    var ind  = ("(" + e.GetType().Name + "): ").Length;
                     if (curWrap - ind > 10)
                     {
                         var ls = ConfigEntry.Wrap(line, curWrap, ind);
                         foreach (var x in ls)
                             result.Add(thisTab + x);
                     }
-                    else
-                        result.Add(thisTab + line);
+                    else { result.Add(thisTab + line); }
                 }
 
                 if (curWrap > 0)
                     result.Add(new string('-', curWrap));
-                string[] trace = (e.StackTrace ?? string.Empty).Replace("\r\n", "\n").Replace("\r", "\n").Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                var trace = (e.StackTrace ?? string.Empty).Replace("\r\n", "\n").Replace("\r", "\n").Split(new char[] {'\n'}, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var x in trace)
                     result.Add(thisTab + x);
                 if (curWrap > 0)
@@ -219,23 +204,23 @@ namespace NetScriptFramework.Tools
             lock (Locker)
             {
                 // Append timestamp if newline.
-                if (isNewLine && (this.Flags & LogFileFlags.IncludeTimestampInLine) != LogFileFlags.None)
+                if (isNewLine && (Flags & LogFileFlags.IncludeTimestampInLine) != LogFileFlags.None)
                     text = "[" + DateTime.Now.ToLogTimestampString(true) + "] " + text;
 
                 // Write to file.
-                this.OpenFile();
-                this.file.WriteLine(text);
-                if ((this.Flags & LogFileFlags.AutoFlush) != LogFileFlags.None)
-                    this.file.Flush();
+                OpenFile();
+                file.WriteLine(text);
+                if ((Flags & LogFileFlags.AutoFlush) != LogFileFlags.None)
+                    file.Flush();
 
                 // Set newline status.
                 isNewLine = true;
             }
         }
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         /// The locker for log file.
@@ -248,26 +233,28 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         private string GenerateFilePath()
         {
-            StringBuilder strFile = new StringBuilder();
-            if (!string.IsNullOrEmpty(this.Prefix))
-                strFile.Append(this.Prefix + ".");
-            strFile.Append(this.Keyword);
-            if (!string.IsNullOrEmpty(this.Suffix))
-                strFile.Append("." + this.Suffix);
-            if((this.Flags & LogFileFlags.IncludeTimestampInFileName) != LogFileFlags.None)
+            var strFile = new StringBuilder();
+            if (!string.IsNullOrEmpty(Prefix))
+                strFile.Append(Prefix + ".");
+            strFile.Append(Keyword);
+            if (!string.IsNullOrEmpty(Suffix))
+                strFile.Append("." + Suffix);
+            if ((Flags & LogFileFlags.IncludeTimestampInFileName) != LogFileFlags.None)
             {
-                DateTime t = DateTime.Now;
-                strFile.Append("." + t.Year + "-" + t.Month.ToString("00") + "-" + t.Day.ToString("00") + "-" + t.Hour.ToString("00") + "-" + t.Minute.ToString("00") + "-" + t.Second.ToString("00"));
+                var t = DateTime.Now;
+                strFile.Append("." + t.Year + "-" + t.Month.ToString("00") + "-" + t.Day.ToString("00") + "-" + t.Hour.ToString("00") + "-" + t.Minute.ToString("00") + "-" +
+                               t.Second.ToString("00"));
             }
+
             strFile.Append(".txt");
 
-            string fullPath = strFile.ToString();
-            if (!string.IsNullOrEmpty(this.Path))
-                fullPath = System.IO.Path.Combine(this.Path, fullPath);
+            var fullPath = strFile.ToString();
+            if (!string.IsNullOrEmpty(Path))
+                fullPath = System.IO.Path.Combine(Path, fullPath);
 
             return fullPath;
         }
-        
+
         /// <summary>
         /// The opened file.
         /// </summary>
@@ -283,16 +270,13 @@ namespace NetScriptFramework.Tools
         /// </summary>
         private void OpenFile()
         {
-            lock(Locker)
+            lock (Locker)
             {
-                if (this.file != null)
+                if (file != null)
                     return;
 
-                this.file = new StreamWriter(this.GenerateFilePath(), (this.Flags & LogFileFlags.AppendFile) != LogFileFlags.None);
-                lock(AllLocker)
-                {
-                    All.AddLast(this);
-                }
+                file = new StreamWriter(GenerateFilePath(), (Flags & LogFileFlags.AppendFile) != LogFileFlags.None);
+                lock (AllLocker) { All.AddLast(this); }
             }
         }
 
@@ -303,14 +287,11 @@ namespace NetScriptFramework.Tools
         {
             lock (Locker)
             {
-                if (this.file == null)
+                if (file == null)
                     return;
-                this.file.Close();
-                this.file = null;
-                lock(AllLocker)
-                {
-                    All.Remove(this);
-                }
+                file.Close();
+                file = null;
+                lock (AllLocker) { All.Remove(this); }
             }
         }
 
@@ -319,7 +300,7 @@ namespace NetScriptFramework.Tools
         /// </summary>
         internal static void CloseAll()
         {
-            lock(AllLocker)
+            lock (AllLocker)
             {
                 while (All.Count != 0)
                     All.First.Value.CloseFile();
@@ -336,24 +317,21 @@ namespace NetScriptFramework.Tools
         /// </summary>
         private static readonly object AllLocker = new object();
 
-        #endregion
+    #endregion
 
-        #region IDisposable interface
+    #region IDisposable interface
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose()
-        {
-            this.Close();
-        }
-
-        #endregion
-    }
+        public void Dispose() { Close(); }
 
     #endregion
+    }
 
-    #region DateTimeStringConverter class
+#endregion
+
+#region DateTimeStringConverter class
 
     /// <summary>
     /// Helper function to convert date time to short string.
@@ -368,7 +346,7 @@ namespace NetScriptFramework.Tools
         /// <returns></returns>
         public static string ToLogTimestampString(this DateTime t, bool milliseconds = true)
         {
-            if(milliseconds)
+            if (milliseconds)
                 return string.Format("{0:00} {1} {2} {3:00}:{4:00}:{5:00}.{6:000}", t.Day, Months[t.Month], t.Year, t.Hour, t.Minute, t.Second, t.Millisecond);
             return string.Format("{0:00} {1} {2} {3:00}:{4:00}:{5:00}", t.Day, Months[t.Month], t.Year, t.Hour, t.Minute, t.Second);
         }
@@ -376,12 +354,12 @@ namespace NetScriptFramework.Tools
         /// <summary>
         /// The month names for timestamp string.
         /// </summary>
-        private static string[] Months = new[] { "Nul", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+        private static string[] Months = new[] {"Nul", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
     }
 
-    #endregion
+#endregion
 
-    #region LogFile enums
+#region LogFile enums
 
     /// <summary>
     /// List of options for log file.
@@ -418,8 +396,8 @@ namespace NetScriptFramework.Tools
         /// <summary>
         /// Don't open the log file until first write is requested.
         /// </summary>
-        DelayedOpen = 0x10,
+        DelayedOpen = 0x10
     }
 
-    #endregion
+#endregion
 }

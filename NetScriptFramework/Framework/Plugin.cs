@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace NetScriptFramework
 {
-    #region Plugin class
+#region Plugin class
 
     /// <summary>
     /// Implement base plugin class. All loaded plugins must inherit from this and provide plugin header information.
     /// </summary>
     public abstract class Plugin
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Plugin"/> class. Don't put any initialization code in constructor! If you
@@ -25,9 +25,9 @@ namespace NetScriptFramework
                 throw new InvalidOperationException("Plugin's can not be manually created! Only PluginManager will create the plugins.");
         }
 
-        #endregion
+    #endregion
 
-        #region Plugin members
+    #region Plugin members
 
         /// <summary>
         /// Gets the unique keyword of plugin.<para></para><para></para>For developers: Other plugins may query plugin
@@ -37,10 +37,7 @@ namespace NetScriptFramework
         /// <value>
         /// The unique key of plugin.
         /// </value>
-        public abstract string Key
-        {
-            get;
-        }
+        public abstract string Key { get; }
 
         /// <summary>
         /// Gets the name of plugin.<para></para><para></para>For developers: This is what will be shown to user and in
@@ -50,10 +47,7 @@ namespace NetScriptFramework
         /// <value>
         /// The name of plugin.
         /// </value>
-        public abstract string Name
-        {
-            get;
-        }
+        public abstract string Name { get; }
 
         /// <summary>
         /// Gets the version of plugin.<para></para><para></para>For developers: Current version of your plugin. It is
@@ -64,10 +58,7 @@ namespace NetScriptFramework
         /// <value>
         /// The version.
         /// </value>
-        public abstract int Version
-        {
-            get;
-        }
+        public abstract int Version { get; }
 
         /// <summary>
         /// Gets the author's name of plugin.<para></para><para></para>For developers: Set author's name or nickname here.
@@ -76,13 +67,7 @@ namespace NetScriptFramework
         /// <value>
         /// The author.
         /// </value>
-        public virtual string Author
-        {
-            get
-            {
-                return "Unknown";
-            }
-        }
+        public virtual string Author => "Unknown";
 
         /// <summary>
         /// Gets the website of plugin.<para></para><para></para>For developers: Set website of your plugin here. This is where
@@ -92,13 +77,7 @@ namespace NetScriptFramework
         /// <value>
         /// The website of plugin.
         /// </value>
-        public virtual string Website
-        {
-            get
-            {
-                return string.Empty;
-            }
-        }
+        public virtual string Website => string.Empty;
 
         /// <summary>
         /// Gets the required framework version.
@@ -106,13 +85,7 @@ namespace NetScriptFramework
         /// <value>
         /// The required framework version.
         /// </value>
-        public virtual int RequiredFrameworkVersion
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public virtual int RequiredFrameworkVersion => 0;
 
         /// <summary>
         /// Gets the required library version.
@@ -120,13 +93,7 @@ namespace NetScriptFramework
         /// <value>
         /// The required library version.
         /// </value>
-        public virtual int RequiredLibraryVersion
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public virtual int RequiredLibraryVersion => 0;
 
         /// <summary>
         /// Gets a value indicating whether Initialize has been called successfully on this plugin instance.
@@ -134,11 +101,7 @@ namespace NetScriptFramework
         /// <value>
         /// <c>true</c> if this instance is initialized; otherwise, <c>false</c>.
         /// </value>
-        public bool IsInitialized
-        {
-            get;
-            private set;
-        } = false;
+        public bool IsInitialized { get; private set; } = false;
 
         /// <summary>
         /// Gets the assembly associated with this plugin. This is the assembly where the plugin type header was found.
@@ -146,17 +109,13 @@ namespace NetScriptFramework
         /// <value>
         /// The assembly.
         /// </value>
-        public System.Reflection.Assembly Assembly
-        {
-            get;
-            internal set;
-        }
+        public System.Reflection.Assembly Assembly { get; internal set; }
 
         internal bool _initialize(bool loadedAny)
         {
-            if(this.Initialize(loadedAny))
+            if (Initialize(loadedAny))
             {
-                this.IsInitialized = true;
+                IsInitialized = true;
                 return true;
             }
 
@@ -176,15 +135,12 @@ namespace NetScriptFramework
         /// to return false now and try again next pass. If this is set to <c>false</c> then all plugins in the last pass
         /// also returned false and if that happens again the game will close with an error.</param>
         /// <returns></returns>
-        protected virtual bool Initialize(bool loadedAny)
-        {
-            return true;
-        }
+        protected virtual bool Initialize(bool loadedAny) { return true; }
 
         internal void _shutdown()
         {
-            if (this.IsInitialized)
-                this.Shutdown();
+            if (IsInitialized)
+                Shutdown();
         }
 
         /// <summary>
@@ -195,18 +151,12 @@ namespace NetScriptFramework
         /// If the application crashes or doesn't have a exit hook in place then this method will not be called.
         /// This method is also not called if the initialization of plugin has not completed successfully.
         /// </summary>
-        protected virtual void Shutdown()
-        {
-
-        }
+        protected virtual void Shutdown() { }
 
         /// <summary>
         /// Called when detaching from thread. This is used mostly only to clean up stuff from memory if you used thread-local storage.
         /// </summary>
-        protected virtual void OnDetachThread()
-        {
-
-        }
+        protected virtual void OnDetachThread() { }
 
         /*/// <summary>
         /// Called when attaching to thread.
@@ -221,10 +171,7 @@ namespace NetScriptFramework
             //this.OnAttachThread();
         }
 
-        internal void _onDetachThread()
-        {
-            this.OnDetachThread();
-        }
+        internal void _onDetachThread() { OnDetachThread(); }
 
         /*/// <summary>
         /// Gets the value stored in current thread's thread-local storage for this plugin.
@@ -251,9 +198,9 @@ namespace NetScriptFramework
                 throw new InvalidOperationException("Failed to write TLS for plugin " + this.ToString() + ", internal index was " + this.InternalIndex + "!");
         }*/
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         /// Gets the internal string to display in log about the plugin.
@@ -263,15 +210,12 @@ namespace NetScriptFramework
         {
             try
             {
-                string name = this.InternalName;
-                string key = this.InternalKey ?? string.Empty;
-                int version = this.InternalVersion;
+                var name    = InternalName;
+                var key     = InternalKey ?? string.Empty;
+                var version = InternalVersion;
                 return "\"" + name + "\" [" + key + "] (" + version + ")";
             }
-            catch
-            {
-                return "ERROR<" + this.GetType().Name + ">";
-            }
+            catch { return "ERROR<" + GetType().Name + ">"; }
         }
 
         /// <summary>
@@ -283,14 +227,16 @@ namespace NetScriptFramework
             {
                 if (!_in)
                 {
-                    _in = true;
-                    this._internalName = this.Name ?? string.Empty;
+                    _in           = true;
+                    _internalName = Name ?? string.Empty;
                 }
-                return this._internalName;
+
+                return _internalName;
             }
         }
+
         private string _internalName = null;
-        private bool _in = false;
+        private bool   _in           = false;
 
         /// <summary>
         /// Gets the version of plugin for internal use.
@@ -299,16 +245,18 @@ namespace NetScriptFramework
         {
             get
             {
-                if(!_iv)
+                if (!_iv)
                 {
-                    _iv = true;
-                    this._internalVersion = this.Version;
+                    _iv              = true;
+                    _internalVersion = Version;
                 }
-                return this._internalVersion;
+
+                return _internalVersion;
             }
         }
-        private int _internalVersion = 0;
-        private bool _iv = false;
+
+        private int  _internalVersion = 0;
+        private bool _iv              = false;
 
         /// <summary>
         /// Gets the key of plugin for internal use.
@@ -319,14 +267,16 @@ namespace NetScriptFramework
             {
                 if (!_ik)
                 {
-                    _ik = true;
-                    this._internalKey = this.Key;
+                    _ik          = true;
+                    _internalKey = Key;
                 }
-                return this._internalKey;
+
+                return _internalKey;
             }
         }
+
         private string _internalKey = null;
-        private bool _ik = false;
+        private bool   _ik          = false;
 
         /// <summary>
         /// Gets or sets the internal plugin index.
@@ -334,14 +284,10 @@ namespace NetScriptFramework
         /// <value>
         /// The internal index of plugin.
         /// </value>
-        internal int InternalIndex
-        {
-            get;
-            set;
-        }
-        
-        #endregion
-    }
+        internal int InternalIndex { get; set; }
 
     #endregion
+    }
+
+#endregion
 }
