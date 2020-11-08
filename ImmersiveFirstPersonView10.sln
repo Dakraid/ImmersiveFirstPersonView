@@ -3,15 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30615.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFPV", "ImmersiveFirstPersonView\IFPV.csproj", "{35F59215-5643-411D-878E-2123424D8C63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFPV", "ImmersiveFirstPersonView\IFPV.csproj", "{35F59215-5643-411D-878E-2123424D8C63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetScriptFramework", "NetScriptFramework\NetScriptFramework.csproj", "{1BF91C1B-4DF3-467E-A7DD-852AB0CD7915}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetScriptFramework", "NetScriptFramework\NetScriptFramework.csproj", "{1BF91C1B-4DF3-467E-A7DD-852AB0CD7915}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetScriptFramework.Runtime", "NetScriptFramework.Runtime\NetScriptFramework.Runtime.vcxproj", "{57F81611-D11E-4EE3-906E-10C05CDEE759}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetScriptFramework.SkyrimSE", "NetScriptFramework.SkyrimSE\NetScriptFramework.SkyrimSE.vcxproj", "{AD64B9EC-AB8F-4B25-8451-453F78212144}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetScriptFramework.SkyrimSE.Implementations", "NetScriptFramework.SkyrimSE.Implementations\NetScriptFramework.SkyrimSE.Implementations.csproj", "{F29A485F-2AD4-4BA4-8A65-1573A3CEEDD5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetScriptFramework.SkyrimSE.Implementations", "NetScriptFramework.SkyrimSE.Implementations\NetScriptFramework.SkyrimSE.Implementations.csproj", "{F29A485F-2AD4-4BA4-8A65-1573A3CEEDD5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "binkw64", "DLLPluginLoader\binkw64.vcxproj", "{3941E9F8-2E29-4D69-8717-F74562ED5301}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6D30DF4D-21BF-42CD-95B4-240D471121AD}"
+	ProjectSection(SolutionItems) = preProject
+		.clang-format = .clang-format
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,22 +55,26 @@ Global
 		{1BF91C1B-4DF3-467E-A7DD-852AB0CD7915}.Release|x64.Build.0 = Release|Any CPU
 		{1BF91C1B-4DF3-467E-A7DD-852AB0CD7915}.Release|x86.ActiveCfg = Release|Any CPU
 		{1BF91C1B-4DF3-467E-A7DD-852AB0CD7915}.Release|x86.Build.0 = Release|Any CPU
-		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Debug|Any CPU.Build.0 = Debug|x64
 		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Debug|x64.ActiveCfg = Debug|x64
 		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Debug|x64.Build.0 = Debug|x64
 		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Debug|x86.ActiveCfg = Debug|Win32
 		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Debug|x86.Build.0 = Debug|Win32
-		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Release|Any CPU.ActiveCfg = Release|Win32
+		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Release|Any CPU.ActiveCfg = Release|x64
+		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Release|Any CPU.Build.0 = Release|x64
 		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Release|x64.ActiveCfg = Release|x64
 		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Release|x64.Build.0 = Release|x64
 		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Release|x86.ActiveCfg = Release|Win32
 		{57F81611-D11E-4EE3-906E-10C05CDEE759}.Release|x86.Build.0 = Release|Win32
-		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Debug|Any CPU.Build.0 = Debug|x64
 		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Debug|x64.ActiveCfg = Debug|x64
 		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Debug|x64.Build.0 = Debug|x64
 		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Debug|x86.ActiveCfg = Debug|Win32
 		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Debug|x86.Build.0 = Debug|Win32
-		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Release|Any CPU.ActiveCfg = Release|Win32
+		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Release|Any CPU.ActiveCfg = Release|x64
+		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Release|Any CPU.Build.0 = Release|x64
 		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Release|x64.ActiveCfg = Release|x64
 		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Release|x64.Build.0 = Release|x64
 		{AD64B9EC-AB8F-4B25-8451-453F78212144}.Release|x86.ActiveCfg = Release|Win32
@@ -79,6 +91,16 @@ Global
 		{F29A485F-2AD4-4BA4-8A65-1573A3CEEDD5}.Release|x64.Build.0 = Release|Any CPU
 		{F29A485F-2AD4-4BA4-8A65-1573A3CEEDD5}.Release|x86.ActiveCfg = Release|Any CPU
 		{F29A485F-2AD4-4BA4-8A65-1573A3CEEDD5}.Release|x86.Build.0 = Release|Any CPU
+		{3941E9F8-2E29-4D69-8717-F74562ED5301}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{3941E9F8-2E29-4D69-8717-F74562ED5301}.Debug|x64.ActiveCfg = Debug|x64
+		{3941E9F8-2E29-4D69-8717-F74562ED5301}.Debug|x64.Build.0 = Debug|x64
+		{3941E9F8-2E29-4D69-8717-F74562ED5301}.Debug|x86.ActiveCfg = Debug|Win32
+		{3941E9F8-2E29-4D69-8717-F74562ED5301}.Debug|x86.Build.0 = Debug|Win32
+		{3941E9F8-2E29-4D69-8717-F74562ED5301}.Release|Any CPU.ActiveCfg = Release|Win32
+		{3941E9F8-2E29-4D69-8717-F74562ED5301}.Release|x64.ActiveCfg = Release|x64
+		{3941E9F8-2E29-4D69-8717-F74562ED5301}.Release|x64.Build.0 = Release|x64
+		{3941E9F8-2E29-4D69-8717-F74562ED5301}.Release|x86.ActiveCfg = Release|Win32
+		{3941E9F8-2E29-4D69-8717-F74562ED5301}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
