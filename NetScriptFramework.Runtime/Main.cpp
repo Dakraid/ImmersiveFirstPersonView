@@ -53,58 +53,6 @@ int64 _qpc_offset64 = 0;
 bool is64Bit = false;
 int initState = 0;
 
-auto show_error(const std::string &name = nullptr) -> void
-{
-	std::ofstream fLog("netruntime.log");
-	{
-		if (!fLog.is_open()) {
-			MessageBox(nullptr, L"Could not open netruntime.log",
-			           L".NET Script Framework - Runtime",
-			           MB_ICONINFORMATION | MB_OK);
-		}
-	}
-
-	if (!name.empty()) {
-		if (fLog.good())
-			fLog << name << "\n";
-
-		return;
-	}
-
-	const auto err = GetLastError();
-
-	// Translate ErrorCode to String.
-	LPTSTR error = nullptr;
-	if (::FormatMessage(
-		    FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		    nullptr,
-		    err,
-		    0,
-		    reinterpret_cast<LPTSTR>(&error),
-		    0,
-		    nullptr) == 0) {
-		if (error) {
-			LocalFree(error);
-			error = nullptr;
-		}
-
-		return;
-	}
-
-	if (fLog.good())
-		fLog << "Encountered error: " << error << "\n";
-
-	// Display message.
-	MessageBox(nullptr, error, L".NET Script Framework - Runtime",
-	           MB_ICONINFORMATION | MB_OK);
-
-	// Free the buffer.
-	if (error) {
-		LocalFree(error);
-		error = nullptr;
-	}
-}
-
 void _CriticalFail_NoLog(const char *msg)
 {
 	auto method = NetScriptFramework::Main::typeid->GetMethod(
