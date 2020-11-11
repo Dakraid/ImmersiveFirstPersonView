@@ -5,14 +5,14 @@
     internal abstract class IniValue : CameraValueBase
     {
         private readonly string _name;
-        private double _def;
+        private          double _def;
 
         private Setting _setting;
-        private bool _tried;
+        private bool    _tried;
 
         internal IniValue(string name)
         {
-            this._name = name;
+            this._name =  name;
             this.Flags |= CameraValueFlags.NoTween;
         }
 
@@ -70,7 +70,7 @@
                 return;
             }
 
-            this._tried = true;
+            this._tried   = true;
             this._setting = Setting.FindSettingByName(this.Name, true, true);
 
             if (this._setting != null)

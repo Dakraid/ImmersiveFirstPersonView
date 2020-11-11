@@ -10,8 +10,8 @@
 
         internal CameraResult()
         {
-            this.Allocation = Memory.Allocate(0x34);
-            this.Transform = MemoryObject.FromAddress<NiTransform>(this.Allocation.Address);
+            this.Allocation           = Memory.Allocate(0x34);
+            this.Transform            = MemoryObject.FromAddress<NiTransform>(this.Allocation.Address);
             this.Transform.Position.X = 0.0f;
             this.Transform.Position.Y = 0.0f;
             this.Transform.Position.Z = 0.0f;

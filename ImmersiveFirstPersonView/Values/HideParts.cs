@@ -30,10 +30,9 @@
 
     internal sealed class FirstPersonSkeletonRotateYMultiplier : CameraValueSimple
     {
-        internal FirstPersonSkeletonRotateYMultiplier() : base(null, Settings.Instance.NormalFirstPersonArmsRotateRatio,
-            1.0)
-        {
-        }
+        internal FirstPersonSkeletonRotateYMultiplier() : base(null,
+            Settings.Instance.NormalFirstPersonArmsRotateRatio,
+            1.0) { }
     }
 
     internal sealed class BlockPlayerFadeOut : CameraValueSimple
@@ -58,10 +57,10 @@ namespace IFPV
         internal readonly FirstPersonSkeletonRotateYMultiplier FirstPersonSkeletonRotateYMultiplier =
             new FirstPersonSkeletonRotateYMultiplier();
 
-        internal readonly HideArms HideArms = new HideArms();
-        internal readonly HideHead HideHead = new HideHead();
-        internal readonly HideHead2 HideHead2 = new HideHead2();
+        internal readonly HideArms          HideArms          = new HideArms();
+        internal readonly HideHead          HideHead          = new HideHead();
+        internal readonly HideHead2         HideHead2         = new HideHead2();
         internal readonly Show1stPersonArms Show1stPersonArms = new Show1stPersonArms();
-        internal readonly SkeletonMode SkeletonMode = new SkeletonMode();
+        internal readonly SkeletonMode      SkeletonMode      = new SkeletonMode();
     }
 }

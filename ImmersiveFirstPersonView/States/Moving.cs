@@ -58,9 +58,11 @@
                 }
 
                 if (ok)
+
                     //update.Values.Offset1PositionY.AddModifier(this, CameraValueModifier.ModifierTypes.Multiply, -1.0);
                 {
-                    update.Values.StabilizeIgnoreOffsetX.AddModifier(this, CameraValueModifier.ModifierTypes.Force,
+                    update.Values.StabilizeIgnoreOffsetX.AddModifier(this,
+                        CameraValueModifier.ModifierTypes.Force,
                         360.0);
                 }
             }
@@ -89,8 +91,8 @@
                 return;
             }
 
-            var moveFlags = Memory.ReadUInt32(actor.Address + 0xC0) & 0x3FFF;
-            uint mask = 0xCF;
+            var  moveFlags = Memory.ReadUInt32(actor.Address + 0xC0) & 0x3FFF;
+            uint mask      = 0xCF;
 
             if ((moveFlags & mask) == 0)
             {
@@ -99,11 +101,11 @@
             }
 
             double dir = Memory.InvokeCdeclF(update.CameraMain.Plugin.Actor_GetMoveDirection, actor.Address);
-            var pi = Math.PI;
-            dir = dir + pi;
+            var    pi  = Math.PI;
+            dir =  dir + pi;
             dir %= pi * 2.0;
 
-            dir = Utility.RadToDeg(dir);
+            dir =  Utility.RadToDeg(dir);
             dir -= 180.0;
 
             if (dir >= -22.5 && dir < 22.5)

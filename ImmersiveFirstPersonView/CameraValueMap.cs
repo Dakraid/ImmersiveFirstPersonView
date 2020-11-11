@@ -19,11 +19,13 @@
 
             this.CameraMain = cameraMain;
 
-            var fields = this.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var fields = this.GetType().
+                GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
             foreach (var f in fields)
             {
                 var ft = f.FieldType;
-                if (ft != typeof(CameraValueBase) && !ft.IsSubclassOf(typeof(CameraValueBase)))
+                if (ft != typeof (CameraValueBase) && !ft.IsSubclassOf(typeof (CameraValueBase)))
                 {
                     continue;
                 }

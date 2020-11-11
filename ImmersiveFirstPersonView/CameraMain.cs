@@ -1,4 +1,4 @@
-﻿namespace IFPV
+namespace IFPV
 {
     using System;
     using NetScriptFramework;
@@ -50,10 +50,10 @@
 
         internal bool WasUsingFirstPersonArms { get; private set; }
 
-        private bool HadKey;
-        private bool LastActorWasPlayer;
-        private uint LastTargetFormId;
-        private WantStates LastWantState = WantStates.None;
+        private bool                HadKey;
+        private bool                LastActorWasPlayer;
+        private uint                LastTargetFormId;
+        private WantStates          LastWantState = WantStates.None;
         private CameraValueModifier WantMod;
 
         internal enum WantStates
@@ -85,7 +85,7 @@
             }
 
             var lastState = this.GetWantFromState(this.LastWantState);
-            var prev = this.LastWantState;
+            var prev      = this.LastWantState;
             this.LastWantState = state;
 
             this.WantMod = curState > 0
@@ -95,7 +95,7 @@
 
         private Setting _min_zoom;
         private Setting _inc_zoom;
-        private bool _init_zoom;
+        private bool    _init_zoom;
 
         private void _init_z()
         {
@@ -116,19 +116,15 @@
             {
                 case WantStates.None: return 0;
 
-                case WantStates.EnabledFromHotkey:
-                    return 1;
+                case WantStates.EnabledFromHotkey: return 1;
 
                 case WantStates.EnabledFromTogglePOV:
-                case WantStates.EnabledFromZoom:
-                    return Settings.Instance.ReplaceDefaultCamera ? 1 : 0;
+                case WantStates.EnabledFromZoom: return Settings.Instance.ReplaceDefaultCamera ? 1 : 0;
 
-                case WantStates.DisabledFromHotkey:
-                    return -1;
+                case WantStates.DisabledFromHotkey: return -1;
 
                 case WantStates.DisabledFromTogglePOV:
-                case WantStates.DisabledFromZoom:
-                    return Settings.Instance.ReplaceDefaultCamera ? -1 : 0;
+                case WantStates.DisabledFromZoom: return Settings.Instance.ReplaceDefaultCamera ? -1 : 0;
 
                 default: throw new NotImplementedException();
             }
@@ -164,8 +160,8 @@
                 return;
             }
 
-            double x = Math.Abs(third.XRotationFromLastResetPoint);
-            var mult = x / (Math.PI * 0.5);
+            double x    = Math.Abs(third.XRotationFromLastResetPoint);
+            var    mult = x / (Math.PI * 0.5);
             ftime *= mult;
 
             var ms = (long)(ftime * 1000.0);
@@ -191,9 +187,9 @@
                 return;
             }
 
-            var min = this._min_zoom.GetFloat();
-            var inc = this._inc_zoom.GetFloat();
-            var cur = third.TargetZoomLevel;
+            var min  = this._min_zoom.GetFloat();
+            var inc  = this._inc_zoom.GetFloat();
+            var cur  = third.TargetZoomLevel;
             var next = cur + ((zoomIn ? -1.0f : 1.0f) * inc);
 
             if (cur <= min && zoomIn)
@@ -256,8 +252,7 @@
                 case TESCameraStates.Free:
                 case TESCameraStates.FirstPerson:
                 case TESCameraStates.TweenMenu:
-                case TESCameraStates.AutoVanity:
-                    return false;
+                case TESCameraStates.AutoVanity: return false;
 
                 case TESCameraStates.VATS:
                 {
@@ -266,6 +261,7 @@
                         return false;
                     }
                 }
+
                     break;
             }
 
@@ -285,7 +281,7 @@
                 return;
             }
 
-            if (this.Values.HeadTrackEnabled.CurrentValue == 0)
+            if (this.Values._HeadTrackEnabled.CurrentValue == 0)
             {
                 return;
             }
@@ -309,7 +305,7 @@
                 return;
             }
 
-            var fullZ = plr.Rotation.Z + third.XRotationFromLastResetPoint;
+            var fullZ = plr.Rotation.Z                    + third.XRotationFromLastResetPoint;
             var fullX = third.YRotationFromLastResetPoint - plr.Rotation.X;
 
             this.TempResult.Transform.CopyFrom(this.FinalResult.Transform);
@@ -337,23 +333,23 @@
 
             this.IsInitialized = true;
 
-#if PROFILING
+        #if PROFILING
             this._performance_timer.Start();
-#endif
+        #endif
 
             this.Values = new CameraValueMap(this);
-            this.Stack = new CameraStack(this);
-            this.Cull = new CameraCull(this);
-            this.Hide = new CameraHideHelper(this);
+            this.Stack  = new CameraStack(this);
+            this.Cull   = new CameraCull(this);
+            this.Hide   = new CameraHideHelper(this);
 
-            this.BaseHead = new CameraResult();
-            this.BaseRoot = new CameraResult();
-            this.BaseResult = new CameraResult();
+            this.BaseHead      = new CameraResult();
+            this.BaseRoot      = new CameraResult();
+            this.BaseResult    = new CameraResult();
             this.Offset1Result = new CameraResult();
-            this.InputResult = new CameraResult();
+            this.InputResult   = new CameraResult();
             this.Offset2Result = new CameraResult();
-            this.FinalResult = new CameraResult();
-            this.TempResult = new CameraResult();
+            this.FinalResult   = new CameraResult();
+            this.TempResult    = new CameraResult();
         }
 
         internal bool Update(UpdateCameraEventArgs e)
@@ -405,8 +401,14 @@
                 return null;
             }
 
-            var update = new CameraUpdate(this, this.FinalResult, target, playerCamera, cameraNode, cameraState,
+            var update = new CameraUpdate(this,
+                this.FinalResult,
+                target,
+                playerCamera,
+                cameraNode,
+                cameraState,
                 this.Values);
+
             return update;
         }
 
@@ -418,8 +420,8 @@
                 return null;
             }
 
-            TESObjectREFR target = null;
-            var refHandle = playerCamera.TargetRefHandle;
+            TESObjectREFR target    = null;
+            var           refHandle = playerCamera.TargetRefHandle;
             using (var objRef = new ObjectRefHolder(refHandle))
             {
                 if (objRef.IsValid)
@@ -435,9 +437,9 @@
             }
 
             var actor = t.Actor;
-            var obj = t.Object;
+            var obj   = t.Object;
             this.LastActorWasPlayer = actor != null && actor.IsPlayer;
-            this.LastTargetFormId = obj?.FormId ?? 0;
+            this.LastTargetFormId   = obj?.FormId ?? 0;
 
             return t;
         }
@@ -454,12 +456,12 @@
             this.InitMouseSettings();
 
             var enabled = this.IsEnabled;
-            var sens = this._fMouseHeading?.GetFloat() ?? 0.0125f;
-            var xsens = this._fMouseHeadingXScale?.GetFloat() ?? 0.02f;
-            var ysens = this._fMouseHeadingYScale?.GetFloat() ?? 0.85f;
-            var sens2 = enabled ? Settings.Instance.LookSensitivity : 1.0f;
-            var xsens2 = enabled ? Settings.Instance.LookSensitivityHorizontal : 1.0f;
-            var ysens2 = enabled ? Settings.Instance.LookSensitivityVertical : 1.0f;
+            var sens    = this._fMouseHeading?.GetFloat()       ?? 0.0125f;
+            var xsens   = this._fMouseHeadingXScale?.GetFloat() ?? 0.02f;
+            var ysens   = this._fMouseHeadingYScale?.GetFloat() ?? 0.85f;
+            var sens2   = enabled ? Settings.Instance.LookSensitivity : 1.0f;
+            var xsens2  = enabled ? Settings.Instance.LookSensitivityHorizontal : 1.0f;
+            var ysens2  = enabled ? Settings.Instance.LookSensitivityVertical : 1.0f;
 
             var fix = Settings.Instance.FixLookSensitivity;
             if (fix == 2)
@@ -471,12 +473,12 @@
             {
                 var mult_const = 60.0f; // 42.5f
                 x *= sens * xsens * mult_const * sens2 * xsens2;
-                y *= sens * ysens * sens2 * ysens2;
+                y *= sens * ysens * sens2      * ysens2;
             }
             else
             {
                 x *= ((sens * xsens) / seconds) * sens2 * xsens2;
-                y *= sens * ysens * sens2 * ysens2;
+                y *= sens                       * ysens * sens2 * ysens2;
             }
 
             if (this.FixSensitivityMode)
@@ -494,12 +496,12 @@
 
             this._fMouseSettingInit = true;
 
-            this._fMouseHeading = Setting.FindSettingByName("fMouseHeadingSensitivity:Controls", true, true);
+            this._fMouseHeading       = Setting.FindSettingByName("fMouseHeadingSensitivity:Controls", true, true);
             this._fMouseHeadingXScale = Setting.FindSettingByName("fMouseHeadingXScale:Controls", true, true);
             this._fMouseHeadingYScale = Setting.FindSettingByName("fMouseHeadingYScale:Controls", true, true);
         }
 
-        private bool _fMouseSettingInit;
+        private bool    _fMouseSettingInit;
         private Setting _fMouseHeading;
         private Setting _fMouseHeadingXScale;
         private Setting _fMouseHeadingYScale;
@@ -514,7 +516,7 @@
         {
             {
                 var wasEnabled = this.IsEnabled;
-                var isEnabled = this.CalculateEnabled(update);
+                var isEnabled  = this.CalculateEnabled(update);
 
                 if (wasEnabled != isEnabled)
                 {
@@ -564,7 +566,7 @@
 
             if (this.IsEnabled)
             {
-                var mode = update.Values.SkeletonMode.CurrentValue;
+                var mode      = update.Values.SkeletonMode.CurrentValue;
                 var wantThird = true;
                 if (mode <= -0.5)
                 {
@@ -574,6 +576,7 @@
                 {
                     wantThird = false;
                 }
+
                 //else wantThird = true;
 
                 var showFirst = this.WasUsingFirstPersonArms;
@@ -607,7 +610,7 @@
                                 break;
                             default:
                             {
-                                var pos = this.BaseResult.Transform.Position;
+                                var pos     = this.BaseResult.Transform.Position;
                                 var rootPos = this.BaseRoot.Transform.Position;
                                 var headPos = this.BaseHead.Transform.Position;
 
@@ -632,7 +635,7 @@
                                 break;
                             default:
                             {
-                                var rot = this.BaseResult.Transform.Rotation;
+                                var rot     = this.BaseResult.Transform.Rotation;
                                 var rootRot = this.BaseRoot.Transform.Rotation;
                                 var headRot = this.BaseHead.Transform.Rotation;
 
@@ -657,7 +660,10 @@
                             {
                                 this.Offset1Result.Transform.Position.CopyFrom(this.BaseResult.Transform.Position);
                                 this.Offset1Result.Transform.Rotation.CopyFrom(root.WorldTransform.Rotation);
-                                this.ApplyPositionOffset(this.Offset1Result.Transform, (float)x, (float)y, (float)z,
+                                this.ApplyPositionOffset(this.Offset1Result.Transform,
+                                    (float)x,
+                                    (float)y,
+                                    (float)z,
                                     this.BaseResult.Transform.Position);
                             }
                         }
@@ -667,7 +673,7 @@
                     if (Default._look_downoffset_ratio > 0.0f || Default._look_downoffset_ratio_leftrightmove > 0.0f)
                     {
                         var ratio = Default._look_downoffset_ratio;
-                        var root = update.Target.RootNode;
+                        var root  = update.Target.RootNode;
                         if (root != null)
                         {
                             var x = Settings.Instance.DownOffsetX * ratio;
@@ -681,7 +687,10 @@
                             {
                                 this.Offset1Result.Transform.Position.CopyFrom(this.BaseResult.Transform.Position);
                                 this.Offset1Result.Transform.Rotation.CopyFrom(root.WorldTransform.Rotation);
-                                this.ApplyPositionOffset(this.Offset1Result.Transform, x, y, z,
+                                this.ApplyPositionOffset(this.Offset1Result.Transform,
+                                    x,
+                                    y,
+                                    z,
                                     this.BaseResult.Transform.Position);
                             }
                         }
@@ -703,13 +712,18 @@
                             this.Offset1Result.Transform.CopyFrom(cur.Transform);
                             if (hasRot)
                             {
-                                this.ApplyRotationOffset(this.Offset1Result.Transform.Rotation, rx, ry,
+                                this.ApplyRotationOffset(this.Offset1Result.Transform.Rotation,
+                                    rx,
+                                    ry,
                                     this.Offset1Result.Transform.Rotation);
                             }
 
                             if (hasPos)
                             {
-                                this.ApplyPositionOffset(this.Offset1Result.Transform, px, py, pz,
+                                this.ApplyPositionOffset(this.Offset1Result.Transform,
+                                    px,
+                                    py,
+                                    pz,
                                     this.Offset1Result.Transform.Position);
                             }
 
@@ -725,18 +739,22 @@
                         {
                             this.LastActorTurnFrames--;
                             extraX = this.LastActorTurnX;
+
                             //extraY = this.LastActorTurnY;
                         }
 
                         var rx = (float)(this.Values.InputRotationX.CurrentValue + extraX) *
                                  (float)this.Values.InputRotationXMultiplier.CurrentValue;
+
                         var ry = (float)(this.Values.InputRotationY.CurrentValue + extraY) *
                                  (float)this.Values.InputRotationYMultiplier.CurrentValue;
 
                         if (rx != 0.0f || ry != 0.0f)
                         {
                             this.InputResult.Transform.CopyFrom(cur.Transform);
-                            this.ApplyRotationOffset(this.InputResult.Transform.Rotation, rx, ry,
+                            this.ApplyRotationOffset(this.InputResult.Transform.Rotation,
+                                rx,
+                                ry,
                                 this.InputResult.Transform.Rotation);
 
                             cur = this.InputResult;
@@ -759,13 +777,18 @@
                             this.Offset2Result.Transform.CopyFrom(cur.Transform);
                             if (hasRot)
                             {
-                                this.ApplyRotationOffset(this.Offset2Result.Transform.Rotation, rx, ry,
+                                this.ApplyRotationOffset(this.Offset2Result.Transform.Rotation,
+                                    rx,
+                                    ry,
                                     this.Offset2Result.Transform.Rotation);
                             }
 
                             if (hasPos)
                             {
-                                this.ApplyPositionOffset(this.Offset2Result.Transform, px, py, pz,
+                                this.ApplyPositionOffset(this.Offset2Result.Transform,
+                                    px,
+                                    py,
+                                    pz,
                                     this.Offset2Result.Transform.Position);
                             }
 
@@ -815,14 +838,17 @@
                 this.OnUpdating(1);
             }
 
-            if (!this.IsEnabled && Settings.Instance.ReplaceDefaultCamera &&
-                update.GameCameraState.Id == TESCameraStates.FirstPerson && this.IsGameCameraSwitchControlsEnabled())
+            if (!this.IsEnabled                                          &&
+                Settings.Instance.ReplaceDefaultCamera                   &&
+                update.GameCameraState.Id == TESCameraStates.FirstPerson &&
+                this.IsGameCameraSwitchControlsEnabled())
             {
                 update.GameCamera.EnterThirdPerson();
                 this.SetWantState(WantStates.EnabledFromTogglePOV);
             }
 
-            this.FixSensitivityMode = this.IsEnabled && update.GameCameraState.Id == TESCameraStates.ThirdPerson2 &&
+            this.FixSensitivityMode = this.IsEnabled                                                                          &&
+                                      update.GameCameraState.Id                               == TESCameraStates.ThirdPerson2 &&
                                       Memory.ReadUInt8(update.GameCameraState.Address + 0xDC) != 0;
         }
 
@@ -862,8 +888,8 @@
             this.LastSkeletonParameter = (showFirst ? 1 : 0) + (showThird ? 2 : 0) + (wantThirdPersonMode ? 4 : 0);
 
             var isThirdPersonMode = (Memory.ReadUInt8(plr.Address + 0xBDB) & 1) != 0;
-            var isFirst = (Utility.GetNiAVFlags(fpSkeleton) & 1) == 0;
-            var isThird = (Utility.GetNiAVFlags(tpSkeleton) & 1) == 0;
+            var isFirst           = (Utility.GetNiAVFlags(fpSkeleton)      & 1) == 0;
+            var isThird           = (Utility.GetNiAVFlags(tpSkeleton)      & 1) == 0;
 
             if (isFirst == showFirst && isThird == showThird && wantThirdPersonMode == isThirdPersonMode)
             {
@@ -913,11 +939,12 @@
                 case 0x6361747441776F42: // BowAttac -> BowAttackSpineTwistModifier
                 case 0x697053636967614D: // MagicSpi -> MagicSpineTwistModifier
                 case 0x70536C6175746952
-                    : // RitualSp -> RitualSpellSpineTwistModifier + RitualSpell_AimedConcentrationLoop + RitualSpell_AimedConLoop_MG
+                    :                    // RitualSp -> RitualSpellSpineTwistModifier + RitualSpell_AimedConcentrationLoop + RitualSpell_AimedConLoop_MG
                 case 0x69705374756F6853: // ShoutSpi -> ShoutSpineTwistModifier
                 {
                     Memory.WriteInt16(twistModifier + 0x64, -1);
                 }
+
                     break;
 
                 /*case 0x65646F4E6B6F6F4C: // LookNode -> LookNodeRotateModifierFixed
@@ -929,14 +956,16 @@
         internal bool IsGameCameraSwitchControlsEnabled()
         {
             var controls = PlayerControls.Instance;
-            return controls != null && Memory
-                .InvokeCdecl(this.Plugin.PlayerControls_IsCamSwitchControlsEnabled, controls.Address).ToBool();
+            return controls != null &&
+                   Memory.InvokeCdecl(this.Plugin.PlayerControls_IsCamSwitchControlsEnabled, controls.Address).
+                       ToBool();
         }
 
         private void OnEnabled(CameraUpdate update) => this.LastActorTurnFrames = 0;
 
         private void OnDisabled(CameraUpdate update) => this.UpdateSkeleton(this.GameWantsSkeletonMode > 0,
-            this.GameWantsSkeletonMode < 0, this.GameWantsSkeletonMode < 0);
+            this.GameWantsSkeletonMode                                                                 < 0,
+            this.GameWantsSkeletonMode                                                                 < 0);
 
         internal bool HookSwitchSkeleton(Actor actor, bool firstPerson)
         {
@@ -1007,9 +1036,9 @@
 
             switch (actorCaster.ActorCasterType)
             {
-                case EquippedSpellSlots.LeftHand: return this.MagicNodes[0];
+                case EquippedSpellSlots.LeftHand:  return this.MagicNodes[0];
                 case EquippedSpellSlots.RightHand: return this.MagicNodes[1];
-                case EquippedSpellSlots.Other: return this.MagicNodes[2];
+                case EquippedSpellSlots.Other:     return this.MagicNodes[2];
             }
 
             return null;
@@ -1027,7 +1056,7 @@
             for (var i = 0; i < this.MagicNodes.Length; i++)
             {
                 var node = this.MagicNodes[i];
-                var wt = node.WorldTransform;
+                var wt   = node.WorldTransform;
 
                 {
                     wt.CopyFrom(this.FinalResult.Transform);
@@ -1044,53 +1073,79 @@
             }
 
             const int count = 3;
-            const int size = 0x130;
+            const int size  = 0x130;
             const int size2 = 0x10;
             this.MagicNodeAllocation = Memory.Allocate((size * count) + (size2 * count));
-            this.MagicNodes = new NiNode[count];
-            this.MagicTranslates = new NiPoint3[count];
+            this.MagicNodes          = new NiNode[count];
+            this.MagicTranslates     = new NiPoint3[count];
             var s = Settings.Instance;
             for (var i = 0; i < count; i++)
             {
                 var addrOfThis = this.MagicNodeAllocation.Address + (size * i);
                 Memory.InvokeCdecl(this.Plugin.NiNode_ctor, addrOfThis, 0);
                 this.MagicNodes[i] = MemoryObject.FromAddress<NiNode>(addrOfThis);
-                this.MagicNodes[i].IncRef();
+                this.MagicNodes[i].
+                    IncRef();
 
                 this.MagicTranslates[i] =
                     MemoryObject.FromAddress<NiPoint3>(this.MagicNodeAllocation.Address + (size * count) + (size2 * i));
+
                 switch (i)
                 {
                     case 0:
-                        this.MagicTranslates[i].X = s.MagicLeftOffsetX;
-                        this.MagicTranslates[i].Y = s.MagicLeftOffsetY;
-                        this.MagicTranslates[i].Z = s.MagicLeftOffsetZ;
+                        this.MagicTranslates[i].
+                            X = s.MagicLeftOffsetX;
+
+                        this.MagicTranslates[i].
+                            Y = s.MagicLeftOffsetY;
+
+                        this.MagicTranslates[i].
+                            Z = s.MagicLeftOffsetZ;
+
                         break;
 
                     case 1:
-                        this.MagicTranslates[i].X = s.MagicRightOffsetX;
-                        this.MagicTranslates[i].Y = s.MagicRightOffsetY;
-                        this.MagicTranslates[i].Z = s.MagicRightOffsetZ;
+                        this.MagicTranslates[i].
+                            X = s.MagicRightOffsetX;
+
+                        this.MagicTranslates[i].
+                            Y = s.MagicRightOffsetY;
+
+                        this.MagicTranslates[i].
+                            Z = s.MagicRightOffsetZ;
+
                         break;
 
                     case 2:
-                        this.MagicTranslates[i].X = s.MagicVoiceOffsetX;
-                        this.MagicTranslates[i].Y = s.MagicVoiceOffsetY;
-                        this.MagicTranslates[i].Z = s.MagicVoiceOffsetZ;
+                        this.MagicTranslates[i].
+                            X = s.MagicVoiceOffsetX;
+
+                        this.MagicTranslates[i].
+                            Y = s.MagicVoiceOffsetY;
+
+                        this.MagicTranslates[i].
+                            Z = s.MagicVoiceOffsetZ;
+
                         break;
 
                     default:
-                        this.MagicTranslates[i].X = 0.0f;
-                        this.MagicTranslates[i].Y = 0.0f;
-                        this.MagicTranslates[i].Z = 0.0f;
+                        this.MagicTranslates[i].
+                            X = 0.0f;
+
+                        this.MagicTranslates[i].
+                            Y = 0.0f;
+
+                        this.MagicTranslates[i].
+                            Z = 0.0f;
+
                         break;
                 }
             }
         }
 
         private MemoryAllocation MagicNodeAllocation;
-        private NiNode[] MagicNodes;
-        private NiPoint3[] MagicTranslates;
+        private NiNode[]         MagicNodes;
+        private NiPoint3[]       MagicTranslates;
 
         private void ApplyRotationOffset(NiMatrix33 matrix, float x, float y, NiMatrix33 result)
         {
@@ -1147,19 +1202,19 @@
                 return;
             }
 
-            double x = third.XRotationFromLastResetPoint;
-            double y = third.YRotationFromLastResetPoint;
-            var didx = 0.0;
-            var didy = 0.0;
+            double x    = third.XRotationFromLastResetPoint;
+            double y    = third.YRotationFromLastResetPoint;
+            var    didx = 0.0;
+            var    didy = 0.0;
 
             if (x == 0.0 && y == 0.0)
             {
                 return;
             }
 
-            var max = 0.0;
+            var    max  = 0.0;
             double diff = this.Plugin._lastDiff2;
-            var time = this.Values.ActorTurnTime.CurrentValue;
+            var    time = this.Values.ActorTurnTime.CurrentValue;
 
             if (time <= 0.0)
             {
@@ -1221,12 +1276,12 @@
                 return;
             }
 
-            this.LastActorTurnX = (float)didx;
-            this.LastActorTurnY = (float)didy;
+            this.LastActorTurnX      = (float)didx;
+            this.LastActorTurnY      = (float)didy;
             this.LastActorTurnFrames = duration;
         }
 
-#if PROFILING
+    #if PROFILING
         internal enum _performance_track : int
         {
             Frame,
@@ -1288,6 +1343,6 @@
 
             NetScriptFramework.Skyrim.MenuManager.ShowHUDMessage("Stopped profiling IFPV.", null, true);
         }
-#endif
+    #endif
     }
 }

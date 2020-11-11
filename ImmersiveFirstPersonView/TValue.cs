@@ -48,8 +48,8 @@
         {
             this.DefaultAmount = defaultAmount;
             this.CurrentAmount = defaultAmount;
-            this.MinAmount = minAmount;
-            this.MaxAmount = maxAmount;
+            this.MinAmount     = minAmount;
+            this.MaxAmount     = maxAmount;
         }
 
         /// <summary>
@@ -71,7 +71,7 @@
             }
 
             var target = this.CurrentAmount + amount;
-            target = Math.Max(this.MinAmount, Math.Min(this.MaxAmount, target));
+            target             = Math.Max(this.MinAmount, Math.Min(this.MaxAmount, target));
             this.CurrentAmount = target;
         }
 
@@ -148,9 +148,9 @@
                 long diff = 0;
                 if (this.Paused.HasValue)
                 {
-                    diff = this.Paused.Value;
+                    diff        = this.Paused.Value;
                     this.Paused = null;
-                    diff = now - diff;
+                    diff        = now - diff;
                 }
 
                 if (diff > 0)
@@ -191,6 +191,7 @@
                     {
                         var dur = (Math.Abs(t.EndAmount - this.CurrentAmount) / Math.Max(t.Speed.Value, 0.00001)) *
                                   1000.0;
+
                         if (dur > 60000.0)
                         {
                             dur = 60000.0;
@@ -199,7 +200,7 @@
                         time = (long)dur;
                     }
 
-                    t.EndTime = now + time;
+                    t.EndTime     = now + time;
                     t.BeginAmount = this.CurrentAmount;
                 }
 
@@ -219,7 +220,7 @@
                 ratio = Utility.ApplyFormula(ratio, t.Type);
 
                 var amount = ((t.EndAmount - t.BeginAmount.Value) * ratio) + t.BeginAmount.Value;
-                amount = Math.Min(this.MaxAmount, Math.Max(this.MinAmount, amount));
+                amount             = Math.Min(this.MaxAmount, Math.Max(this.MinAmount, amount));
                 this.CurrentAmount = amount;
 
                 break;
@@ -254,12 +255,12 @@
 
         private sealed class TweenData
         {
-            internal double? BeginAmount;
-            internal long? BeginTime;
-            internal long? Duration;
-            internal double EndAmount;
-            internal long? EndTime;
-            internal double? Speed;
+            internal double?    BeginAmount;
+            internal long?      BeginTime;
+            internal long?      Duration;
+            internal double     EndAmount;
+            internal long?      EndTime;
+            internal double?    Speed;
             internal TweenTypes Type;
 
             private TweenData() { }
@@ -268,8 +269,8 @@
             {
                 var t = new TweenData();
                 t.EndAmount = targetValue;
-                t.Duration = time;
-                t.Type = type;
+                t.Duration  = time;
+                t.Type      = type;
                 return t;
             }
 
@@ -277,8 +278,8 @@
             {
                 var t = new TweenData();
                 t.EndAmount = targetValue;
-                t.Speed = speed;
-                t.Type = type;
+                t.Speed     = speed;
+                t.Type      = type;
                 return t;
             }
         }

@@ -24,8 +24,7 @@
         {
             base.OnEntering(update);
 
-            update.Values.StabilizeIgnoreOffsetY.AddModifier(
-                this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 34.0, true, 300);
+            update.Values.StabilizeIgnoreOffsetY.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 34.0, true, 300);
         }
     }
 }

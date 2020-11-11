@@ -49,10 +49,10 @@
                 Allocation = Memory.Allocate(0x60);
             }
 
-            this.TempPoint = MemoryObject.FromAddress<NiPoint3>(Allocation.Address);
-            this.TempTransform = MemoryObject.FromAddress<NiTransform>(Allocation.Address + 0x10);
+            this.TempPoint           = MemoryObject.FromAddress<NiPoint3>(Allocation.Address);
+            this.TempTransform       = MemoryObject.FromAddress<NiTransform>(Allocation.Address + 0x10);
             this.TempTransform.Scale = 1.0f;
-            this.TweenPoint = MemoryObject.FromAddress<NiPoint3>(Allocation.Address + 0x50);
+            this.TweenPoint          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address + 0x50);
 
             this.ForTarget = this.GetFromTarget(target);
         }
@@ -83,7 +83,7 @@
             var now = IFPVPlugin.Instance.Time;
             this.TweenPoint.CopyFrom(cur);
             this.TweenBegin = now;
-            this.TweenEnd = now + duration;
+            this.TweenEnd   = now + duration;
         }
 
         internal void ApplyTween(NiPoint3 target, long time)
@@ -93,12 +93,12 @@
                 return;
             }
 
-            var sx = this.TweenPoint.X;
-            var sy = this.TweenPoint.Y;
-            var sz = this.TweenPoint.Z;
-            var tx = target.X;
-            var ty = target.Y;
-            var tz = target.Z;
+            var sx    = this.TweenPoint.X;
+            var sy    = this.TweenPoint.Y;
+            var sz    = this.TweenPoint.Z;
+            var tx    = target.X;
+            var ty    = target.Y;
+            var tz    = target.Z;
             var ratio = (time - this.TweenBegin) / (float)(this.TweenEnd - this.TweenBegin);
             ratio = (float)Utility.ApplyFormula(ratio, TValue.TweenTypes.Linear);
 
@@ -110,7 +110,7 @@
         internal void ClearTweenFrom()
         {
             this.TweenBegin = 0;
-            this.TweenEnd = 0;
+            this.TweenEnd   = 0;
         }
 
         internal bool Get(NiAVObject root, NiTransform result)
@@ -152,7 +152,7 @@
 
             this.TempTransform.Translate(this.TempPoint, this.TempPoint);
 
-            var pos = result.Position;
+            var pos  = result.Position;
             var spos = root.WorldTransform.Position;
             pos.X = spos.X + this.TempPoint.X;
             pos.Y = spos.Y + this.TempPoint.Y;
@@ -218,7 +218,7 @@
                 this.TempPoint.Normalize(this.TempPoint);
             }
 
-            tpos = this.TempTransform.Position;
+            tpos   = this.TempTransform.Position;
             tpos.X = 0.0f;
             tpos.Y = 0.0f;
             tpos.Z = 0.0f;
@@ -246,10 +246,10 @@
             var now = this.CameraMain.Plugin.Time;
 
             var e = new CameraStabilizeHistoryEntry();
-            e.Time = now;
-            e.OffsetX = (float)ofx;
-            e.OffsetY = (float)ofy;
-            e.Position = new[] {x, y, z};
+            e.Time     = now;
+            e.OffsetX  = (float)ofx;
+            e.OffsetY  = (float)ofy;
+            e.Position = new[] { x, y, z };
             this.History.AddLast(e);
 
             this.NeedRecalculate = true;
@@ -257,8 +257,8 @@
 
         private void ApplyIgnoreOffset(ref double x, ref double y)
         {
-            var ofx = x;
-            var ofy = y;
+            var ofx  = x;
+            var ofy  = y;
             var ofxi = this.IgnoreOffsetX;
             var ofyi = this.IgnoreOffsetY;
             if (ofxi > 0.0)
@@ -312,7 +312,7 @@
                 return new TargetChangeCheck();
             }
 
-            var obj = target.Object;
+            var obj  = target.Object;
             var root = target.StabilizeRootNode;
             var head = target.HeadNode;
 
@@ -363,8 +363,8 @@
             var totalWeight = 0.0;
 
             var totalPosition = new double[3];
-            var totalOffsetX = 0.0;
-            var totalOffsetY = 0.0;
+            var totalOffsetX  = 0.0;
+            var totalOffsetY  = 0.0;
 
             {
                 var n = this.History.Last;
@@ -373,15 +373,16 @@
                     var cur = n.Value;
                     n = n.Previous;
 
-                    var diff = this.MaxHistoryDuration - (now - cur.Time);
-                    var ratio = diff / (double)this.MaxHistoryDuration;
+                    var diff   = this.MaxHistoryDuration - (now - cur.Time);
+                    var ratio  = diff  / (double)this.MaxHistoryDuration;
                     var weight = ratio * ratio;
-                    totalWeight += weight;
+                    totalWeight      += weight;
                     totalPosition[0] += cur.Position[0] * weight;
                     totalPosition[1] += cur.Position[1] * weight;
                     totalPosition[2] += cur.Position[2] * weight;
                     double ofx = cur.OffsetX;
                     double ofy = cur.OffsetY;
+
                     //this.ApplyIgnoreOffset(ref ofx, ref ofy);
                     totalOffsetX += ofx * weight;
                     totalOffsetY += ofy * weight;
@@ -396,29 +397,29 @@
             totalPosition[0] /= totalWeight;
             totalPosition[1] /= totalWeight;
             totalPosition[2] /= totalWeight;
-            totalOffsetX /= totalWeight;
-            totalOffsetY /= totalWeight;
+            totalOffsetX     /= totalWeight;
+            totalOffsetY     /= totalWeight;
 
             if (this.LastCalculated == null)
             {
-                this.LastCalculated = new CameraStabilizeHistoryEntry();
-                this.LastCalculated.Time = now;
-                this.LastCalculated.Position = new float[3];
+                this.LastCalculated             = new CameraStabilizeHistoryEntry();
+                this.LastCalculated.Time        = now;
+                this.LastCalculated.Position    = new float[3];
                 this.LastCalculated.Position[0] = (float)totalPosition[0];
                 this.LastCalculated.Position[1] = (float)totalPosition[1];
                 this.LastCalculated.Position[2] = (float)totalPosition[2];
-                this.LastCalculated.OffsetX = (float)totalOffsetX;
-                this.LastCalculated.OffsetY = (float)totalOffsetY;
+                this.LastCalculated.OffsetX     = (float)totalOffsetX;
+                this.LastCalculated.OffsetY     = (float)totalOffsetY;
                 return;
             }
 
             var changed = false;
 
             {
-                var value = totalPosition[0];
-                double old = this.LastCalculated.Position[0];
-                var ignore = this.IgnorePositionX;
-                var diff = value - old;
+                var    value  = totalPosition[0];
+                double old    = this.LastCalculated.Position[0];
+                var    ignore = this.IgnorePositionX;
+                var    diff   = value - old;
                 if (Math.Abs(diff) > ignore)
                 {
                     if (diff >= 0.0)
@@ -431,15 +432,15 @@
                     }
 
                     this.LastCalculated.Position[0] += (float)diff;
-                    changed = true;
+                    changed                         =  true;
                 }
             }
 
             {
-                var value = totalPosition[1];
-                double old = this.LastCalculated.Position[1];
-                var ignore = this.IgnorePositionY;
-                var diff = value - old;
+                var    value  = totalPosition[1];
+                double old    = this.LastCalculated.Position[1];
+                var    ignore = this.IgnorePositionY;
+                var    diff   = value - old;
                 if (Math.Abs(diff) > ignore)
                 {
                     if (diff >= 0.0)
@@ -452,15 +453,15 @@
                     }
 
                     this.LastCalculated.Position[1] += (float)diff;
-                    changed = true;
+                    changed                         =  true;
                 }
             }
 
             {
-                var value = totalPosition[2];
-                double old = this.LastCalculated.Position[2];
-                var ignore = this.IgnorePositionZ;
-                var diff = value - old;
+                var    value  = totalPosition[2];
+                double old    = this.LastCalculated.Position[2];
+                var    ignore = this.IgnorePositionZ;
+                var    diff   = value - old;
                 if (Math.Abs(diff) > ignore)
                 {
                     if (diff >= 0.0)
@@ -473,15 +474,15 @@
                     }
 
                     this.LastCalculated.Position[2] += (float)diff;
-                    changed = true;
+                    changed                         =  true;
                 }
             }
 
             {
-                var value = totalOffsetX;
-                double old = this.LastCalculated.OffsetX;
-                var ignore = this.IgnoreRotationX;
-                var diff = value - old;
+                var    value  = totalOffsetX;
+                double old    = this.LastCalculated.OffsetX;
+                var    ignore = this.IgnoreRotationX;
+                var    diff   = value - old;
                 if (Math.Abs(diff) > ignore)
                 {
                     if (diff >= 0.0)
@@ -494,15 +495,15 @@
                     }
 
                     this.LastCalculated.OffsetX += (float)diff;
-                    changed = true;
+                    changed                     =  true;
                 }
             }
 
             {
-                var value = totalOffsetY;
-                double old = this.LastCalculated.OffsetY;
-                var ignore = this.IgnoreRotationY;
-                var diff = value - old;
+                var    value  = totalOffsetY;
+                double old    = this.LastCalculated.OffsetY;
+                var    ignore = this.IgnoreRotationY;
+                var    diff   = value - old;
                 if (Math.Abs(diff) > ignore)
                 {
                     if (diff >= 0.0)
@@ -515,7 +516,7 @@
                     }
 
                     this.LastCalculated.OffsetY += (float)diff;
-                    changed = true;
+                    changed                     =  true;
                 }
             }
 
@@ -528,26 +529,26 @@
         private void UpdateValues(CameraUpdate update)
         {
             this.MaxHistoryDuration = (long)update.Values.StabilizeHistoryDuration.CurrentValue;
-            this.IgnorePositionX = update.Values.StabilizeIgnorePositionX.CurrentValue;
-            this.IgnorePositionY = update.Values.StabilizeIgnorePositionY.CurrentValue;
-            this.IgnorePositionZ = update.Values.StabilizeIgnorePositionZ.CurrentValue;
-            this.IgnoreRotationX = Utility.DegToRad(update.Values.StabilizeIgnoreRotationX.CurrentValue);
-            this.IgnoreRotationY = Utility.DegToRad(update.Values.StabilizeIgnoreRotationY.CurrentValue);
-            this.IgnoreOffsetX = Utility.DegToRad(update.Values.StabilizeIgnoreOffsetX.CurrentValue);
-            this.IgnoreOffsetY = Utility.DegToRad(update.Values.StabilizeIgnoreOffsetY.CurrentValue);
+            this.IgnorePositionX    = update.Values.StabilizeIgnorePositionX.CurrentValue;
+            this.IgnorePositionY    = update.Values.StabilizeIgnorePositionY.CurrentValue;
+            this.IgnorePositionZ    = update.Values.StabilizeIgnorePositionZ.CurrentValue;
+            this.IgnoreRotationX    = Utility.DegToRad(update.Values.StabilizeIgnoreRotationX.CurrentValue);
+            this.IgnoreRotationY    = Utility.DegToRad(update.Values.StabilizeIgnoreRotationY.CurrentValue);
+            this.IgnoreOffsetX      = Utility.DegToRad(update.Values.StabilizeIgnoreOffsetX.CurrentValue);
+            this.IgnoreOffsetY      = Utility.DegToRad(update.Values.StabilizeIgnoreOffsetY.CurrentValue);
         }
 
         private sealed class CameraStabilizeHistoryEntry
         {
-            internal float OffsetX;
-            internal float OffsetY;
+            internal float   OffsetX;
+            internal float   OffsetY;
             internal float[] Position;
-            internal long Time;
+            internal long    Time;
         }
 
         private sealed class TargetChangeCheck
         {
-            internal uint FormId;
+            internal uint   FormId;
             internal string HeadName;
             internal string RootName;
 
@@ -558,7 +559,8 @@
                     return false;
                 }
 
-                return this.FormId == other.FormId && this.RootName == other.RootName &&
+                return this.FormId   == other.FormId   &&
+                       this.RootName == other.RootName &&
                        this.HeadName == other.HeadName;
             }
         }

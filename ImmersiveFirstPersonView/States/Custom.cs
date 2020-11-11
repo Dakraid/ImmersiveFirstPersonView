@@ -7,12 +7,12 @@
 
     internal sealed class Custom : CameraState
     {
-        internal static readonly string Prefix = "IFPVProfile";
-        private List<Tuple<double, ProfileSettings._ConditionDelegate>> _cond;
-        private List<Tuple<string, ProfileSettings._ConditionDelegate2>> _cond2;
-        private int _group;
+        internal static readonly string                                                   Prefix = "IFPVProfile";
+        private                  List<Tuple<double, ProfileSettings._ConditionDelegate>>  _cond;
+        private                  List<Tuple<string, ProfileSettings._ConditionDelegate2>> _cond2;
+        private                  int                                                      _group;
 
-        private int _prio = 50;
+        private int                       _prio = 50;
         private List<Action<CameraState>> _setters;
 
         private Custom() { }
@@ -32,16 +32,19 @@
             }
 
             var c = new Custom();
-            c._prio = settings.Priority;
-            c._group = settings.Group;
+            c._prio    = settings.Priority;
+            c._group   = settings.Group;
             c._setters = settings.setters;
-            c._cond = settings.conditions;
-            c._cond2 = settings.conditions2;
-            c.Name = keyword;
+            c._cond    = settings.conditions;
+            c._cond2   = settings.conditions2;
+            c.Name     = keyword;
 
             if (c._group < 0 || c._group >= 32)
             {
-                throw new InvalidOperationException(Prefix + "." + keyword + ".config.txt has invalid group setting: " +
+                throw new InvalidOperationException(Prefix                                    +
+                                                    "."                                       +
+                                                    keyword                                   +
+                                                    ".config.txt has invalid group setting: " +
                                                     c._group);
             }
 
@@ -93,12 +96,12 @@
 
     internal sealed class ProfileSettings
     {
-        private static Dictionary<string, _ConditionDelegate> _cond_map;
+        private static Dictionary<string, _ConditionDelegate>  _cond_map;
         private static Dictionary<string, _ConditionDelegate2> _cond_map2;
 
         private static Dictionary<string, List<CameraValueBase>> _cv_map;
-        internal List<Tuple<double, _ConditionDelegate>> conditions = new List<Tuple<double, _ConditionDelegate>>(8);
-        internal List<Tuple<string, _ConditionDelegate2>> conditions2 = new List<Tuple<string, _ConditionDelegate2>>(2);
+        internal       List<Tuple<double, _ConditionDelegate>>   conditions  = new List<Tuple<double, _ConditionDelegate>>(8);
+        internal       List<Tuple<string, _ConditionDelegate2>>  conditions2 = new List<Tuple<string, _ConditionDelegate2>>(2);
 
         internal List<Action<CameraState>> setters = new List<Action<CameraState>>(16);
 
@@ -110,14 +113,19 @@
         {
             init_cv();
 
-            var type = typeof(Settings).GetType();
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var type   = typeof (Settings).GetType();
+            var fields = type.GetFields(BindingFlags.Public     | BindingFlags.NonPublic | BindingFlags.Instance);
+            var props  = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             var cf = new ConfigFile(keyword);
-            cf.AddSetting("Priority", new Value(50), "Priority",
+            cf.AddSetting("Priority",
+                new Value(50),
+                "Priority",
                 "The priority of profile. Higher value means profile is loaded later and will overwrite others.");
-            cf.AddSetting("Group", new Value(0), "Group",
+
+            cf.AddSetting("Group",
+                new Value(0),
+                "Group",
                 "The group of profile. Multiple profiles with same group ID can not be active at the same time. Only one profile (highest priority) from same group will be active (or none).");
 
             var cf2 = new ConfigFile(keyword);
@@ -131,7 +139,7 @@
 
             foreach (var f in fields)
             {
-                var attrs = f.GetCustomAttributes(typeof(ConfigValueAttribute), true);
+                var attrs = f.GetCustomAttributes(typeof (ConfigValueAttribute), true);
                 if (attrs == null || attrs.Length == 0)
                 {
                     continue;
@@ -148,14 +156,14 @@
                     continue;
                 }
 
-                var val = ToValue(f.FieldType, f.GetValue(Settings.Instance));
+                var val     = ToValue(f.FieldType, f.GetValue(Settings.Instance));
                 var setting = cf.AddSetting(a.Keyword, val, a.Name, a.Description, a.Flags);
                 valid.Add(new Tuple<ConfigEntry, FieldInfo, PropertyInfo>(setting, f, null));
             }
 
             foreach (var p in props)
             {
-                var attrs = p.GetCustomAttributes(typeof(ConfigValueAttribute), true);
+                var attrs = p.GetCustomAttributes(typeof (ConfigValueAttribute), true);
                 if (attrs == null || attrs.Length == 0)
                 {
                     continue;
@@ -177,7 +185,7 @@
                     continue;
                 }
 
-                var val = ToValue(p.PropertyType, p.GetValue(Settings.Instance));
+                var val     = ToValue(p.PropertyType, p.GetValue(Settings.Instance));
                 var setting = cf.AddSetting(a.Keyword, val, a.Name, a.Description, a.Flags);
                 valid.Add(new Tuple<ConfigEntry, FieldInfo, PropertyInfo>(setting, null, p));
             }
@@ -206,11 +214,14 @@
                     continue;
                 }
 
-                var t2 = cf2.GetValue(t.Item1.Keyword + "_Type");
+                var t2      = cf2.GetValue(t.Item1.Keyword + "_Type");
                 var settype = CameraValueModifier.ModifierTypes.Set;
                 if (t2 != null)
                 {
-                    var tx = t2.ToString().ToLowerInvariant().Trim();
+                    var tx = t2.ToString().
+                        ToLowerInvariant().
+                        Trim();
+
                     switch (tx)
                     {
                         case "set":
@@ -250,7 +261,7 @@
 
             foreach (var pair in _cond_map)
             {
-                var kw = "Condition_" + pair.Key;
+                var kw  = "Condition_" + pair.Key;
                 var val = cf2.GetValue(kw);
                 if (val == null)
                 {
@@ -268,7 +279,7 @@
 
             foreach (var pair in _cond_map2)
             {
-                var kw = "Condition_" + pair.Key;
+                var kw  = "Condition_" + pair.Key;
                 var val = cf2.GetValue(kw);
                 if (val == null)
                 {
@@ -388,11 +399,12 @@
 
         private static void init_cond()
         {
-            _cond_map = new Dictionary<string, _ConditionDelegate>(StringComparer.OrdinalIgnoreCase);
+            _cond_map  = new Dictionary<string, _ConditionDelegate>(StringComparer.OrdinalIgnoreCase);
             _cond_map2 = new Dictionary<string, _ConditionDelegate2>(StringComparer.OrdinalIgnoreCase);
 
             var methods =
-                typeof(ProfileSettings).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                typeof (ProfileSettings).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+
             foreach (var m in methods)
             {
                 if (!m.Name.StartsWith("Cond_"))
@@ -401,25 +413,32 @@
                 }
 
                 var pr = m.GetParameters();
-                if (pr.Length != 2 || pr[0].ParameterType != typeof(CameraUpdate))
+                if (pr.Length != 2 ||
+                    pr[0].
+                        ParameterType !=
+                    typeof (CameraUpdate))
                 {
                     continue;
                 }
 
-                if (m.ReturnType != typeof(bool))
+                if (m.ReturnType != typeof (bool))
                 {
                     continue;
                 }
 
                 var name = m.Name.Substring("Cond_".Length);
 
-                if (pr[1].ParameterType == typeof(double))
+                if (pr[1].
+                        ParameterType ==
+                    typeof (double))
                 {
-                    _cond_map[name] = (_ConditionDelegate)m.CreateDelegate(typeof(_ConditionDelegate));
+                    _cond_map[name] = (_ConditionDelegate)m.CreateDelegate(typeof (_ConditionDelegate));
                 }
-                else if (pr[1].ParameterType == typeof(string))
+                else if (pr[1].
+                             ParameterType ==
+                         typeof (string))
                 {
-                    _cond_map2[name] = (_ConditionDelegate2)m.CreateDelegate(typeof(_ConditionDelegate2));
+                    _cond_map2[name] = (_ConditionDelegate2)m.CreateDelegate(typeof (_ConditionDelegate2));
                 }
             }
         }
@@ -437,11 +456,11 @@
             _cv_map = new Dictionary<string, List<CameraValueBase>>(StringComparer.OrdinalIgnoreCase);
 
             var auto_map = new Dictionary<string, CameraValueBase>();
-            var t = typeof(CameraValueMap);
-            var fields = t.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var t        = typeof (CameraValueMap);
+            var fields   = t.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var f in fields)
             {
-                if (f.FieldType != typeof(CameraValueBase) && !f.FieldType.IsSubclassOf(typeof(CameraValueBase)))
+                if (f.FieldType != typeof (CameraValueBase) && !f.FieldType.IsSubclassOf(typeof (CameraValueBase)))
                 {
                     continue;
                 }
@@ -452,7 +471,7 @@
             var props = t.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var p in props)
             {
-                if (p.PropertyType != typeof(CameraValueBase) && !p.PropertyType.IsSubclassOf(typeof(CameraValueBase)))
+                if (p.PropertyType != typeof (CameraValueBase) && !p.PropertyType.IsSubclassOf(typeof (CameraValueBase)))
                 {
                     continue;
                 }
@@ -476,7 +495,7 @@
                     continue;
                 }
 
-                _cv_map[pair.Key] = new List<CameraValueBase> {pair.Value};
+                _cv_map[pair.Key] = new List<CameraValueBase> { pair.Value };
             }
         }
 
@@ -489,72 +508,72 @@
         /// <exception cref="System.ArgumentException">Unhandled type in configuration class ( + type.Name + )!;type</exception>
         private static Value ToValue(Type type, object value)
         {
-            if (type == typeof(bool))
+            if (type == typeof (bool))
             {
                 return new Value((bool)value);
             }
 
-            if (type == typeof(sbyte))
+            if (type == typeof (sbyte))
             {
                 return new Value((sbyte)value);
             }
 
-            if (type == typeof(byte))
+            if (type == typeof (byte))
             {
                 return new Value((byte)value);
             }
 
-            if (type == typeof(short))
+            if (type == typeof (short))
             {
                 return new Value((short)value);
             }
 
-            if (type == typeof(ushort))
+            if (type == typeof (ushort))
             {
                 return new Value((ushort)value);
             }
 
-            if (type == typeof(int))
+            if (type == typeof (int))
             {
                 return new Value((int)value);
             }
 
-            if (type == typeof(uint))
+            if (type == typeof (uint))
             {
                 return new Value((uint)value);
             }
 
-            if (type == typeof(long))
+            if (type == typeof (long))
             {
                 return new Value((long)value);
             }
 
-            if (type == typeof(ulong))
+            if (type == typeof (ulong))
             {
                 return new Value((ulong)value);
             }
 
-            if (type == typeof(float))
+            if (type == typeof (float))
             {
                 return new Value((float)value);
             }
 
-            if (type == typeof(double))
+            if (type == typeof (double))
             {
                 return new Value((double)value);
             }
 
-            if (type == typeof(decimal))
+            if (type == typeof (decimal))
             {
                 return new Value((decimal)value);
             }
 
-            if (type == typeof(DateTime))
+            if (type == typeof (DateTime))
             {
                 return new Value((DateTime)value);
             }
 
-            if (type == typeof(string))
+            if (type == typeof (string))
             {
                 return new Value((string)value);
             }

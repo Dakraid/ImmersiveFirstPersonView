@@ -2572,7 +2572,7 @@ internal:
 				"CameraStateChanging",
 				gcnew NetScriptFramework::EventHookParameters<
 					CameraStateChangingEventArgs ^>(
-					__VIDS::VID32290.Value + 0xCF, 5, 5,
+					__VIDS::VID32290.Value, 5, 5,
 					"48 89 5C 24 08",
 					gcnew System::Func<
 						NetScriptFramework::CPURegisters

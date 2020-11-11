@@ -35,10 +35,10 @@
             }
 
             var name = race.Name;
-            var id = race.EditorId;
+            var id   = race.EditorId;
 
             return (!string.IsNullOrEmpty(name) && name.IndexOf(want, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                   (!string.IsNullOrEmpty(id) && id.IndexOf(want, StringComparison.OrdinalIgnoreCase) >= 0);
+                   (!string.IsNullOrEmpty(id)   && id.IndexOf(want, StringComparison.OrdinalIgnoreCase)   >= 0);
         }
 
         internal override void OnEntering(CameraUpdate update)
@@ -101,7 +101,7 @@
 
             this._t_init = true;
 
-            var id = Settings.Instance.VampireLordTransformationEffectId;
+            var id   = Settings.Instance.VampireLordTransformationEffectId;
             var file = Settings.Instance.VampireLordTransformationEffectFile;
 
             if (id == 0 || string.IsNullOrEmpty(file))

@@ -30,7 +30,8 @@
             base.OnEntering(update);
 
             update.Values.Offset1PositionY.AddModifier(this, CameraValueModifier.ModifierTypes.Set, -5.0);
-            update.Values.NearClip.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis,
+            update.Values.NearClip.AddModifier(this,
+                CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis,
                 1.0);
         }
     }

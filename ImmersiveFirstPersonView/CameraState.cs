@@ -62,21 +62,22 @@
             var headBob = forceHeadBob || Settings.Instance.HeadBob;
             if (headBob)
             {
-                var value = 0.5;
+                var value  = 0.5;
                 var amount = (forceHeadBob ? 1.0 : Settings.Instance.HeadBobAmount) * multiplier;
                 if (amount > 0.01)
                 {
                     value /= amount;
-                    update.Values.StabilizeIgnorePositionY.AddModifier(
-                        this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, value, true,
+                    update.Values.StabilizeIgnorePositionY.AddModifier(this,
+                        CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis,
+                        value,
+                        true,
                         extraDuration);
                 }
             }
 
             if (headBob || forceReducedStabilizeHistory)
             {
-                update.Values.StabilizeHistoryDuration.AddModifier(
-                    this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 100.0, true, extraDuration);
+                update.Values.StabilizeHistoryDuration.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 100.0, true, extraDuration);
             }
         }
     }

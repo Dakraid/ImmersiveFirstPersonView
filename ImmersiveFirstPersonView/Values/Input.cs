@@ -194,11 +194,10 @@ namespace IFPV.Values
     {
         private static double _def_value;
 
-        private static bool _init_d;
+        private static bool    _init_d;
         private static Setting _setting;
 
-        internal ExtraResponsiveControls() =>
-            this.Flags |= CameraValueFlags.NoTween | CameraValueFlags.DontUpdateIfDisabled;
+        internal ExtraResponsiveControls() => this.Flags |= CameraValueFlags.NoTween | CameraValueFlags.DontUpdateIfDisabled;
 
         internal override double ChangeSpeed => 1.0;
 

@@ -29,8 +29,7 @@
             switch (actor.SitState)
             {
                 case ActorActionStates.NotAction:
-                case ActorActionStates.InProgress:
-                    return false;
+                case ActorActionStates.InProgress: return false;
             }
 
             return true;
@@ -40,8 +39,7 @@
         {
             base.OnEntering(update);
 
-            update.Values.RotationFromHead.AddModifier(
-                this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 0.2);
+            update.Values.RotationFromHead.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 0.2);
         }
     }
 }

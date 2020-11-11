@@ -1,4 +1,4 @@
-﻿namespace IFPV.States
+namespace IFPV.States
 {
     /// <summary>
     ///     This profile is used when player has no control and should just see what the character is doing.
@@ -14,7 +14,7 @@
             update.Values.InputRotationYMultiplier.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
             update.Values.PositionFromHead.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 1);
             update.Values.RotationFromHead.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 1);
-            update.Values.HeadTrackEnabled.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
+            update.Values._HeadTrackEnabled.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
             update.Values.Show1stPersonArms.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
             update.Values.HideArms.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
             update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);

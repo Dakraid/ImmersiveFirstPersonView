@@ -7,8 +7,8 @@
 
     internal sealed class CameraCull
     {
-        private readonly HashSet<IntPtr> _put_back = new HashSet<IntPtr>();
-        internal readonly CameraMain CameraMain;
+        private readonly  HashSet<IntPtr> _put_back = new HashSet<IntPtr>();
+        internal readonly CameraMain      CameraMain;
 
         private readonly List<Tuple<NiAVObject, int>> Disabled = new List<Tuple<NiAVObject, int>>();
 
@@ -147,16 +147,20 @@
                 return;
             }
 
-            var had = false;
+            var had   = false;
             var reset = 0;
             lock (this.Locker)
             {
                 var addr = obj.Address;
                 for (var i = 0; i < this.Disabled.Count; i++)
                 {
-                    if (this.Disabled[i].Item1.Address == addr)
+                    if (this.Disabled[i].
+                            Item1.Address ==
+                        addr)
                     {
-                        reset = this.Disabled[i].Item2;
+                        reset = this.Disabled[i].
+                            Item2;
+
                         this.Disabled.RemoveAt(i);
                         had = true;
                         break;
@@ -228,11 +232,11 @@
 
             for (var i = 0; i < this.Disabled.Count; i++)
             {
-                var s = this.Disabled[i];
+                var s     = this.Disabled[i];
                 var reset = s.Item2;
                 if (reset == 0)
                 {
-                    reset = this.IsEnabled(s.Item1) ? 1 : -1;
+                    reset            = this.IsEnabled(s.Item1) ? 1 : -1;
                     this.Disabled[i] = new Tuple<NiAVObject, int>(s.Item1, reset);
                 }
 
@@ -270,7 +274,7 @@
 
         private bool IsEnabled(NiAVObject obj)
         {
-            var fl = Memory.ReadUInt32(obj.Address + 0xF4);
+            var fl         = Memory.ReadUInt32(obj.Address + 0xF4);
             var hadEnabled = (fl & 1) == 0;
             return hadEnabled;
         }
@@ -282,7 +286,7 @@
                 return;
             }
 
-            var fl = Memory.ReadUInt32(obj.Address + 0xF4);
+            var fl         = Memory.ReadUInt32(obj.Address + 0xF4);
             var hadEnabled = (fl & 1) == 0;
             if (hadEnabled == enabled)
             {

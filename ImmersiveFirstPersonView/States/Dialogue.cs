@@ -23,6 +23,7 @@
         }
 
         internal override void OnEntering(CameraUpdate update) => base.OnEntering(update);
+
         //update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
     }
 }

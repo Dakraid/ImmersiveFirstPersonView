@@ -11,7 +11,7 @@
     <Product>NetScriptFramework.SkyrimSE.Implementations</Product>
     <Copyright>Copyright © meh321 2019</Copyright>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <OutputPath>..\Build\Debug\Data\NetScriptFramework\</OutputPath>
+    <OutputPath>..\Build\Release\Data\NetScriptFramework\</OutputPath>
     <UseWindowsForms>true</UseWindowsForms>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>

@@ -7,16 +7,16 @@
 
     internal sealed class CameraHideHelper
     {
-        internal readonly CameraMain CameraMain;
-        private readonly biped_mask IsHelmetBipedMask;
-        private readonly List<NiAVObject> LastHelmet = new List<NiAVObject>();
-        private readonly biped_mask NotHelmetBipedMask;
-        private NiAVObject FirstPersonSkeleton;
-        private IntPtr LastAddress = IntPtr.Zero;
-        private HideFlags LastFlags = HideFlags.None;
-        private uint LastFormId;
+        internal readonly CameraMain       CameraMain;
+        private readonly  biped_mask       IsHelmetBipedMask;
+        private readonly  List<NiAVObject> LastHelmet = new List<NiAVObject>();
+        private readonly  biped_mask       NotHelmetBipedMask;
+        private           NiAVObject       FirstPersonSkeleton;
+        private           IntPtr           LastAddress = IntPtr.Zero;
+        private           HideFlags        LastFlags   = HideFlags.None;
+        private           uint             LastFormId;
 
-        private uint LastRaceId;
+        private uint   LastRaceId;
         private IntPtr LastSkeleton = IntPtr.Zero;
 
         internal CameraHideHelper(CameraMain cameraMain)
@@ -62,11 +62,11 @@
                 return;
             }
 
-            this.LastAddress = IntPtr.Zero;
+            this.LastAddress  = IntPtr.Zero;
             this.LastSkeleton = IntPtr.Zero;
-            this.LastFormId = 0;
-            this.LastFlags = HideFlags.None;
-            this.LastRaceId = 0;
+            this.LastFormId   = 0;
+            this.LastFlags    = HideFlags.None;
+            this.LastRaceId   = 0;
 
             this.CameraMain.Cull.Clear();
             this.SetFirstPersonSkeleton(null, update.GameCameraState.Id == TESCameraStates.FirstPerson, false);
@@ -83,22 +83,24 @@
             }
 
             {
-                var addr = actor.Address;
+                var addr   = actor.Address;
                 var formId = actor.FormId;
-                var race = actor.Race;
+                var race   = actor.Race;
                 var raceId = race != null ? race.FormId : 0;
-                var node = update.Target.RootNode;
-                var addr2 = node != null ? node.Address : IntPtr.Zero;
+                var node   = update.Target.RootNode;
+                var addr2  = node != null ? node.Address : IntPtr.Zero;
 
-                if (addr != this.LastAddress || formId != this.LastFormId || raceId != this.LastRaceId ||
+                if (addr              != this.LastAddress ||
+                    formId            != this.LastFormId  ||
+                    raceId            != this.LastRaceId  ||
                     this.LastSkeleton != addr2)
                 {
                     this.Clear(update);
 
-                    this.LastAddress = addr;
+                    this.LastAddress  = addr;
                     this.LastSkeleton = addr2;
-                    this.LastFormId = formId;
-                    this.LastRaceId = raceId;
+                    this.LastFormId   = formId;
+                    this.LastRaceId   = raceId;
                 }
             }
 
@@ -126,8 +128,7 @@
             switch (update.GameCameraState.Id)
             {
                 case TESCameraStates.FirstPerson:
-                case TESCameraStates.Free:
-                    break;
+                case TESCameraStates.Free: break;
 
                 default:
                     wantFlags |= HideFlags.Has1st;
@@ -159,8 +160,10 @@
                     var skeleton = actor.GetSkeletonNode(true);
                     if (skeleton != null)
                     {
-                        this.SetFirstPersonSkeleton(skeleton, update.GameCameraState.Id == TESCameraStates.FirstPerson,
+                        this.SetFirstPersonSkeleton(skeleton,
+                            update.GameCameraState.Id       == TESCameraStates.FirstPerson,
                             (wantFlags & HideFlags.Show1st) != HideFlags.None);
+
                         this.LastFlags |= HideFlags.Has1st;
                         if ((wantFlags & HideFlags.Show1st) != HideFlags.None)
                         {
@@ -184,7 +187,7 @@
             }
 
             var transform = this.FirstPersonSkeleton.LocalTransform;
-            var rot = transform.Rotation;
+            var rot       = transform.Rotation;
 
             var result = update.Result.Transform.Rotation;
             rot.CopyFrom(result);
@@ -195,8 +198,10 @@
                 var temp = this.CameraMain.TempResult.Transform.Rotation;
                 temp.Identity(1.0f);
 
-                var y = (float)(update.Values.InputRotationY.CurrentValue *
-                                update.Values.InputRotationYMultiplier.CurrentValue * (ymult - 1.0));
+                var y = (float)(update.Values.InputRotationY.CurrentValue           *
+                                update.Values.InputRotationYMultiplier.CurrentValue *
+                                (ymult - 1.0));
+
                 if (y != 0.0f)
                 {
                     temp.RotateX(y, temp);
@@ -245,7 +250,7 @@
 
             if (current is BSGeometry)
             {
-                var g = (BSGeometry)current;
+                var g    = (BSGeometry)current;
                 var skin = g.Skin.Value;
                 if (skin != null && skin is BSDismemberSkinInstance)
                 {
@@ -350,13 +355,14 @@
                 return;
             }
 
-            var ls = this.GetHelmetNodes(rootNode);
+            var ls      = this.GetHelmetNodes(rootNode);
             var changed = ls.Count != this.LastHelmet.Count;
             if (!changed)
             {
                 for (var i = 0; i < ls.Count; i++)
                 {
-                    if (!ls[i].Equals(this.LastHelmet[i]))
+                    if (!ls[i].
+                        Equals(this.LastHelmet[i]))
                     {
                         changed = true;
                         break;
@@ -421,7 +427,7 @@
 
             if ((want & HideFlags.Arms) != HideFlags.None)
             {
-                var left = root.LookupNodeByName("NPC L UpperArm [LUar]");
+                var left  = root.LookupNodeByName("NPC L UpperArm [LUar]");
                 var right = root.LookupNodeByName("NPC R UpperArm [RUar]");
                 if (left != null && right != null)
                 {
@@ -437,17 +443,16 @@
             }
         }
 
-        [Flags]
-        private enum HideFlags : uint
+        [Flags] private enum HideFlags : uint
         {
             None = 0,
 
-            Head = 1,
-            Helmet = 2,
-            Arms = 4,
+            Head    = 1,
+            Helmet  = 2,
+            Arms    = 4,
             Show1st = 8,
-            Has1st = 0x10,
-            Head2 = 0x20,
+            Has1st  = 0x10,
+            Head2   = 0x20,
 
             NeedUpdate = Head | Helmet | Arms | Head2
         }
@@ -465,8 +470,8 @@
                         return false;
                     }
 
-                    var i = index / 64;
-                    var j = index % 64;
+                    var i  = index / 64;
+                    var j  = index % 64;
                     var fl = (ulong)1 << j;
                     return (this.mask[i] & fl) != 0;
                 }
@@ -477,8 +482,8 @@
                         return;
                     }
 
-                    var i = index / 64;
-                    var j = index % 64;
+                    var i  = index / 64;
+                    var j  = index % 64;
                     var fl = (ulong)1 << j;
                     if (value)
                     {

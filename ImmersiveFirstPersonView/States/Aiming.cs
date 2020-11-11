@@ -1,4 +1,4 @@
-﻿namespace IFPV.States
+namespace IFPV.States
 {
     using NetScriptFramework;
     using NetScriptFramework.SkyrimSE;
@@ -40,8 +40,7 @@
                 {
                     case MagicCastingStates.Charged:
                     case MagicCastingStates.Charging:
-                    case MagicCastingStates.Concentrating:
-                        return true;
+                    case MagicCastingStates.Concentrating: return true;
                 }
             }
 
@@ -52,12 +51,10 @@
         {
             base.OnEntering(update);
 
-            update.Values.FirstPersonSkeletonRotateYMultiplier.AddModifier(
-                this, CameraValueModifier.ModifierTypes.Set, 1.0);
+            update.Values.FirstPersonSkeletonRotateYMultiplier.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 1.0);
             update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 1.0);
-            update.Values.RestrictDown.AddModifier(
-                this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 70.0);
-            update.Values.HeadTrackEnabled.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0.0);
+            update.Values.RestrictDown.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 70.0);
+            update.Values._HeadTrackEnabled.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0.0);
         }
     }
 }

@@ -7,10 +7,14 @@
         private static readonly string[] SpecialKeywords =
         {
             // Mining
-            "isPickaxeTable", "isPickaxeWall", "isPickaxeFloor",
+            "isPickaxeTable",
+            "isPickaxeWall",
+            "isPickaxeFloor",
 
             // Other objects
-            "FurnitureWoodChoppingBlock", "FurnitureResourceObjectSawmill", "isCartTravelPlayer"
+            "FurnitureWoodChoppingBlock",
+            "FurnitureResourceObjectSawmill",
+            "isCartTravelPlayer"
         };
 
         internal override int Priority => (int)Priorities.SpecialFurniture;
@@ -83,10 +87,11 @@
 
             update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0);
             Default.CantAutoTurnCounter++;
-            update.Values.NearClip.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis,
+            update.Values.NearClip.AddModifier(this,
+                CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis,
                 3.0);
-            update.Values.RotationFromHead.AddModifier(
-                this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 0.5);
+
+            update.Values.RotationFromHead.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 0.5);
         }
 
         internal override void OnLeaving(CameraUpdate update)

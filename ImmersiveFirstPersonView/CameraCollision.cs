@@ -9,12 +9,12 @@
     internal static class CameraCollision
     {
         private static MemoryAllocation Allocation;
-        private static ulong RaycastMask;
-        private static NiPoint3 TempNormal;
-        private static NiPoint3 TempPoint1;
-        private static NiPoint3 TempPoint2;
-        private static NiPoint3 TempSafety;
-        private static NiTransform TempTransform;
+        private static ulong            RaycastMask;
+        private static NiPoint3         TempNormal;
+        private static NiPoint3         TempPoint1;
+        private static NiPoint3         TempPoint2;
+        private static NiPoint3         TempSafety;
+        private static NiTransform      TempTransform;
 
         internal static bool Apply(CameraUpdate update, NiTransform transform, NiPoint3 result)
         {
@@ -76,21 +76,16 @@
             TempPoint2.Y = TempPoint1.Y + TempNormal.Y;
             TempPoint2.Z = TempPoint1.Z + TempNormal.Z;
 
-            var ls = TESObjectCELL.RayCast(new RayCastParameters
-            {
-                Cell = cell,
-                Begin = new[] {TempPoint1.X, TempPoint1.Y, TempPoint1.Z},
-                End = new[] {TempPoint2.X, TempPoint2.Y, TempPoint2.Z}
-            });
+            var ls = TESObjectCELL.RayCast(new RayCastParameters { Cell = cell, Begin = new[] { TempPoint1.X, TempPoint1.Y, TempPoint1.Z }, End = new[] { TempPoint2.X, TempPoint2.Y, TempPoint2.Z } });
 
             if (ls == null || ls.Count == 0)
             {
                 return false;
             }
 
-            RayCastResult best = null;
-            var bestDist = 0.0f;
-            var ignore = new List<NiAVObject>(3);
+            RayCastResult best     = null;
+            var           bestDist = 0.0f;
+            var           ignore   = new List<NiAVObject>(3);
             {
                 var sk = actor.GetSkeletonNode(true);
                 if (sk != null)
@@ -98,6 +93,7 @@
                     ignore.Add(sk);
                 }
             }
+
             {
                 var sk = actor.GetSkeletonNode(false);
                 if (sk != null)
@@ -105,10 +101,11 @@
                     ignore.Add(sk);
                 }
             }
+
             if (update.CachedMounted)
             {
                 var mount = actor.GetMount();
-                var sk = mount?.GetSkeletonNode(false);
+                var sk    = mount?.GetSkeletonNode(false);
                 if (sk != null)
                 {
                     ignore.Add(sk);
@@ -125,12 +122,12 @@
                 var dist = r.Fraction;
                 if (best == null)
                 {
-                    best = r;
+                    best     = r;
                     bestDist = dist;
                 }
                 else if (dist < bestDist)
                 {
-                    best = r;
+                    best     = r;
                     bestDist = dist;
                 }
             }
@@ -140,9 +137,9 @@
                 return false;
             }
 
-            bestDist *= len + safety + safety2;
+            bestDist *= len    + safety + safety2;
             bestDist -= safety + safety2;
-            bestDist /= len + safety + safety2;
+            bestDist /= len    + safety + safety2;
 
             // Negative is ok!
 
@@ -160,24 +157,32 @@
                 return;
             }
 
-            Allocation = Memory.Allocate(0x90);
-            TempPoint1 = MemoryObject.FromAddress<NiPoint3>(Allocation.Address);
-            TempPoint2 = MemoryObject.FromAddress<NiPoint3>(Allocation.Address + 0x10);
-            TempNormal = MemoryObject.FromAddress<NiPoint3>(Allocation.Address + 0x20);
-            TempSafety = MemoryObject.FromAddress<NiPoint3>(Allocation.Address + 0x30);
-            TempTransform = MemoryObject.FromAddress<NiTransform>(Allocation.Address + 0x40);
+            Allocation          = Memory.Allocate(0x90);
+            TempPoint1          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address);
+            TempPoint2          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address    + 0x10);
+            TempNormal          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address    + 0x20);
+            TempSafety          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address    + 0x30);
+            TempTransform       = MemoryObject.FromAddress<NiTransform>(Allocation.Address + 0x40);
             TempTransform.Scale = 1.0f;
-            TempSafety.X = 0.0f;
-            TempSafety.Y = 0.0f;
-            TempSafety.Z = 0.0f;
+            TempSafety.X        = 0.0f;
+            TempSafety.Y        = 0.0f;
+            TempSafety.Z        = 0.0f;
 
             SetupRaycastMask(new[]
             {
-                CollisionLayers.AnimStatic, CollisionLayers.Biped, CollisionLayers.CharController,
+                CollisionLayers.AnimStatic,
+                CollisionLayers.Biped,
+                CollisionLayers.CharController,
+
                 //CollisionLayers.Clutter,
-                CollisionLayers.DebrisLarge, CollisionLayers.Ground,
+                CollisionLayers.DebrisLarge,
+                CollisionLayers.Ground,
+
                 //CollisionLayers.Props,
-                CollisionLayers.Static, CollisionLayers.Terrain, CollisionLayers.Trap, CollisionLayers.Trees,
+                CollisionLayers.Static,
+                CollisionLayers.Terrain,
+                CollisionLayers.Trap,
+                CollisionLayers.Trees,
                 CollisionLayers.Unidentified
             });
         }
@@ -188,7 +193,7 @@
             if (havokObj != IntPtr.Zero)
             {
                 var flags = Memory.ReadUInt32(havokObj + 0x2C) & 0x7F;
-                var mask = (ulong)1 << (int)flags;
+                var mask  = (ulong)1 << (int)flags;
                 if ((RaycastMask & mask) == 0)
                 {
                     return false;
@@ -207,7 +212,8 @@
 
         private static void SetupRaycastMask(CollisionLayers[] layers)
         {
-            var m = layers.Select(l => (ulong)1 << (int)l).Aggregate<ulong, ulong>(0, (current, fl) => current | fl);
+            var m = layers.Select(l => (ulong)1 << (int)l).
+                Aggregate<ulong, ulong>(0, (current, fl) => current | fl);
 
             RaycastMask = m;
         }
