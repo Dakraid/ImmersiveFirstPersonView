@@ -1,4 +1,4 @@
-﻿namespace IFPV
+namespace IFPV
 {
     using System;
     using NetScriptFramework;
@@ -26,7 +26,8 @@
 
                 case TValue.TweenTypes.Decelerating: return Math.Sqrt(ratio);
 
-                case TValue.TweenTypes.AccelAndDecel: return (Math.Sin((ratio * Math.PI) - (Math.PI * 0.5)) * 0.5) + 0.5;
+                case TValue.TweenTypes.AccelAndDecel:
+                    return (Math.Sin((ratio * Math.PI) - (Math.PI * 0.5)) * 0.5) + 0.5;
 
                 default: return ratio;
             }
@@ -34,12 +35,12 @@
 
         internal static double ClampToPi(double rad)
         {
-            var min = -Math.PI;
-            var max = Math.PI;
+            const double min = -Math.PI;
+            const double max = Math.PI;
 
             //double min = 0.0;
             //double max = Math.PI * 2.0;
-            var add = Math.PI * 2.0;
+            const double add = Math.PI * 2.0;
 
             if (rad < min)
             {
@@ -60,7 +61,7 @@
         internal static void ModNiAVFlags(NiAVObject obj, uint flags, bool add)
         {
             var ofl = GetNiAVFlags(obj);
-            var fl  = ofl;
+            var fl = ofl;
             if (add)
             {
                 fl |= flags;
@@ -85,8 +86,10 @@
     {
         internal static void CopyFrom(this NiPoint3 pt, NiPoint3 other) => Memory.Copy(other.Address, pt.Address, 0xC);
 
-        internal static void CopyFrom(this NiTransform pt, NiTransform other) => Memory.Copy(other.Address, pt.Address, 0x34);
+        internal static void CopyFrom(this NiTransform pt, NiTransform other) =>
+            Memory.Copy(other.Address, pt.Address, 0x34);
 
-        internal static void CopyFrom(this NiMatrix33 pt, NiMatrix33 other) => Memory.Copy(other.Address, pt.Address, 0x24);
+        internal static void CopyFrom(this NiMatrix33 pt, NiMatrix33 other) =>
+            Memory.Copy(other.Address, pt.Address, 0x24);
     }
 }

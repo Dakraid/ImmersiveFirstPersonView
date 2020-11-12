@@ -12,11 +12,11 @@ namespace IFPV.States
         internal static int CantAutoTurnCounter = 0;
 
         private CameraValueModifier _autoTurnAngleMod;
-        private long                _autoTurnTime;
+        private long _autoTurnTime;
 
-        private byte                _hadVanityMode;
+        private byte _hadVanityMode;
         private CameraValueModifier _lastCollidedRestrict;
-        private float               _lastNearClip;
+        private float _lastNearClip;
         private CameraValueModifier _nearClip;
 
         internal override int Priority => (int)Priorities.Default;
@@ -27,7 +27,7 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            this._hadVanityMode                = update.GameCamera.EnableVanityMode;
+            this._hadVanityMode = update.GameCamera.EnableVanityMode;
             update.GameCamera.EnableVanityMode = 0;
 
             update.Values.ActorTurnTime.AddModifier(this,
@@ -86,7 +86,7 @@ namespace IFPV.States
                 this._nearClip = null;
             }
 
-            _look_downoffset_ratio               = 0.0f;
+            _look_downoffset_ratio = 0.0f;
             _look_downoffset_ratio_leftrightmove = 0.0f;
         }
 
@@ -96,21 +96,19 @@ namespace IFPV.States
 
             if (update.GameCamera.EnableVanityMode != 0)
             {
-                this._hadVanityMode                = 1;
+                this._hadVanityMode = 1;
                 update.GameCamera.EnableVanityMode = 0;
             }
 
             var hadX = false;
             var hadY = false;
-            var x    = update.Values.InputRotationX.CurrentValue;
-            var y    = update.Values.InputRotationY.CurrentValue;
+            var x = update.Values.InputRotationX.CurrentValue;
+            var y = update.Values.InputRotationY.CurrentValue;
 
             if (update.CameraMain.DidCollideLastUpdate)
             {
-                if (this._lastCollidedRestrict == null)
-                {
-                    this._lastCollidedRestrict = update.Values.RestrictDown.AddModifier(this, CameraValueModifier.ModifierTypes.Set, Settings.Instance.MaximumDownAngleCollided, false);
-                }
+                this._lastCollidedRestrict ??= update.Values.RestrictDown.AddModifier(this,
+                    CameraValueModifier.ModifierTypes.Set, Settings.Instance.MaximumDownAngleCollided, false);
             }
             else
             {
@@ -126,16 +124,12 @@ namespace IFPV.States
             {
                 if (Utility.RadToDeg(Math.Abs(x)) >= autoTurn)
                 {
-                    if (this._autoTurnAngleMod == null)
-                    {
-                        this._autoTurnAngleMod =
-                            update.Values.FaceCamera.AddModifier(this,
-                                CameraValueModifier.ModifierTypes.Set,
-                                1.0,
-                                false);
-                    }
+                    this._autoTurnAngleMod ??= update.Values.FaceCamera.AddModifier(this,
+                        CameraValueModifier.ModifierTypes.Set,
+                        1.0,
+                        false);
 
-                    this._autoTurnTime                        = update.CameraMain.Plugin.Time + 500;
+                    this._autoTurnTime = update.CameraMain.Plugin.Time + 500;
                     update.CameraMain._LastTurnIsFromAutoTurn = update.CameraMain.Plugin.Time + 50;
                 }
                 else if (this._autoTurnAngleMod != null)
@@ -163,7 +157,7 @@ namespace IFPV.States
                     var restrict = -Utility.DegToRad(angle);
                     if (y < restrict)
                     {
-                        y    = restrict;
+                        y = restrict;
                         xmod = 0.0;
                         hadY = true;
                     }
@@ -175,7 +169,7 @@ namespace IFPV.States
                             var restrict2 = -Utility.DegToRad(angle - angle2);
                             if (y < restrict2)
                             {
-                                var dy = y        - restrict2;
+                                var dy = y - restrict2;
                                 var dt = restrict - restrict2;
                                 if (dt != 0.0)
                                 {
@@ -194,7 +188,7 @@ namespace IFPV.States
                     var restrict = Utility.DegToRad(angle);
                     if (y > restrict)
                     {
-                        y    = restrict;
+                        y = restrict;
                         hadY = true;
                     }
                 }
@@ -214,7 +208,7 @@ namespace IFPV.States
                     var restrict = -Utility.DegToRad(angle);
                     if (x < restrict)
                     {
-                        x    = restrict;
+                        x = restrict;
                         hadX = true;
                     }
                 }
@@ -233,7 +227,7 @@ namespace IFPV.States
                     var restrict = Utility.DegToRad(angle);
                     if (x > restrict)
                     {
-                        x    = restrict;
+                        x = restrict;
                         hadX = true;
                     }
                 }
@@ -251,8 +245,7 @@ namespace IFPV.States
 
             if (hadX || hadY)
             {
-                var third = update.GameCameraState as ThirdPersonState;
-                if (third != null && Memory.ReadUInt8(third.Address + 0xDC) == 0)
+                if (update.GameCameraState is ThirdPersonState third && Memory.ReadUInt8(third.Address + 0xDC) == 0)
                 {
                     update.CameraMain.HandleActorTurnToCamera(update.Target.Actor, third, false);
                 }
@@ -265,7 +258,7 @@ namespace IFPV.States
                 if (downMove < 360.0)
                 {
                     double downRatio;
-                    var    downAngle = -Utility.RadToDeg(y);
+                    var downAngle = -Utility.RadToDeg(y);
                     if (downAngle <= downMove)
                     {
                         downRatio = 0.0;
@@ -285,21 +278,17 @@ namespace IFPV.States
 
                 int moveType;
                 if (Settings.Instance.TryFixLeftRightMovementClipping != 0.0f &&
-                    !this.Stack.CameraMain.WasUsingFirstPersonArms            &&
+                    !this.Stack.CameraMain.WasUsingFirstPersonArms &&
                     ((moveType = Moving._move_dir) == 2 || moveType == 6))
                 {
-                    var swimming = false;
-                    if (update.Target.Actor                                             != null &&
-                        (Memory.ReadUInt32(update.Target.Actor.Address + 0xC0) & 0x400) != 0)
-                    {
-                        swimming = true;
-                    }
+                    var swimming = update.Target.Actor != null &&
+                                   (Memory.ReadUInt32(update.Target.Actor.Address + 0xC0) & 0x400) != 0;
 
                     if (!swimming)
                     {
                         downMove = 60.0;
                         double downRatio;
-                        var    downAngle = -Utility.RadToDeg(y);
+                        var downAngle = -Utility.RadToDeg(y);
                         if (downAngle <= downMove)
                         {
                             downRatio = 0.0;
@@ -357,7 +346,7 @@ namespace IFPV.States
 
         private void UpdateNearClip(CameraUpdate update, double? y)
         {
-            var nc       = 0.0f;
+            var nc = 0.0f;
             var interior = false;
 
             var obj = update.Target.Object;

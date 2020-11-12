@@ -12,12 +12,12 @@ namespace IFPV
 
     public sealed class IFPVPlugin : Plugin
     {
-        private readonly Dictionary<IntPtr, ulong> _fp_called     = new Dictionary<IntPtr, ulong>();
-        private          bool                      _had_free_look = true;
-        private          int                       _is_spine;
-        private          long                      _lastDiff;
-        private          long                      _lastTimer;
-        private          long                      _time;
+        private readonly Dictionary<IntPtr, ulong> _fp_called = new Dictionary<IntPtr, ulong>();
+        private bool _had_free_look = true;
+        private int _is_spine;
+        private long _lastDiff;
+        private long _lastTimer;
+        private long _time;
 
         private IntPtr MagicNodeArt1;
         private IntPtr MagicNodeArt2;
@@ -85,21 +85,21 @@ namespace IFPV
             this.PlayerControls_IsCamSwitchControlsEnabled =
                 this.PrepareFunction("player camera switch controls check", 41263, 0);
 
-            this.NiNode_ctor            = this.PrepareFunction("ninode ctor", 68936, 0);
-            this.MagicNodeArt1          = this.PrepareFunction("magic node art 1", 33403, 0x6F);
-            this.MagicNodeArt2          = this.PrepareFunction("magic node art 2", 33391, 0x64);
-            this.MagicNodeArt3          = this.PrepareFunction("magic node art 3", 33375, 0xF5);
-            this.MagicNodeArt4          = this.PrepareFunction("magic node art 4", 33683, 0x63);
-            this.ActorTurnX             = this.PrepareFunction("actor turn x", 36603, 0);
-            this.ActorTurnZ             = this.PrepareFunction("actor turn z", 36250, 0);
-            this.SwitchSkeleton         = this.PrepareFunction("switch skeleton", 39401, 0);
+            this.NiNode_ctor = this.PrepareFunction("ninode ctor", 68936, 0);
+            this.MagicNodeArt1 = this.PrepareFunction("magic node art 1", 33403, 0x6F);
+            this.MagicNodeArt2 = this.PrepareFunction("magic node art 2", 33391, 0x64);
+            this.MagicNodeArt3 = this.PrepareFunction("magic node art 3", 33375, 0xF5);
+            this.MagicNodeArt4 = this.PrepareFunction("magic node art 4", 33683, 0x63);
+            this.ActorTurnX = this.PrepareFunction("actor turn x", 36603, 0);
+            this.ActorTurnZ = this.PrepareFunction("actor turn z", 36250, 0);
+            this.SwitchSkeleton = this.PrepareFunction("switch skeleton", 39401, 0);
             this.Actor_GetMoveDirection = this.PrepareFunction("actor move direction", 36935, 0);
 
             if (this.Settings.AllowLookDownAlot)
             {
-                var allowLookDownMore         = Main.GameInfo.GetAddressOf(49978, 0xBA, 0, "F3 0F 5C 15");
+                var allowLookDownMore = Main.GameInfo.GetAddressOf(49978, 0xBA, 0, "F3 0F 5C 15");
                 var allowLookDownDisableCheck = Main.GameInfo.GetAddressOf(49978, 0x100, 0, "0F 57 C9 0F 2F C1 73");
-                var skipSetAddr               = allowLookDownDisableCheck + 0x20;
+                var skipSetAddr = allowLookDownDisableCheck + 0x20;
                 if (!Memory.VerifyBytes(skipSetAddr, "48 8B 44 24 40"))
                 {
                     throw new ArgumentException("Failed to verify bytes for disabling down look check!");
@@ -109,7 +109,7 @@ namespace IFPV
 
                 Memory.WriteHook(new HookParameters
                 {
-                    Address       = allowLookDownMore,
+                    Address = allowLookDownMore,
                     ReplaceLength = 8,
                     IncludeLength = 0,
                     Before = ctx =>
@@ -128,12 +128,12 @@ namespace IFPV
 
                 Memory.WriteHook(new HookParameters
                 {
-                    Address       = allowLookDownDisableCheck,
+                    Address = allowLookDownDisableCheck,
                     ReplaceLength = 8,
                     IncludeLength = 0,
                     Before = ctx =>
                     {
-                        var angle   = ctx.XMM0f;
+                        var angle = ctx.XMM0f;
                         var allowed = 0.0f;
                         if (this.CameraMain != null && this.CameraMain.IsEnabled)
                         {
@@ -149,7 +149,7 @@ namespace IFPV
 
                 Memory.WriteHook(new HookParameters
                 {
-                    Address       = allowMoveDownDisableCheck,
+                    Address = allowMoveDownDisableCheck,
                     IncludeLength = 0,
                     ReplaceLength = 0x1A,
                     Before = ctx =>
@@ -184,41 +184,42 @@ namespace IFPV
             Events.OnFrame.Register(e =>
             {
                 var main = NetScriptFramework.SkyrimSE.Main.Instance;
-                if (main != null)
+                if (main == null)
                 {
-                #if PROFILING
+                    return;
+                }
+#if PROFILING
                     if (this.CameraMain._prof_state == 1)
                     {
                         this.CameraMain.end_track(CameraMain._performance_track.Frame);
                         this.CameraMain.begin_track(CameraMain._performance_track.Frame);
                     }
-                #endif
+#endif
 
-                    var paused    = main.IsGamePaused;
-                    var anyPaused = paused;
-                    if (paused != this.WasGamePaused)
-                    {
-                        anyPaused          = true;
-                        this.WasGamePaused = paused;
-                    }
-
-                    var now = this.Timer.Time;
-                    this._lastDiff = 0;
-                    if (!anyPaused)
-                    {
-                        var diff = now - this._lastTimer;
-                        if (diff > 200)
-                        {
-                            diff = 200;
-                        }
-
-                        this.Time      += diff;
-                        this._lastDiff =  diff;
-                    }
-
-                    this._lastTimer = now;
-                    this._lastDiff2 = this._lastDiff;
+                var paused = main.IsGamePaused;
+                var anyPaused = paused;
+                if (paused != this.WasGamePaused)
+                {
+                    anyPaused = true;
+                    this.WasGamePaused = paused;
                 }
+
+                var now = this.Timer.Time;
+                this._lastDiff = 0;
+                if (!anyPaused)
+                {
+                    var diff = now - this._lastTimer;
+                    if (diff > 200)
+                    {
+                        diff = 200;
+                    }
+
+                    this.Time += diff;
+                    this._lastDiff = diff;
+                }
+
+                this._lastTimer = now;
+                this._lastDiff2 = this._lastDiff;
             });
 
             Events.OnMainMenu.Register(e =>
@@ -237,13 +238,13 @@ namespace IFPV
                     {
                         return;
                     }
-                #if PROFILING
+#if PROFILING
                     if (this.CameraMain._prof_state == 1)
                         this.CameraMain.begin_track(CameraMain._performance_track.CameraUpdate);
-                #endif
+#endif
 
-                    bool ok;
-                    if (ok = this.CameraMain.Update(e))
+                    // bool ok;
+                    if (this.CameraMain.Update(e))
                     {
                         return;
                     }
@@ -253,15 +254,15 @@ namespace IFPV
                         return;
                     }
 
-                    this.Time      -= this._lastDiff;
-                    this._lastDiff =  0;
+                    this.Time -= this._lastDiff;
+                    this._lastDiff = 0;
 
-                #if PROFILING
+#if PROFILING
                     if (this.CameraMain._prof_state == 1)
                         this.CameraMain.end_track(CameraMain._performance_track.CameraUpdate);
-                #endif
+#endif
 
-                #if PROFILING
+#if PROFILING
                     if (ok && this.CameraMain._prof_state == 0)
                     {
                         this.CameraMain._prof_state = 1;
@@ -272,7 +273,7 @@ namespace IFPV
                         this.CameraMain._prof_state = 2;
                         this.CameraMain._end_profiling();
                     }
-                #endif
+#endif
                 },
                 1000);
 
@@ -287,49 +288,53 @@ namespace IFPV
 
             Events.OnUpdatePlayerTurnToCamera.Register(e =>
                 {
-                    if (this.CameraMain != null && this.CameraMain.IsInitialized)
+                    if (this.CameraMain == null || !this.CameraMain.IsInitialized)
                     {
-                        var value = this.CameraMain.Values.FaceCamera.CurrentValue;
-                        if (value >= 1.0)
-                        {
-                            e.FreeLook = false;
-                        }
-                        else if (value <= -1.0)
-                        {
-                            e.FreeLook = true;
-                        }
+                        return;
+                    }
 
-                        var isFree = e.FreeLook;
-                        if (this._had_free_look != isFree)
-                        {
-                            this._had_free_look = isFree;
-                            if (!isFree && this.CameraMain.IsEnabled)
-                            {
-                                this.CameraMain.OnMakeTurn();
-                            }
-                        }
+                    var value = this.CameraMain.Values.FaceCamera.CurrentValue;
+                    if (value >= 1.0)
+                    {
+                        e.FreeLook = false;
+                    }
+                    else if (value <= -1.0)
+                    {
+                        e.FreeLook = true;
+                    }
+
+                    var isFree = e.FreeLook;
+                    if (this._had_free_look == isFree)
+                    {
+                        return;
+                    }
+
+                    this._had_free_look = isFree;
+                    if (!isFree && this.CameraMain.IsEnabled)
+                    {
+                        this.CameraMain.OnMakeTurn();
                     }
                 },
                 50);
 
             Events.OnShadowCullingBegin.Register(e =>
                 {
-                    if (this.CameraMain != null       &&
-                        this.CameraMain.IsInitialized &&
-                        this.CameraMain.IsEnabled     &&
-                        this.Settings.SeparateShadowCulling)
+                    if (this.CameraMain == null || !this.CameraMain.IsInitialized || !this.CameraMain.IsEnabled ||
+                        !this.Settings.SeparateShadowCulling)
                     {
-                        e.Separate = true;
-                        this.CameraMain.OnShadowCulling(0);
+                        return;
                     }
+
+                    e.Separate = true;
+                    this.CameraMain.OnShadowCulling(0);
                 },
                 1000);
 
             Events.OnShadowCullingEnd.Register(e =>
                 {
-                    if (this.CameraMain != null       &&
+                    if (this.CameraMain != null &&
                         this.CameraMain.IsInitialized &&
-                        this.CameraMain.IsEnabled     &&
+                        this.CameraMain.IsEnabled &&
                         this.Settings.SeparateShadowCulling)
                     {
                         this.CameraMain.OnShadowCulling(1);
@@ -339,15 +344,17 @@ namespace IFPV
 
             Events.OnWeaponFireProjectilePosition.Register(e =>
             {
-                if (this.CameraMain != null && this.CameraMain.IsInitialized)
+                if (this.CameraMain == null || !this.CameraMain.IsInitialized)
                 {
-                    var obj = e.Attacker;
-                    var did = this.CameraMain.GetOverwriteWeaponNode(obj, e.Position);
+                    return;
+                }
 
-                    if (did)
-                    {
-                        e.Node = null;
-                    }
+                var obj = e.Attacker;
+                var did = this.CameraMain.GetOverwriteWeaponNode(obj, e.Position);
+
+                if (did)
+                {
+                    e.Node = null;
                 }
             });
 
@@ -358,7 +365,7 @@ namespace IFPV
                 "41 FF 90 78 03 00 00",
                 ctx =>
                 {
-                    if (this.CameraMain == null        ||
+                    if (this.CameraMain == null ||
                         !this.CameraMain.IsInitialized ||
                         !this.CameraMain.WasUsingFirstPersonArms)
                     {
@@ -366,7 +373,7 @@ namespace IFPV
                     }
 
                     var caster = MemoryObject.FromAddress<MagicCaster>(ctx.DI);
-                    var node   = this.CameraMain.GetOverwriteMagicNode(caster);
+                    var node = this.CameraMain.GetOverwriteMagicNode(caster);
                     if (node != null)
                     {
                         ctx.DX = new IntPtr((long)1);
@@ -380,7 +387,7 @@ namespace IFPV
                 "40 57 48 83 EC 20",
                 ctx =>
                 {
-                    if (this.CameraMain == null        ||
+                    if (this.CameraMain == null ||
                         !this.CameraMain.IsInitialized ||
                         !this.CameraMain.WasUsingFirstPersonArms)
                     {
@@ -407,7 +414,7 @@ namespace IFPV
                     }
 
                     ctx.Skip();
-                    ctx.IP = ctx.IP + 0x2D;
+                    ctx.IP += 0x2D;
                     ctx.AX = node.Address;
 
                     //NetScriptFramework.Main.WriteDebugMessage("Replaced node");
@@ -421,14 +428,15 @@ namespace IFPV
                 "4C 8B F2 48 8B F9",
                 ctx =>
                 {
-                    if (this.CameraMain != null       &&
-                        this.CameraMain.IsInitialized &&
-                        this.CameraMain.Values.BlockPlayerFadeOut.CurrentValue >= 0.5)
+                    if (this.CameraMain == null || !this.CameraMain.IsInitialized ||
+                        !(this.CameraMain.Values.BlockPlayerFadeOut.CurrentValue >= 0.5))
                     {
-                        if (Settings.Instance.HidePlayerWhenColliding != 1 || !this.CameraMain.DidCollideLastUpdate)
-                        {
-                            ctx.R13 = new IntPtr(0);
-                        }
+                        return;
+                    }
+
+                    if (Settings.Instance.HidePlayerWhenColliding != 1 || !this.CameraMain.DidCollideLastUpdate)
+                    {
+                        ctx.R13 = new IntPtr(0);
                     }
                 });
 
@@ -448,7 +456,7 @@ namespace IFPV
                         this.CameraMain.HandleActorTurnToCamera(actor, third, true);
                     }
 
-                    ctx.IP = ctx.IP + 0x10;
+                    ctx.IP += 0x10;
                 },
                 null,
                 true);
@@ -466,8 +474,8 @@ namespace IFPV
                     "48 8B 8B E8 01 00 00",
                     ctx =>
                     {
-                        var cptr  = Memory.ReadPointer(ctx.AX);
-                        var dptr  = Memory.ReadPointer(ctx.BX + 0x1E8);
+                        var cptr = Memory.ReadPointer(ctx.AX);
+                        var dptr = Memory.ReadPointer(ctx.BX + 0x1E8);
                         var third = MemoryObject.FromAddress<ThirdPersonState>(ctx.DI);
 
                         if (this.CameraMain != null && this.CameraMain.IsInitialized && third != null)
@@ -502,7 +510,8 @@ namespace IFPV
                     var ptr = this.PrepareFunction("zoom delayed toggle pov", 49977, 0x291);
                     if (!Memory.VerifyBytes(ptr, "74 1C", true))
                     {
-                        throw new InvalidOperationException("Couldn't verify byte pattern for 'zoom delayed toggle pov'!");
+                        throw new InvalidOperationException(
+                            "Couldn't verify byte pattern for 'zoom delayed toggle pov'!");
                     }
 
                     Memory.WriteUInt8(ptr, 0xEB, true);
@@ -541,9 +550,8 @@ namespace IFPV
                             return;
                         }
 
-                        var   calledFrom = Memory.ReadPointer(ctx.SP);
-                        ulong vid        = 0;
-                        if (!this._fp_called.TryGetValue(calledFrom, out vid))
+                        var calledFrom = Memory.ReadPointer(ctx.SP);
+                        if (!this._fp_called.TryGetValue(calledFrom, out var vid))
                         {
                             var fn = Main.GameInfo.GetFunctionInfo(calledFrom, true);
                             if (fn != null)
@@ -596,17 +604,21 @@ namespace IFPV
                 "F3 0F 58 45 E8 F3 0F 11 45 D8",
                 ctx =>
                 {
-                    if (this.CameraMain != null && this.CameraMain.IsInitialized && this.CameraMain.IsEnabled)
+                    if (this.CameraMain == null || !this.CameraMain.IsInitialized || !this.CameraMain.IsEnabled)
                     {
-                        var pt   = MemoryObject.FromAddress<NiPoint3>(ctx.BP - 0x30);
-                        var pcam = PlayerCamera.Instance;
-                        if (pcam != null)
-                        {
-                            ctx.Skip();
-
-                            pt.CopyFrom(pcam.LastNodePosition);
-                        }
+                        return;
                     }
+
+                    var pt = MemoryObject.FromAddress<NiPoint3>(ctx.BP - 0x30);
+                    var pcam = PlayerCamera.Instance;
+                    if (pcam == null)
+                    {
+                        return;
+                    }
+
+                    ctx.Skip();
+
+                    pt.CopyFrom(pcam.LastNodePosition);
                 });
 
             this.InstallHook("fix look sensitivity",
@@ -616,14 +628,16 @@ namespace IFPV
                 "75 0E",
                 ctx =>
                 {
-                    if (this.CameraMain != null && this.CameraMain.IsInitialized)
+                    if (this.CameraMain == null || !this.CameraMain.IsInitialized)
                     {
-                        var x = Memory.ReadFloat(ctx.BX);
-                        var y = Memory.ReadFloat(ctx.BX + 4);
-                        this.CameraMain.FixMouseSensitivity(ref x, ref y, ctx.XMM1f);
-                        Memory.WriteFloat(ctx.BX, x);
-                        Memory.WriteFloat(ctx.BX + 4, y);
+                        return;
                     }
+
+                    var x = Memory.ReadFloat(ctx.BX);
+                    var y = Memory.ReadFloat(ctx.BX + 4);
+                    this.CameraMain.FixMouseSensitivity(ref x, ref y, ctx.XMM1f);
+                    Memory.WriteFloat(ctx.BX, x);
+                    Memory.WriteFloat(ctx.BX + 4, y);
                 },
                 null,
                 true);
@@ -635,15 +649,19 @@ namespace IFPV
                 "40 55 56 48 83 EC 78",
                 ctx =>
                 {
-                    if (this.CameraMain != null && this.CameraMain.IsInitialized)
+                    if (this.CameraMain == null || !this.CameraMain.IsInitialized)
                     {
-                        if (this.CameraMain.HookSwitchSkeleton(MemoryObject.FromAddress<Actor>(ctx.CX),
-                            ctx.DX.ToBool()))
-                        {
-                            ctx.Skip();
-                            ctx.IP = ctx.IP + 0x2DD;
-                        }
+                        return;
                     }
+
+                    if (!this.CameraMain.HookSwitchSkeleton(MemoryObject.FromAddress<Actor>(ctx.CX),
+                        ctx.DX.ToBool()))
+                    {
+                        return;
+                    }
+
+                    ctx.Skip();
+                    ctx.IP += 0x2DD;
                 });
 
             this.InstallHook("fix bound node update",
@@ -653,13 +671,15 @@ namespace IFPV
                 "FF 90 68 04 00 00",
                 ctx =>
                 {
-                    if (this.CameraMain != null && this.CameraMain.IsInitialized && this.CameraMain.IsEnabled)
+                    if (this.CameraMain == null || !this.CameraMain.IsInitialized || !this.CameraMain.IsEnabled)
                     {
-                        ctx.Skip();
-                        var obj  = MemoryObject.FromAddress<TESObjectREFR>(ctx.CX);
-                        var node = obj.GetSkeletonNode(false);
-                        ctx.AX = node != null ? node.Address : IntPtr.Zero;
+                        return;
                     }
+
+                    ctx.Skip();
+                    var obj = MemoryObject.FromAddress<TESObjectREFR>(ctx.CX);
+                    var node = obj.GetSkeletonNode(false);
+                    ctx.AX = node?.Address ?? IntPtr.Zero;
                 });
 
             this.InstallHook("fix spine twist",
@@ -669,7 +689,8 @@ namespace IFPV
                 "48 83 C4 20 5F",
                 ctx =>
                 {
-                    if (this.CameraMain != null && this.CameraMain.IsInitialized && Interlocked.CompareExchange(ref this._is_spine, 0, 0) > 0
+                    if (this.CameraMain != null && this.CameraMain.IsInitialized &&
+                        Interlocked.CompareExchange(ref this._is_spine, 0, 0) > 0
                     )
                     {
                         this.CameraMain.FixSpineTwist(ctx.DI);
@@ -706,12 +727,14 @@ namespace IFPV
                 null,
                 ctx =>
                 {
-                    if (this.CameraMain != null && this.CameraMain.IsInitialized)
+                    if (this.CameraMain == null || !this.CameraMain.IsInitialized)
                     {
-                        if (this.CameraMain.Values.ExtraResponsiveControls.CurrentValue >= 0.5)
-                        {
-                            ctx.AX = IntPtr.Zero;
-                        }
+                        return;
+                    }
+
+                    if (this.CameraMain.Values.ExtraResponsiveControls.CurrentValue >= 0.5)
+                    {
+                        ctx.AX = IntPtr.Zero;
                     }
                 });
 
@@ -742,11 +765,11 @@ namespace IFPV
 
             Memory.WriteHook(new HookParameters
             {
-                Address       = addr,
+                Address = addr,
                 IncludeLength = skip ? 0 : length,
                 ReplaceLength = length,
-                Before        = func,
-                After         = after
+                Before = func,
+                After = after
             });
         }
 

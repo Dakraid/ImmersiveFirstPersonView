@@ -1,4 +1,4 @@
-﻿namespace IFPV
+namespace IFPV
 {
     using System;
     using System.Collections.Generic;
@@ -48,8 +48,8 @@
         {
             this.DefaultAmount = defaultAmount;
             this.CurrentAmount = defaultAmount;
-            this.MinAmount     = minAmount;
-            this.MaxAmount     = maxAmount;
+            this.MinAmount = minAmount;
+            this.MaxAmount = maxAmount;
         }
 
         /// <summary>
@@ -71,7 +71,7 @@
             }
 
             var target = this.CurrentAmount + amount;
-            target             = Math.Max(this.MinAmount, Math.Min(this.MaxAmount, target));
+            target = Math.Max(this.MinAmount, Math.Min(this.MaxAmount, target));
             this.CurrentAmount = target;
         }
 
@@ -148,9 +148,9 @@
                 long diff = 0;
                 if (this.Paused.HasValue)
                 {
-                    diff        = this.Paused.Value;
+                    diff = this.Paused.Value;
                     this.Paused = null;
-                    diff        = now - diff;
+                    diff = now - diff;
                 }
 
                 if (diff > 0)
@@ -200,7 +200,7 @@
                         time = (long)dur;
                     }
 
-                    t.EndTime     = now + time;
+                    t.EndTime = now + time;
                     t.BeginAmount = this.CurrentAmount;
                 }
 
@@ -220,7 +220,7 @@
                 ratio = Utility.ApplyFormula(ratio, t.Type);
 
                 var amount = ((t.EndAmount - t.BeginAmount.Value) * ratio) + t.BeginAmount.Value;
-                amount             = Math.Min(this.MaxAmount, Math.Max(this.MinAmount, amount));
+                amount = Math.Min(this.MaxAmount, Math.Max(this.MinAmount, amount));
                 this.CurrentAmount = amount;
 
                 break;
@@ -255,31 +255,25 @@
 
         private sealed class TweenData
         {
-            internal double?    BeginAmount;
-            internal long?      BeginTime;
-            internal long?      Duration;
-            internal double     EndAmount;
-            internal long?      EndTime;
-            internal double?    Speed;
+            internal double? BeginAmount;
+            internal long? BeginTime;
+            internal long? Duration;
+            internal double EndAmount;
+            internal long? EndTime;
+            internal double? Speed;
             internal TweenTypes Type;
 
             private TweenData() { }
 
             internal static TweenData Setup(double targetValue, long time, TweenTypes type)
             {
-                var t = new TweenData();
-                t.EndAmount = targetValue;
-                t.Duration  = time;
-                t.Type      = type;
+                var t = new TweenData {EndAmount = targetValue, Duration = time, Type = type};
                 return t;
             }
 
             internal static TweenData Setup(double targetValue, double speed, TweenTypes type)
             {
-                var t = new TweenData();
-                t.EndAmount = targetValue;
-                t.Speed     = speed;
-                t.Type      = type;
+                var t = new TweenData {EndAmount = targetValue, Speed = speed, Type = type};
                 return t;
             }
         }

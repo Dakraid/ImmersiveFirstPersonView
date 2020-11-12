@@ -32,12 +32,14 @@
 
     internal sealed class StabilizeIgnoreOffsetX : CameraValueSimple
     {
-        internal StabilizeIgnoreOffsetX(double value) : base(null, value, 720.0) => this.Formula = TValue.TweenTypes.Decelerating;
+        internal StabilizeIgnoreOffsetX(double value) : base(null, value, 720.0) =>
+            this.Formula = TValue.TweenTypes.Decelerating;
     }
 
     internal sealed class StabilizeIgnoreOffsetY : CameraValueSimple
     {
-        internal StabilizeIgnoreOffsetY(double value) : base(null, value, 720.0) => this.Formula = TValue.TweenTypes.Decelerating;
+        internal StabilizeIgnoreOffsetY(double value) : base(null, value, 720.0) =>
+            this.Formula = TValue.TweenTypes.Decelerating;
     }
 }
 

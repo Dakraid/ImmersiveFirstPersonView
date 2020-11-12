@@ -9,10 +9,10 @@
 
     internal sealed class CameraStack
     {
-        private readonly  List<CameraState> _states = new List<CameraState>();
-        private readonly  CameraState[]     _temp;
-        internal readonly CameraMain        CameraMain;
-        private           bool              Warned;
+        private readonly List<CameraState> _states = new List<CameraState>();
+        private readonly CameraState[] _temp;
+        internal readonly CameraMain CameraMain;
+        private bool Warned;
 
         internal CameraStack(CameraMain cameraMain)
         {
@@ -23,27 +23,25 @@
 
             this.CameraMain = cameraMain;
 
-            var types = Assembly.GetExecutingAssembly().
-                GetTypes();
+            var types = Assembly.GetExecutingAssembly().GetTypes();
 
             foreach (var t in types)
             {
-                if (t.IsAbstract || !t.IsSubclassOf(typeof (CameraState)))
+                if (t.IsAbstract || !t.IsSubclassOf(typeof(CameraState)))
                 {
                     continue;
                 }
 
-                if (t == typeof (Custom) || t.IsSubclassOf(typeof (Custom)))
+                if (t == typeof(Custom) || t.IsSubclassOf(typeof(Custom)))
                 {
                     continue;
                 }
 
-                var             cis = t.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                ConstructorInfo ci  = null;
+                var cis = t.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                ConstructorInfo ci = null;
                 foreach (var c in cis)
                 {
-                    if (c.GetParameters().
-                            Length ==
+                    if (c.GetParameters().Length ==
                         0)
                     {
                         ci = c;
@@ -75,7 +73,7 @@
             }
 
             this.MaxGroup = this.MaxGroup + 1;
-            this._temp    = new CameraState[this.MaxGroup];
+            this._temp = new CameraState[this.MaxGroup];
 
             foreach (var s in this._states)
             {
@@ -98,17 +96,16 @@
                     {
                         this.Warned = true;
                         Main.Log.AppendLine("IFPV: State " +
-                                            s.GetType().
-                                                Name              +
+                                            s.GetType().Name +
                                             " has invalid group " +
-                                            grp                   +
+                                            grp +
                                             "!");
                     }
 
                     continue;
                 }
 
-                var isActive  = s.Check(update);
+                var isActive = s.Check(update);
                 var wasActive = s.IsActive;
                 s.__wActivate = isActive;
                 if (!isActive || grp == 0)
@@ -179,7 +176,7 @@
                 return;
             }
 
-            var files  = dir.GetFiles();
+            var files = dir.GetFiles();
             var prefix = Custom.Prefix + ".";
             var suffix = ".config.txt";
             foreach (var f in files)

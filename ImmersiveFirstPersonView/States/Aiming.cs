@@ -51,9 +51,11 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            update.Values.FirstPersonSkeletonRotateYMultiplier.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 1.0);
+            update.Values.FirstPersonSkeletonRotateYMultiplier.AddModifier(this, CameraValueModifier.ModifierTypes.Set,
+                1.0);
             update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 1.0);
-            update.Values.RestrictDown.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 70.0);
+            update.Values.RestrictDown.AddModifier(this,
+                CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 70.0);
             update.Values._HeadTrackEnabled.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0.0);
         }
     }

@@ -39,7 +39,8 @@
         {
             base.OnEntering(update);
 
-            update.Values.RotationFromHead.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 0.2);
+            update.Values.RotationFromHead.AddModifier(this,
+                CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 0.2);
         }
     }
 }

@@ -37,7 +37,8 @@
         {
             base.OnEntering(update);
 
-            update.Values.RestrictLeft.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 10.0);
+            update.Values.RestrictLeft.AddModifier(this,
+                CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 10.0);
         }
     }
 }

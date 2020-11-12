@@ -1,4 +1,4 @@
-﻿namespace IFPV
+namespace IFPV
 {
     using NetScriptFramework.Tools;
 

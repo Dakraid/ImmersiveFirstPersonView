@@ -6,33 +6,11 @@
     {
         private static readonly string[] EyeNodeNames =
         {
-            "NPCEyeBone",
-            "NPC Head [Head]",
-            "NPC Head",
-            "Head [Head]",
-            "HEAD",
-            "Scull",
-            "FireAtronach_Head [Head]",
-            "ElkScull",
-            "Canine_Head",
-            "DragPriestNPC Head [Head]",
-            "DwarvenSpiderHead_XYZ",
-            "Goat_Head",
-            "ChaurusFlyerHead",
-            "Boar_Reikling_Head",
-            "NPC_mainbody_bone",
-            "RabbitHead",
-            "Horker_Head01",
-            "HorseScull",
-            "IW Head",
-            "Mammoth Head",
-            "MagicEffectsNode",
-            "Sabrecat_Head [Head]",
-            "SlaughterfishHead",
-            "Wisp Head",
-            "Witchlight Body",
-            "NPC Spine2 [Spn2]",
-            "NPC Root [Root]"
+            "NPCEyeBone", "NPC Head [Head]", "NPC Head", "Head [Head]", "HEAD", "Scull", "FireAtronach_Head [Head]",
+            "ElkScull", "Canine_Head", "DragPriestNPC Head [Head]", "DwarvenSpiderHead_XYZ", "Goat_Head",
+            "ChaurusFlyerHead", "Boar_Reikling_Head", "NPC_mainbody_bone", "RabbitHead", "Horker_Head01",
+            "HorseScull", "IW Head", "Mammoth Head", "MagicEffectsNode", "Sabrecat_Head [Head]",
+            "SlaughterfishHead", "Wisp Head", "Witchlight Body", "NPC Spine2 [Spn2]", "NPC Root [Root]"
         };
 
         private static readonly string[] RootNodeNames =
@@ -64,7 +42,7 @@
                 return null;
             }
 
-            var originalObj   = obj;
+            var originalObj = obj;
             var originalActor = obj as Actor;
 
             var isMountChange = false;
@@ -75,17 +53,17 @@
                     var rider = horse.GetMountedBy();
                     if (rider != null)
                     {
-                        obj           = rider;
+                        obj = rider;
                         isMountChange = true;
                     }
                 }
             }
 
             var t = new CameraTarget();
-            t.Object         = obj;
-            t.Actor          = obj as Actor;
+            t.Object = obj;
+            t.Actor = obj as Actor;
             t.OriginalObject = originalObj;
-            t.OriginalActor  = originalActor;
+            t.OriginalActor = originalActor;
 
             var node = t.Actor != null && t.Actor.IsPlayer ? t.Actor.GetSkeletonNode(false) : obj.Node;
             if (node == null)
@@ -96,7 +74,7 @@
             for (var i = 0; i < EyeNodeNames.Length; i++)
             {
                 var name = EyeNodeNames[i];
-                var n    = node.LookupNodeByName(name);
+                var n = node.LookupNodeByName(name);
                 if (n != null)
                 {
                     t.HeadNode = n;
@@ -112,7 +90,7 @@
             for (var i = 0; i < RootNodeNames.Length; i++)
             {
                 var name = RootNodeNames[i];
-                var n    = node.LookupNodeByName(name);
+                var n = node.LookupNodeByName(name);
                 if (n != null)
                 {
                     t.RootNode = n;

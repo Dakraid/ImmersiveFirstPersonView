@@ -37,7 +37,8 @@
         {
             base.OnEntering(update);
 
-            update.Values.StabilizeIgnoreOffsetY.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 34.0, true, 200);
+            update.Values.StabilizeIgnoreOffsetY.AddModifier(this,
+                CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 34.0, true, 200);
             this.AddHeadBobModifier(update, false, true);
         }
     }

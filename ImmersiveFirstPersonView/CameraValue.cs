@@ -39,7 +39,7 @@
                 return null;
             }
 
-            var mod   = new CameraValueModifier(this, fromState, type, amount, autoRemoveOnLeaveState, autoRemoveDelay);
+            var mod = new CameraValueModifier(this, fromState, type, amount, autoRemoveOnLeaveState, autoRemoveDelay);
             var added = false;
             for (var i = 0; i < this.Modifiers.Count; i++)
             {
@@ -88,10 +88,10 @@
             this.Modifiers.Clear();
 
             var value = this.DefaultValue;
-            this.LastValue     = value;
-            this.TargetValue   = value;
+            this.LastValue = value;
+            this.TargetValue = value;
             this.InternalValue = null;
-            this.CurrentValue  = value;
+            this.CurrentValue = value;
         }
 
         internal void Update(long now, bool enabled)
@@ -135,21 +135,21 @@
                 }
             }
 
-            var     wantValue  = this.DefaultValue;
+            var wantValue = this.DefaultValue;
             double? forceValue = null;
             foreach (var x in this.Modifiers)
             {
                 switch (x.Type)
                 {
                     case CameraValueModifier.ModifierTypes.Set:
-                        wantValue  = x.Amount;
+                        wantValue = x.Amount;
                         forceValue = null;
                         break;
 
                     case CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis:
                         if (x.Amount > wantValue)
                         {
-                            wantValue  = x.Amount;
+                            wantValue = x.Amount;
                             forceValue = null;
                         }
 
@@ -158,25 +158,25 @@
                     case CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis:
                         if (x.Amount < wantValue)
                         {
-                            wantValue  = x.Amount;
+                            wantValue = x.Amount;
                             forceValue = null;
                         }
 
                         break;
 
                     case CameraValueModifier.ModifierTypes.Add:
-                        wantValue  += x.Amount;
-                        forceValue =  null;
+                        wantValue += x.Amount;
+                        forceValue = null;
                         break;
 
                     case CameraValueModifier.ModifierTypes.Multiply:
-                        wantValue  *= x.Amount;
-                        forceValue =  null;
+                        wantValue *= x.Amount;
+                        forceValue = null;
                         break;
 
                     case CameraValueModifier.ModifierTypes.Force:
                         forceValue = x.Amount;
-                        wantValue  = x.Amount;
+                        wantValue = x.Amount;
                         break;
 
                     default: throw new NotImplementedException();
@@ -190,15 +190,15 @@
                 var shouldTween = !forceValue.HasValue &&
                                   (this.Flags & CameraValueFlags.NoTween) == CameraValueFlags.None;
 
-                if (shouldTween                                                        &&
-                    wantValue                                         > this.LastValue &&
+                if (shouldTween &&
+                    wantValue > this.LastValue &&
                     (this.Flags & CameraValueFlags.IncreaseInstantly) != CameraValueFlags.None)
                 {
                     shouldTween = false;
                 }
 
-                if (shouldTween                                                        &&
-                    wantValue                                         < this.LastValue &&
+                if (shouldTween &&
+                    wantValue < this.LastValue &&
                     (this.Flags & CameraValueFlags.DecreaseInstantly) != CameraValueFlags.None)
                 {
                     shouldTween = false;
@@ -212,13 +212,13 @@
                 else
                 {
                     this.CurrentValue = wantValue;
-                    this.LastValue    = wantValue;
+                    this.LastValue = wantValue;
                 }
             }
             else if (this.InternalValue != null)
             {
                 this.InternalValue.Update(now);
-                this.LastValue    = this.InternalValue.CurrentAmount;
+                this.LastValue = this.InternalValue.CurrentAmount;
                 this.CurrentValue = this.LastValue;
                 if (this.LastValue == wantValue)
                 {
@@ -231,12 +231,13 @@
                 if (hasNow != wantValue)
                 {
                     this.CurrentValue = wantValue;
-                    this.LastValue    = wantValue;
+                    this.LastValue = wantValue;
                 }
             }
         }
 
-        [Flags] internal enum CameraValueFlags : uint
+        [Flags]
+        internal enum CameraValueFlags : uint
         {
             None = 0,
 
@@ -277,11 +278,11 @@
             bool autoRemove,
             long autoRemoveDelay)
         {
-            this.Owner           = owner;
-            this.State           = state;
-            this.Type            = type;
-            this.Amount          = amount;
-            this.AutoRemove      = autoRemove;
+            this.Owner = owner;
+            this.State = state;
+            this.Type = type;
+            this.Amount = amount;
+            this.AutoRemove = autoRemove;
             this.AutoRemoveDelay = autoRemoveDelay;
 
             if (this.State != null)
@@ -315,24 +316,22 @@
 
         internal CameraValueSimple(string name, double defaultValue, double changeSpeed)
         {
-            this.Name         = name;
+            this.Name = name;
             this.DefaultValue = defaultValue;
-            this._cur_value   = defaultValue;
-            this.ChangeSpeed  = changeSpeed;
+            this._cur_value = defaultValue;
+            this.ChangeSpeed = changeSpeed;
 
             if (name == null)
             {
-                var t = this.GetType().
-                    Name;
+                var t = this.GetType().Name;
 
                 var words = new List<string>();
-                var cur   = new StringBuilder(32);
+                var cur = new StringBuilder(32);
                 foreach (var c in t)
                 {
                     if (char.IsUpper(c) && cur.Length != 0)
                     {
-                        words.Add(cur.ToString().
-                            ToLowerInvariant());
+                        words.Add(cur.ToString().ToLowerInvariant());
 
                         cur.Clear();
                     }
@@ -342,8 +341,7 @@
 
                 if (cur.Length != 0)
                 {
-                    words.Add(cur.ToString().
-                        ToLowerInvariant());
+                    words.Add(cur.ToString().ToLowerInvariant());
                 }
 
                 this.Name = string.Join(" ", words);

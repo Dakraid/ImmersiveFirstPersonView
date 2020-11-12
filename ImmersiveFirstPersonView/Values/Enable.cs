@@ -18,6 +18,6 @@ namespace IFPV
     internal partial class CameraValueMap
     {
         internal readonly WantDisabled WantDisabled = new WantDisabled();
-        internal readonly WantEnabled  WantEnabled  = new WantEnabled();
+        internal readonly WantEnabled WantEnabled = new WantEnabled();
     }
 }
