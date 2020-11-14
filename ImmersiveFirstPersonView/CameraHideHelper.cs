@@ -2,26 +2,27 @@
 {
     using System;
     using System.Collections.Generic;
+
     using NetScriptFramework;
     using NetScriptFramework.SkyrimSE;
 
     internal sealed class CameraHideHelper
     {
-        internal readonly CameraMain CameraMain;
-        private readonly biped_mask IsHelmetBipedMask;
-        private readonly List<NiAVObject> LastHelmet = new List<NiAVObject>();
-        private readonly biped_mask NotHelmetBipedMask;
-        private NiAVObject FirstPersonSkeleton;
-        private IntPtr LastAddress = IntPtr.Zero;
-        private HideFlags LastFlags = HideFlags.None;
-        private uint LastFormId;
+        internal readonly CameraMain       CameraMain;
+        private readonly  biped_mask       IsHelmetBipedMask;
+        private readonly  List<NiAVObject> LastHelmet = new List<NiAVObject>();
+        private readonly  biped_mask       NotHelmetBipedMask;
+        private           NiAVObject       FirstPersonSkeleton;
+        private           IntPtr           LastAddress = IntPtr.Zero;
+        private           HideFlags        LastFlags   = HideFlags.None;
+        private           uint             LastFormId;
 
-        private uint LastRaceId;
+        private uint   LastRaceId;
         private IntPtr LastSkeleton = IntPtr.Zero;
 
         internal CameraHideHelper(CameraMain cameraMain)
         {
-            if (cameraMain == null)
+            if ( cameraMain == null )
             {
                 throw new ArgumentNullException("cameraMain");
             }
@@ -39,11 +40,11 @@
             // 143 = ears
             // 230 = head?
 
-            if (Settings.Instance.HideHelmet)
+            if ( Settings.Instance.HideHelmet )
             {
                 this.IsHelmetBipedMask = GenerateBipedMask(30, 31, 42, 43, 130, 131, 142, 143, 230);
             }
-            else if (Settings.Instance.HideHead)
+            else if ( Settings.Instance.HideHead )
             {
                 this.IsHelmetBipedMask = GenerateBipedMask(43);
             }
@@ -57,16 +58,16 @@
 
         internal void Clear(CameraUpdate update)
         {
-            if (this.LastAddress == IntPtr.Zero)
+            if ( this.LastAddress == IntPtr.Zero )
             {
                 return;
             }
 
-            this.LastAddress = IntPtr.Zero;
+            this.LastAddress  = IntPtr.Zero;
             this.LastSkeleton = IntPtr.Zero;
-            this.LastFormId = 0;
-            this.LastFlags = HideFlags.None;
-            this.LastRaceId = 0;
+            this.LastFormId   = 0;
+            this.LastFlags    = HideFlags.None;
+            this.LastRaceId   = 0;
 
             this.CameraMain.Cull.Clear();
             this.SetFirstPersonSkeleton(null, update.GameCameraState.Id == TESCameraStates.FirstPerson, false);
@@ -76,68 +77,67 @@
         internal void Update(CameraUpdate update)
         {
             var actor = update.Target.Actor;
-            if (actor == null || update.Target.RootNode == null)
+
+            if ( actor == null || update.Target.RootNode == null )
             {
                 this.Clear(update);
                 return;
             }
 
             {
-                var addr = actor.Address;
+                var addr   = actor.Address;
                 var formId = actor.FormId;
-                var race = actor.Race;
+                var race   = actor.Race;
                 var raceId = race != null ? race.FormId : 0;
-                var node = update.Target.RootNode;
-                var addr2 = node != null ? node.Address : IntPtr.Zero;
+                var node   = update.Target.RootNode;
+                var addr2  = node != null ? node.Address : IntPtr.Zero;
 
-                if (addr != this.LastAddress ||
-                    formId != this.LastFormId ||
-                    raceId != this.LastRaceId ||
-                    this.LastSkeleton != addr2)
+                if ( addr != this.LastAddress || formId != this.LastFormId || raceId != this.LastRaceId || this.LastSkeleton != addr2 )
                 {
                     this.Clear(update);
 
-                    this.LastAddress = addr;
+                    this.LastAddress  = addr;
                     this.LastSkeleton = addr2;
-                    this.LastFormId = formId;
-                    this.LastRaceId = raceId;
+                    this.LastFormId   = formId;
+                    this.LastRaceId   = raceId;
                 }
             }
 
             var wantFlags = HideFlags.None;
-            if (update.Values.HideHead.CurrentValue >= 0.5)
+
+            if ( update.Values.HideHead.CurrentValue >= 0.5 )
             {
                 wantFlags |= HideFlags.Head | HideFlags.Helmet;
             }
 
-            if (update.Values.HideHead2.CurrentValue >= 0.5)
+            if ( update.Values.HideHead2.CurrentValue >= 0.5 )
             {
                 wantFlags |= HideFlags.Head2;
             }
 
-            if (update.Values.HideArms.CurrentValue >= 0.5)
+            if ( update.Values.HideArms.CurrentValue >= 0.5 )
             {
                 wantFlags |= HideFlags.Arms;
             }
 
-            if (update.Values.Show1stPersonArms.CurrentValue >= 0.5)
+            if ( update.Values.Show1stPersonArms.CurrentValue >= 0.5 )
             {
                 wantFlags |= HideFlags.Show1st;
             }
 
-            switch (update.GameCameraState.Id)
+            switch ( update.GameCameraState.Id )
             {
-                case TESCameraStates.FirstPerson:
-                case TESCameraStates.Free: break;
+                case TESCameraStates.FirstPerson :
+                case TESCameraStates.Free : break;
 
-                default:
+                default :
                     wantFlags |= HideFlags.Has1st;
                     break;
             }
 
-            if (wantFlags == this.LastFlags)
+            if ( wantFlags == this.LastFlags )
             {
-                if ((wantFlags & HideFlags.Helmet) != HideFlags.None)
+                if ( (wantFlags & HideFlags.Helmet) != HideFlags.None )
                 {
                     this.UpdateHelmet(update.Target.RootNode);
                 }
@@ -145,7 +145,7 @@
                 return;
             }
 
-            if ((wantFlags & HideFlags.NeedUpdate) != (this.LastFlags & HideFlags.NeedUpdate))
+            if ( (wantFlags & HideFlags.NeedUpdate) != (this.LastFlags & HideFlags.NeedUpdate) )
             {
                 this.CameraMain.Cull.Clear();
                 this.ClearHelmet();
@@ -153,19 +153,19 @@
                 this.UpdateHideWithCull(actor, wantFlags, update.Target.RootNode as NiNode);
             }
 
-            if ((wantFlags & HideFlags.Has1st) != (this.LastFlags & HideFlags.Has1st))
+            if ( (wantFlags & HideFlags.Has1st) != (this.LastFlags & HideFlags.Has1st) )
             {
-                if ((wantFlags & HideFlags.Has1st) != HideFlags.None)
+                if ( (wantFlags & HideFlags.Has1st) != HideFlags.None )
                 {
                     var skeleton = actor.GetSkeletonNode(true);
-                    if (skeleton != null)
+
+                    if ( skeleton != null )
                     {
-                        this.SetFirstPersonSkeleton(skeleton,
-                            update.GameCameraState.Id == TESCameraStates.FirstPerson,
-                            (wantFlags & HideFlags.Show1st) != HideFlags.None);
+                        this.SetFirstPersonSkeleton(skeleton, update.GameCameraState.Id == TESCameraStates.FirstPerson, (wantFlags & HideFlags.Show1st) != HideFlags.None);
 
                         this.LastFlags |= HideFlags.Has1st;
-                        if ((wantFlags & HideFlags.Show1st) != HideFlags.None)
+
+                        if ( (wantFlags & HideFlags.Show1st) != HideFlags.None )
                         {
                             this.LastFlags |= HideFlags.Show1st;
                         }
@@ -181,28 +181,27 @@
 
         internal void UpdateFirstPersonSkeletonRotation(CameraUpdate update)
         {
-            if (this.FirstPersonSkeleton == null)
+            if ( this.FirstPersonSkeleton == null )
             {
                 return;
             }
 
             var transform = this.FirstPersonSkeleton.LocalTransform;
-            var rot = transform.Rotation;
+            var rot       = transform.Rotation;
 
             var result = update.Result.Transform.Rotation;
             rot.CopyFrom(result);
 
             var ymult = update.Values.FirstPersonSkeletonRotateYMultiplier.CurrentValue;
-            if (ymult != 1.0)
+
+            if ( ymult != 1.0 )
             {
                 var temp = this.CameraMain.TempResult.Transform.Rotation;
                 temp.Identity(1.0f);
 
-                var y = (float)(update.Values.InputRotationY.CurrentValue *
-                                update.Values.InputRotationYMultiplier.CurrentValue *
-                                (ymult - 1.0));
+                var y = (float)(update.Values.InputRotationY.CurrentValue * update.Values.InputRotationYMultiplier.CurrentValue * (ymult - 1.0));
 
-                if (y != 0.0f)
+                if ( y != 0.0f )
                 {
                     temp.RotateX(y, temp);
                 }
@@ -216,7 +215,8 @@
         private static biped_mask GenerateBipedMask(params int[] slots)
         {
             var mask = new biped_mask();
-            foreach (var s in slots)
+
+            foreach ( var s in slots )
             {
                 mask[s] = true;
             }
@@ -228,7 +228,7 @@
         {
             this.LastFlags &= ~HideFlags.Helmet;
 
-            foreach (var x in this.LastHelmet)
+            foreach ( var x in this.LastHelmet )
             {
                 this.CameraMain.Cull.RemoveDisable(x);
             }
@@ -239,44 +239,50 @@
         private void ExploreEquipment(NiNode root, NiAVObject current, List<NiAVObject> ls)
         {
             // Special case, we should ignore and stop looking here, head is handled elsewhere.
-            if (current != null)
+            if ( current != null )
             {
                 var nm = current.Name.Text ?? "";
-                if (nm.Equals("BSFaceGenNiNodeSkinned", StringComparison.OrdinalIgnoreCase))
+
+                if ( nm.Equals("BSFaceGenNiNodeSkinned", StringComparison.OrdinalIgnoreCase) )
                 {
                     return;
                 }
             }
 
-            if (current is BSGeometry)
+            if ( current is BSGeometry )
             {
-                var g = (BSGeometry)current;
+                var g    = (BSGeometry)current;
                 var skin = g.Skin.Value;
-                if (skin != null && skin is BSDismemberSkinInstance)
+
+                if ( skin != null && skin is BSDismemberSkinInstance )
                 {
                     var count = Memory.ReadInt32(skin.Address + 0x88);
-                    if (count > 0)
+
+                    if ( count > 0 )
                     {
                         var pbuf = Memory.ReadPointer(skin.Address + 0x90);
-                        if (pbuf != IntPtr.Zero)
+
+                        if ( pbuf != IntPtr.Zero )
                         {
                             var isHelm = false;
-                            for (var i = 0; i < count; i++)
+
+                            for ( var i = 0; i < count; i++ )
                             {
                                 int m = Memory.ReadUInt16(pbuf + ((4 * i) + 2));
-                                if (this.NotHelmetBipedMask[m])
+
+                                if ( this.NotHelmetBipedMask[m] )
                                 {
                                     isHelm = false;
                                     break;
                                 }
 
-                                if (this.IsHelmetBipedMask[m])
+                                if ( this.IsHelmetBipedMask[m] )
                                 {
                                     isHelm = true;
                                 }
                             }
 
-                            if (isHelm)
+                            if ( isHelm )
                             {
                                 ls.Add(current);
                             }
@@ -285,10 +291,11 @@
                 }
             }
 
-            if (current is NiNode)
+            if ( current is NiNode )
             {
                 var n = current as NiNode;
-                foreach (var ch in n.Children)
+
+                foreach ( var ch in n.Children )
                 {
                     this.ExploreEquipment(root, ch, ls);
                 }
@@ -301,7 +308,7 @@
         {
             var ls = new List<NiAVObject>();
 
-            if (root != null)
+            if ( root != null )
             {
                 this.FillValidBipedObjects(root, ls);
             }
@@ -314,13 +321,15 @@
             this.LastFlags |= HideFlags.Helmet;
 
             var rootNode = root as NiNode;
-            if (rootNode == null)
+
+            if ( rootNode == null )
             {
                 return;
             }
 
             var ls = calculated ?? this.GetHelmetNodes(rootNode);
-            foreach (var x in ls)
+
+            foreach ( var x in ls )
             {
                 this.CameraMain.Cull.AddDisable(x);
                 this.LastHelmet.Add(x);
@@ -329,14 +338,14 @@
 
         private void SetFirstPersonSkeleton(NiAVObject node, bool is1stPersonCam, bool shouldShow)
         {
-            if (this.FirstPersonSkeleton != null)
+            if ( this.FirstPersonSkeleton != null )
             {
                 this.FirstPersonSkeleton.DecRef();
             }
 
             this.FirstPersonSkeleton = node;
 
-            if (this.FirstPersonSkeleton != null)
+            if ( this.FirstPersonSkeleton != null )
             {
                 this.FirstPersonSkeleton.IncRef();
             }
@@ -344,24 +353,26 @@
 
         private void UpdateHelmet(NiAVObject root)
         {
-            if (root == null)
+            if ( root == null )
             {
                 return;
             }
 
             var rootNode = root as NiNode;
-            if (rootNode == null)
+
+            if ( rootNode == null )
             {
                 return;
             }
 
-            var ls = this.GetHelmetNodes(rootNode);
+            var ls      = this.GetHelmetNodes(rootNode);
             var changed = ls.Count != this.LastHelmet.Count;
-            if (!changed)
+
+            if ( !changed )
             {
-                for (var i = 0; i < ls.Count; i++)
+                for ( var i = 0; i < ls.Count; i++ )
                 {
-                    if (!ls[i].Equals(this.LastHelmet[i]))
+                    if ( !ls[i].Equals(this.LastHelmet[i]) )
                     {
                         changed = true;
                         break;
@@ -369,7 +380,7 @@
                 }
             }
 
-            if (changed)
+            if ( changed )
             {
                 this.ClearHelmet();
                 this.InitializeHelmet(root, ls);
@@ -378,37 +389,41 @@
 
         private void UpdateHideWithCull(Actor actor, HideFlags want, NiNode root)
         {
-            if (root == null)
+            if ( root == null )
             {
                 return;
             }
 
-            if ((want & HideFlags.Head) != HideFlags.None)
+            if ( (want & HideFlags.Head) != HideFlags.None )
             {
                 var node = root.LookupNodeByName("BSFaceGenNiNodeSkinned");
-                if (node != null)
+
+                if ( node != null )
                 {
                     this.LastFlags |= HideFlags.Head;
                     this.CameraMain.Cull.AddDisable(node);
                 }
             }
 
-            if ((want & HideFlags.Head2) != HideFlags.None)
+            if ( (want & HideFlags.Head2) != HideFlags.None )
             {
                 var node = root.LookupNodeByName("WereWolfLowHead01");
-                if (node != null)
+
+                if ( node != null )
                 {
                     this.LastFlags |= HideFlags.Head2;
                     this.CameraMain.Cull.AddDisable(node);
 
                     node = root.LookupNodeByName("WereWolfTeeth");
-                    if (node != null)
+
+                    if ( node != null )
                     {
                         this.CameraMain.Cull.AddDisable(node);
                     }
 
                     node = root.LookupNodeByName("EyesMaleWerewolfBeast");
-                    if (node != null)
+
+                    if ( node != null )
                     {
                         this.CameraMain.Cull.AddDisable(node);
                     }
@@ -416,7 +431,8 @@
                 else
                 {
                     node = root.LookupNodeByName("NPC Head [Head]");
-                    if (node != null)
+
+                    if ( node != null )
                     {
                         this.LastFlags |= HideFlags.Head2;
                         this.CameraMain.Cull.AddUnscale(node);
@@ -424,11 +440,12 @@
                 }
             }
 
-            if ((want & HideFlags.Arms) != HideFlags.None)
+            if ( (want & HideFlags.Arms) != HideFlags.None )
             {
-                var left = root.LookupNodeByName("NPC L UpperArm [LUar]");
+                var left  = root.LookupNodeByName("NPC L UpperArm [LUar]");
                 var right = root.LookupNodeByName("NPC R UpperArm [RUar]");
-                if (left != null && right != null)
+
+                if ( left != null && right != null )
                 {
                     this.LastFlags |= HideFlags.Arms;
                     this.CameraMain.Cull.AddUnscale(left);
@@ -436,23 +453,23 @@
                 }
             }
 
-            if ((want & HideFlags.Helmet) != HideFlags.None)
+            if ( (want & HideFlags.Helmet) != HideFlags.None )
             {
                 this.InitializeHelmet(root, null);
             }
         }
 
-        [Flags]
+        [ Flags ]
         private enum HideFlags : uint
         {
             None = 0,
 
-            Head = 1,
-            Helmet = 2,
-            Arms = 4,
+            Head    = 1,
+            Helmet  = 2,
+            Arms    = 4,
             Show1st = 8,
-            Has1st = 0x10,
-            Head2 = 0x20,
+            Has1st  = 0x10,
+            Head2   = 0x20,
 
             NeedUpdate = Head | Helmet | Arms | Head2
         }
@@ -465,27 +482,28 @@
             {
                 get
                 {
-                    if (index < 0 || index >= 256)
+                    if ( index < 0 || index >= 256 )
                     {
                         return false;
                     }
 
-                    var i = index / 64;
-                    var j = index % 64;
+                    var i  = index / 64;
+                    var j  = index % 64;
                     var fl = (ulong)1 << j;
                     return (this.mask[i] & fl) != 0;
                 }
                 set
                 {
-                    if (index < 0 || index >= 256)
+                    if ( index < 0 || index >= 256 )
                     {
                         return;
                     }
 
-                    var i = index / 64;
-                    var j = index % 64;
+                    var i  = index / 64;
+                    var j  = index % 64;
                     var fl = (ulong)1 << j;
-                    if (value)
+
+                    if ( value )
                     {
                         this.mask[i] |= fl;
                     }

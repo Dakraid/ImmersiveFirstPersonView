@@ -29,7 +29,7 @@
         /// </summary>
         protected abstract void Free();
 
-        #region IDisposable interface
+    #region IDisposable interface
 
         /// <summary>
         ///     Internal value to avoid redundant calls.
@@ -45,11 +45,11 @@
         /// </param>
         private void Dispose(bool disposing)
         {
-            if (!this.disposedValue)
+            if ( !this.disposedValue )
             {
                 //if (disposing) { }
 
-                if (this.Pinned == 0)
+                if ( this.Pinned == 0 )
                 {
                     this.Free();
                 }
@@ -72,6 +72,6 @@
             GC.SuppressFinalize(this);
         }
 
-        #endregion
+    #endregion
     }
 }

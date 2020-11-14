@@ -11,8 +11,8 @@
     <Product>NetScriptFramework</Product>
     <Copyright>Copyright © WZT 2016</Copyright>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <OutputPath>..\Build\Release\Data\NetScriptFramework\</OutputPath>
-    <DocumentationFile>..\Build\Release\Data\NetScriptFramework\NetScriptFramework.XML</DocumentationFile>
+    <OutputPath>..\Build\Debug\Data\NetScriptFramework\</OutputPath>
+    <DocumentationFile>..\Build\Debug\Data\NetScriptFramework\NetScriptFramework.XML</DocumentationFile>
     <NoWarn>CS1591</NoWarn>
 	  <UseWindowsForms>true</UseWindowsForms>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

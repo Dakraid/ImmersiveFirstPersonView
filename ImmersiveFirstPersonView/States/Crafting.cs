@@ -8,15 +8,16 @@
 
         internal override bool Check(CameraUpdate update)
         {
-            if (!update.CameraMain.IsEnabled)
+            if ( !update.CameraMain.IsEnabled )
             {
                 return false;
             }
 
             var mm = MenuManager.Instance;
-            if (mm != null)
+
+            if ( mm != null )
             {
-                if (mm.IsMenuOpen("Crafting Menu"))
+                if ( mm.IsMenuOpen("Crafting Menu") )
                 {
                     return true;
                 }
@@ -30,9 +31,7 @@
             base.OnEntering(update);
 
             update.Values.Offset1PositionY.AddModifier(this, CameraValueModifier.ModifierTypes.Set, -5.0);
-            update.Values.NearClip.AddModifier(this,
-                CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis,
-                1.0);
+            update.Values.NearClip.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 1.0);
         }
     }
 }

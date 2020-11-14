@@ -6,12 +6,12 @@
 
         internal override bool Check(CameraUpdate update)
         {
-            if (!update.CameraMain.IsEnabled)
+            if ( !update.CameraMain.IsEnabled )
             {
                 return false;
             }
 
-            if (update.CachedMounted)
+            if ( update.CachedMounted )
             {
                 return false;
             }
@@ -24,8 +24,7 @@
         {
             base.OnEntering(update);
 
-            update.Values.StabilizeIgnoreOffsetY.AddModifier(this,
-                CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 34.0, true, 300);
+            update.Values.StabilizeIgnoreOffsetY.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 34.0, true, 300);
         }
     }
 }

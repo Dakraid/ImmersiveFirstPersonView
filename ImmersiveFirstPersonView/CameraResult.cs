@@ -2,6 +2,7 @@
 {
     using NetScriptFramework;
     using NetScriptFramework.SkyrimSE;
+
     using Main = NetScriptFramework.Main;
 
     internal sealed class CameraResult : TemporaryObject
@@ -10,8 +11,8 @@
 
         internal CameraResult()
         {
-            this.Allocation = Memory.Allocate(0x34);
-            this.Transform = MemoryObject.FromAddress<NiTransform>(this.Allocation.Address);
+            this.Allocation           = Memory.Allocate(0x34);
+            this.Transform            = MemoryObject.FromAddress<NiTransform>(this.Allocation.Address);
             this.Transform.Position.X = 0.0f;
             this.Transform.Position.Y = 0.0f;
             this.Transform.Position.Z = 0.0f;
@@ -23,14 +24,14 @@
 
         protected override void Free()
         {
-            if (Main.IsShutdown)
+            if ( Main.IsShutdown )
             {
                 return;
             }
 
             this.Transform = null;
 
-            if (this.Allocation != null)
+            if ( this.Allocation != null )
             {
                 this.Allocation.Dispose();
                 this.Allocation = null;

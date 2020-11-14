@@ -18,6 +18,6 @@ namespace IFPV
     internal partial class CameraValueMap
     {
         internal readonly ActorTurnTime ActorTurnTime = new ActorTurnTime();
-        internal readonly FaceCamera FaceCamera = new FaceCamera();
+        internal readonly FaceCamera    FaceCamera    = new FaceCamera();
     }
 }

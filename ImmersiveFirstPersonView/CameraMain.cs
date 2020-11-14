@@ -2,9 +2,11 @@
 namespace IFPV
 {
     using System;
+
     using NetScriptFramework;
     using NetScriptFramework.SkyrimSE;
     using NetScriptFramework.Tools;
+
     using States;
 
     internal sealed class CameraMain
@@ -51,10 +53,10 @@ namespace IFPV
 
         internal bool WasUsingFirstPersonArms { get; private set; }
 
-        private bool HadKey;
-        private bool LastActorWasPlayer;
-        private uint LastTargetFormId;
-        private WantStates LastWantState = WantStates.None;
+        private bool                HadKey;
+        private bool                LastActorWasPlayer;
+        private uint                LastTargetFormId;
+        private WantStates          LastWantState = WantStates.None;
         private CameraValueModifier WantMod;
 
         internal enum WantStates
@@ -74,33 +76,32 @@ namespace IFPV
         internal void SetWantState(WantStates state)
         {
             var curState = this.GetWantFromState(state);
-            if (curState == 0)
+
+            if ( curState == 0 )
             {
                 return;
             }
 
-            if (this.WantMod != null)
+            if ( this.WantMod != null )
             {
                 this.WantMod.Remove();
                 this.WantMod = null;
             }
 
             var lastState = this.GetWantFromState(this.LastWantState);
-            var prev = this.LastWantState;
+            var prev      = this.LastWantState;
             this.LastWantState = state;
 
-            this.WantMod = curState > 0
-                ? this.Values.WantEnabled.AddModifier(null, CameraValueModifier.ModifierTypes.Add, 1.0, false)
-                : this.Values.WantDisabled.AddModifier(null, CameraValueModifier.ModifierTypes.Add, 1.0, false);
+            this.WantMod = curState > 0 ? this.Values.WantEnabled.AddModifier(null, CameraValueModifier.ModifierTypes.Add, 1.0, false) : this.Values.WantDisabled.AddModifier(null, CameraValueModifier.ModifierTypes.Add, 1.0, false);
         }
 
         private Setting _min_zoom;
         private Setting _inc_zoom;
-        private bool _init_zoom;
+        private bool    _init_zoom;
 
         private void _init_z()
         {
-            if (this._init_zoom)
+            if ( this._init_zoom )
             {
                 return;
             }
@@ -113,41 +114,43 @@ namespace IFPV
 
         private int GetWantFromState(WantStates state)
         {
-            switch (state)
+            switch ( state )
             {
-                case WantStates.None: return 0;
+                case WantStates.None : return 0;
 
-                case WantStates.EnabledFromHotkey: return 1;
+                case WantStates.EnabledFromHotkey : return 1;
 
-                case WantStates.EnabledFromTogglePOV:
-                case WantStates.EnabledFromZoom: return Settings.Instance.ReplaceDefaultCamera ? 1 : 0;
+                case WantStates.EnabledFromTogglePOV :
+                case WantStates.EnabledFromZoom : return Settings.Instance.ReplaceDefaultCamera ? 1 : 0;
 
-                case WantStates.DisabledFromHotkey: return -1;
+                case WantStates.DisabledFromHotkey : return -1;
 
-                case WantStates.DisabledFromTogglePOV:
-                case WantStates.DisabledFromZoom: return Settings.Instance.ReplaceDefaultCamera ? -1 : 0;
+                case WantStates.DisabledFromTogglePOV :
+                case WantStates.DisabledFromZoom : return Settings.Instance.ReplaceDefaultCamera ? -1 : 0;
 
-                default: throw new NotImplementedException();
+                default : throw new NotImplementedException();
             }
         }
 
-        internal long _LastTurnIsFromAutoTurn = 0;
+        internal long LastTurnIsFromAutoTurn = 0;
 
         internal void OnMakeTurn()
         {
-            if (this.Stabilize == null)
+            if ( this.Stabilize == null )
             {
                 return;
             }
 
             double ftime = Settings.Instance.ActorTurnStabilizeTime;
-            if (ftime <= 0.0)
+
+            if ( ftime <= 0.0 )
             {
                 return;
             }
 
             var now = this.Plugin.Time;
-            if (now < this._LastTurnIsFromAutoTurn)
+
+            if ( now < this.LastTurnIsFromAutoTurn )
             {
                 ftime *= 1.5;
             }
@@ -156,17 +159,18 @@ namespace IFPV
 
             var pstate = pcam?.State;
 
-            if (!(pstate is ThirdPersonState third))
+            if ( !(pstate is ThirdPersonState third) )
             {
                 return;
             }
 
-            double x = Math.Abs(third.XRotationFromLastResetPoint);
-            var mult = x / (Math.PI * 0.5);
+            double x    = Math.Abs(third.XRotationFromLastResetPoint);
+            var    mult = x / (Math.PI * 0.5);
             ftime *= mult;
 
             var ms = (long)(ftime * 1000.0);
-            if (ms < 33)
+
+            if ( ms < 33 )
             {
                 return;
             }
@@ -176,42 +180,42 @@ namespace IFPV
 
         internal void HandleZoom(ThirdPersonState third, bool zoomIn)
         {
-            if (third == null)
+            if ( third == null )
             {
                 return;
             }
 
             this._init_z();
 
-            if (this._min_zoom == null || this._inc_zoom == null)
+            if ( this._min_zoom == null || this._inc_zoom == null )
             {
                 return;
             }
 
-            var min = this._min_zoom.GetFloat();
-            var inc = this._inc_zoom.GetFloat();
-            var cur = third.TargetZoomLevel;
+            var min  = this._min_zoom.GetFloat();
+            var inc  = this._inc_zoom.GetFloat();
+            var cur  = third.TargetZoomLevel;
             var next = cur + ((zoomIn ? -1.0f : 1.0f) * inc);
 
-            if (cur <= min && zoomIn)
+            if ( cur <= min && zoomIn )
             {
                 third.TargetZoomLevel = min;
                 this.SetWantState(WantStates.EnabledFromZoom);
                 return;
             }
 
-            if (next < min)
+            if ( next < min )
             {
                 next = min;
             }
-            else if (next > 1.0f)
+            else if ( next > 1.0f )
             {
                 next = 1.0f;
             }
 
             third.TargetZoomLevel = next;
 
-            if (!zoomIn && this.AlreadyHasWantState())
+            if ( !zoomIn && this.AlreadyHasWantState() )
             {
                 this.SetWantState(WantStates.DisabledFromZoom);
             }
@@ -220,9 +224,10 @@ namespace IFPV
         private bool CalculateEnabled(CameraUpdate update)
         {
             var tkeyCode = Settings.Instance.ToggleHotkey;
-            if (tkeyCode > 0 && Input.IsPressed((VirtualKeys)tkeyCode))
+
+            if ( tkeyCode > 0 && Input.IsPressed((VirtualKeys)tkeyCode) )
             {
-                if (!this.HadKey)
+                if ( !this.HadKey )
                 {
                     this.HadKey = true;
                     this.SetWantState(this.IsEnabled ? WantStates.DisabledFromHotkey : WantStates.EnabledFromHotkey);
@@ -234,7 +239,8 @@ namespace IFPV
             }
 
             var rkeyCode = Settings.Instance.ReloadHotkey;
-            if (rkeyCode > 0 && Input.IsPressed((VirtualKeys)rkeyCode))
+
+            if ( rkeyCode > 0 && Input.IsPressed((VirtualKeys)rkeyCode) )
             {
                 Settings.Instance.Load();
                 this.Values = new CameraValueMap(this);
@@ -243,21 +249,21 @@ namespace IFPV
             update.Values.WantEnabled.Update(this.Plugin.Time, this.IsEnabled);
             update.Values.WantDisabled.Update(this.Plugin.Time, this.IsEnabled);
 
-            if (update.Values.WantDisabled.CurrentValue > 0.0 || update.Values.WantEnabled.CurrentValue <= 0.0)
+            if ( update.Values.WantDisabled.CurrentValue > 0.0 || update.Values.WantEnabled.CurrentValue <= 0.0 )
             {
                 return false;
             }
 
-            switch (update.GameCameraState.Id)
+            switch ( update.GameCameraState.Id )
             {
-                case TESCameraStates.Free:
-                case TESCameraStates.FirstPerson:
-                case TESCameraStates.TweenMenu:
-                case TESCameraStates.AutoVanity: return false;
+                case TESCameraStates.Free :
+                case TESCameraStates.FirstPerson :
+                case TESCameraStates.TweenMenu :
+                case TESCameraStates.AutoVanity : return false;
 
-                case TESCameraStates.VATS:
+                case TESCameraStates.VATS :
                 {
-                    if (Settings.Instance.DisableDuringKillmove)
+                    if ( Settings.Instance.DisableDuringKillmove )
                     {
                         return false;
                     }
@@ -267,7 +273,8 @@ namespace IFPV
             }
 
             var menuManager = MenuManager.Instance;
-            if (menuManager == null)
+
+            if ( menuManager == null )
             {
                 return false;
             }
@@ -277,18 +284,19 @@ namespace IFPV
 
         internal void UpdateHeadtrack()
         {
-            if (!this.LastActorWasPlayer)
+            if ( !this.LastActorWasPlayer )
             {
                 return;
             }
 
-            if (this.Values._HeadTrackEnabled.CurrentValue == 0)
+            if ( this.Values._HeadTrackEnabled.CurrentValue == 0 )
             {
                 return;
             }
 
             var plr = PlayerCharacter.Instance;
-            if (plr == null)
+
+            if ( plr == null )
             {
                 return;
             }
@@ -296,17 +304,18 @@ namespace IFPV
             var camera = PlayerCamera.Instance;
 
             var state = camera?.State;
-            if (state == null)
+
+            if ( state == null )
             {
                 return;
             }
 
-            if (!(state is ThirdPersonState third))
+            if ( !(state is ThirdPersonState third) )
             {
                 return;
             }
 
-            var fullZ = plr.Rotation.Z + third.XRotationFromLastResetPoint;
+            var fullZ = plr.Rotation.Z                    + third.XRotationFromLastResetPoint;
             var fullX = third.YRotationFromLastResetPoint - plr.Rotation.X;
 
             this.TempResult.Transform.CopyFrom(this.FinalResult.Transform);
@@ -327,47 +336,49 @@ namespace IFPV
 
         internal void Initialize()
         {
-            if (this.IsInitialized)
+            if ( this.IsInitialized )
             {
                 throw new InvalidOperationException();
             }
 
             this.IsInitialized = true;
 
-#if PROFILING
+        #if PROFILING
             this._performance_timer.Start();
-#endif
+        #endif
 
             this.Values = new CameraValueMap(this);
-            this.Stack = new CameraStack(this);
-            this.Cull = new CameraCull(this);
-            this.Hide = new CameraHideHelper(this);
+            this.Stack  = new CameraStack(this);
+            this.Cull   = new CameraCull(this);
+            this.Hide   = new CameraHideHelper(this);
 
-            this.BaseHead = new CameraResult();
-            this.BaseRoot = new CameraResult();
-            this.BaseResult = new CameraResult();
+            this.BaseHead      = new CameraResult();
+            this.BaseRoot      = new CameraResult();
+            this.BaseResult    = new CameraResult();
             this.Offset1Result = new CameraResult();
-            this.InputResult = new CameraResult();
+            this.InputResult   = new CameraResult();
             this.Offset2Result = new CameraResult();
-            this.FinalResult = new CameraResult();
-            this.TempResult = new CameraResult();
+            this.FinalResult   = new CameraResult();
+            this.TempResult    = new CameraResult();
         }
 
         internal bool Update(UpdateCameraEventArgs e)
         {
-            if (!(e.Camera is PlayerCamera))
+            if ( !(e.Camera is PlayerCamera) )
             {
                 return false;
             }
 
             var target = this.SelectTarget(e);
-            if (target == null)
+
+            if ( target == null )
             {
                 return false;
             }
 
             var update = this.SetupUpdate(e, target);
-            if (update != null)
+
+            if ( update != null )
             {
                 this.DoUpdate(update);
             }
@@ -379,36 +390,33 @@ namespace IFPV
 
         private CameraUpdate SetupUpdate(UpdateCameraEventArgs e, CameraTarget target)
         {
-            if (target == null)
+            if ( target == null )
             {
                 return null;
             }
 
             var cameraBase = e.Camera;
-            if (!(cameraBase is PlayerCamera playerCamera))
+
+            if ( !(cameraBase is PlayerCamera playerCamera) )
             {
                 return null;
             }
 
             var cameraNode = playerCamera.Node;
-            if (cameraNode == null)
+
+            if ( cameraNode == null )
             {
                 return null;
             }
 
             var cameraState = playerCamera.State;
-            if (cameraState == null)
+
+            if ( cameraState == null )
             {
                 return null;
             }
 
-            var update = new CameraUpdate(this,
-                this.FinalResult,
-                target,
-                playerCamera,
-                cameraNode,
-                cameraState,
-                this.Values);
+            var update = new CameraUpdate(this, this.FinalResult, target, playerCamera, cameraNode, cameraState, this.Values);
 
             return update;
         }
@@ -416,38 +424,41 @@ namespace IFPV
         private CameraTarget SelectTarget(UpdateCameraEventArgs e)
         {
             var cameraBase = e.Camera;
-            if (!(cameraBase is PlayerCamera playerCamera))
+
+            if ( !(cameraBase is PlayerCamera playerCamera) )
             {
                 return null;
             }
 
-            TESObjectREFR target = null;
-            var refHandle = playerCamera.TargetRefHandle;
-            using (var objRef = new ObjectRefHolder(refHandle))
+            TESObjectREFR target    = null;
+            var           refHandle = playerCamera.TargetRefHandle;
+
+            using ( var objRef = new ObjectRefHolder(refHandle) )
             {
-                if (objRef.IsValid)
+                if ( objRef.IsValid )
                 {
                     target = objRef.Object;
                 }
             }
 
             var t = CameraTarget.Create(target);
-            if (t == null)
+
+            if ( t == null )
             {
                 return null;
             }
 
             var actor = t.Actor;
-            var obj = t.Object;
+            var obj   = t.Object;
             this.LastActorWasPlayer = actor != null && actor.IsPlayer;
-            this.LastTargetFormId = obj?.FormId ?? 0;
+            this.LastTargetFormId   = obj?.FormId ?? 0;
 
             return t;
         }
 
         internal void FixMouseSensitivity(ref float x, ref float y, float seconds)
         {
-            if (seconds <= 0.0f)
+            if ( seconds <= 0.0f )
             {
                 x = 0.0f;
                 y = 0.0f;
@@ -457,32 +468,33 @@ namespace IFPV
             this.InitMouseSettings();
 
             var enabled = this.IsEnabled;
-            var sens = this._fMouseHeading?.GetFloat() ?? 0.0125f;
-            var xsens = this._fMouseHeadingXScale?.GetFloat() ?? 0.02f;
-            var ysens = this._fMouseHeadingYScale?.GetFloat() ?? 0.85f;
-            var sens2 = enabled ? Settings.Instance.LookSensitivity : 1.0f;
-            var xsens2 = enabled ? Settings.Instance.LookSensitivityHorizontal : 1.0f;
-            var ysens2 = enabled ? Settings.Instance.LookSensitivityVertical : 1.0f;
+            var sens    = this._fMouseHeading?.GetFloat()       ?? 0.0125f;
+            var xsens   = this._fMouseHeadingXScale?.GetFloat() ?? 0.02f;
+            var ysens   = this._fMouseHeadingYScale?.GetFloat() ?? 0.85f;
+            var sens2   = enabled ? Settings.Instance.LookSensitivity : 1.0f;
+            var xsens2  = enabled ? Settings.Instance.LookSensitivityHorizontal : 1.0f;
+            var ysens2  = enabled ? Settings.Instance.LookSensitivityVertical : 1.0f;
 
             var fix = Settings.Instance.FixLookSensitivity;
-            if (fix == 2)
+
+            if ( fix == 2 )
             {
                 fix = enabled ? 1 : 0;
             }
 
-            if (fix == 1)
+            if ( fix == 1 )
             {
                 var mult_const = 60.0f; // 42.5f
                 x *= sens * xsens * mult_const * sens2 * xsens2;
-                y *= sens * ysens * sens2 * ysens2;
+                y *= sens * ysens * sens2      * ysens2;
             }
             else
             {
                 x *= ((sens * xsens) / seconds) * sens2 * xsens2;
-                y *= sens * ysens * sens2 * ysens2;
+                y *= sens                       * ysens * sens2 * ysens2;
             }
 
-            if (this.FixSensitivityMode)
+            if ( this.FixSensitivityMode )
             {
                 y *= 2.0f;
             }
@@ -490,19 +502,19 @@ namespace IFPV
 
         private void InitMouseSettings()
         {
-            if (this._fMouseSettingInit)
+            if ( this._fMouseSettingInit )
             {
                 return;
             }
 
             this._fMouseSettingInit = true;
 
-            this._fMouseHeading = Setting.FindSettingByName("fMouseHeadingSensitivity:Controls", true, true);
+            this._fMouseHeading       = Setting.FindSettingByName("fMouseHeadingSensitivity:Controls", true, true);
             this._fMouseHeadingXScale = Setting.FindSettingByName("fMouseHeadingXScale:Controls", true, true);
             this._fMouseHeadingYScale = Setting.FindSettingByName("fMouseHeadingYScale:Controls", true, true);
         }
 
-        private bool _fMouseSettingInit;
+        private bool    _fMouseSettingInit;
         private Setting _fMouseHeading;
         private Setting _fMouseHeadingXScale;
         private Setting _fMouseHeadingYScale;
@@ -517,17 +529,18 @@ namespace IFPV
         {
             {
                 var wasEnabled = this.IsEnabled;
-                var isEnabled = this.CalculateEnabled(update);
+                var isEnabled  = this.CalculateEnabled(update);
 
-                if (wasEnabled != isEnabled)
+                if ( wasEnabled != isEnabled )
                 {
-                    if (!isEnabled)
+                    if ( !isEnabled )
                     {
                         this.Stack.DisableAll(update);
                     }
 
                     this.IsEnabled = isEnabled;
-                    if (isEnabled)
+
+                    if ( isEnabled )
                     {
                         this.OnEnabled(update);
                     }
@@ -538,14 +551,14 @@ namespace IFPV
                 }
             }
 
-            if (this.IsEnabled)
+            if ( this.IsEnabled )
             {
                 this.OnUpdating(0);
             }
 
-            if (this.IsEnabled)
+            if ( this.IsEnabled )
             {
-                if (this.Stabilize == null || this.Stabilize.ShouldRecreate(update.Target))
+                if ( this.Stabilize == null || this.Stabilize.ShouldRecreate(update.Target) )
                 {
                     this.Stabilize = new CameraStabilize(this, update.Target);
                 }
@@ -557,23 +570,26 @@ namespace IFPV
             this.Stack.Update(update);
             update.Values.Update(this.Plugin.Time, this.IsEnabled);
             this.Hide.Update(update);
+
             {
                 var isFpArms = this.IsEnabled && update.Values.Show1stPersonArms.CurrentValue >= 0.5;
-                if (isFpArms != this.WasUsingFirstPersonArms)
+
+                if ( isFpArms != this.WasUsingFirstPersonArms )
                 {
                     this.WasUsingFirstPersonArms = isFpArms;
                 }
             }
 
-            if (this.IsEnabled)
+            if ( this.IsEnabled )
             {
-                var mode = update.Values.SkeletonMode.CurrentValue;
+                var mode      = update.Values.SkeletonMode.CurrentValue;
                 var wantThird = true;
-                if (mode <= -0.5)
+
+                if ( mode <= -0.5 )
                 {
                     wantThird = !this.WasUsingFirstPersonArms;
                 }
-                else if (mode >= 0.5)
+                else if ( mode >= 0.5 )
                 {
                     wantThird = false;
                 }
@@ -586,10 +602,9 @@ namespace IFPV
                 this.UpdateSkeleton(showFirst, showThird, wantThird);
             }
 
-            if (this.IsEnabled)
+            if ( this.IsEnabled )
             {
-                if (this.Stabilize == null ||
-                    !this.Stabilize.Get(update.Target.StabilizeRootNode, this.BaseRoot.Transform))
+                if ( this.Stabilize == null || !this.Stabilize.Get(update.Target.StabilizeRootNode, this.BaseRoot.Transform) )
                 {
                     this.BaseRoot.Transform.CopyFrom(update.Target.HeadNode.WorldTransform);
                 }
@@ -597,21 +612,25 @@ namespace IFPV
                 this.BaseHead.Transform.CopyFrom(update.Target.HeadNode.WorldTransform);
 
                 CameraResult cur = null;
-                using (cur)
+
+                using ( cur )
                 {
                     {
                         var posRatio = update.Values.PositionFromHead.CurrentValue;
-                        switch (posRatio)
+
+                        switch ( posRatio )
                         {
-                            case 0.0:
+                            case 0.0 :
                                 this.BaseResult.Transform.Position.CopyFrom(this.BaseRoot.Transform.Position);
                                 break;
-                            case 1.0:
+
+                            case 1.0 :
                                 this.BaseResult.Transform.Position.CopyFrom(this.BaseHead.Transform.Position);
                                 break;
-                            default:
+
+                            default :
                             {
-                                var pos = this.BaseResult.Transform.Position;
+                                var pos     = this.BaseResult.Transform.Position;
                                 var rootPos = this.BaseRoot.Transform.Position;
                                 var headPos = this.BaseHead.Transform.Position;
 
@@ -626,17 +645,20 @@ namespace IFPV
                     // Calculate base rotation.
                     {
                         var rotRatio = update.Values.RotationFromHead.CurrentValue;
-                        switch (rotRatio)
+
+                        switch ( rotRatio )
                         {
-                            case 0.0:
+                            case 0.0 :
                                 this.BaseResult.Transform.Rotation.CopyFrom(this.BaseRoot.Transform.Rotation);
                                 break;
-                            case 1.0:
+
+                            case 1.0 :
                                 this.BaseResult.Transform.Rotation.CopyFrom(this.BaseHead.Transform.Rotation);
                                 break;
-                            default:
+
+                            default :
                             {
-                                var rot = this.BaseResult.Transform.Rotation;
+                                var rot     = this.BaseResult.Transform.Rotation;
                                 var rootRot = this.BaseRoot.Transform.Rotation;
                                 var headRot = this.BaseHead.Transform.Rotation;
 
@@ -651,48 +673,41 @@ namespace IFPV
                     // Calculate offset based on object rotation itself.
                     {
                         var root = update.Target.RootNode;
-                        if (root != null)
+
+                        if ( root != null )
                         {
                             var x = this.Values.OffsetObjectPositionX.CurrentValue;
                             var y = this.Values.OffsetObjectPositionY.CurrentValue;
                             var z = this.Values.OffsetObjectPositionZ.CurrentValue;
 
-                            if (x != 0.0 || y != 0.0 || z != 0.0)
+                            if ( x != 0.0 || y != 0.0 || z != 0.0 )
                             {
                                 this.Offset1Result.Transform.Position.CopyFrom(this.BaseResult.Transform.Position);
                                 this.Offset1Result.Transform.Rotation.CopyFrom(root.WorldTransform.Rotation);
-                                this.ApplyPositionOffset(this.Offset1Result.Transform,
-                                    (float)x,
-                                    (float)y,
-                                    (float)z,
-                                    this.BaseResult.Transform.Position);
+                                this.ApplyPositionOffset(this.Offset1Result.Transform, (float)x, (float)y, (float)z, this.BaseResult.Transform.Position);
                             }
                         }
                     }
 
                     // Look down offset.
-                    if (Default._look_downoffset_ratio > 0.0f || Default._look_downoffset_ratio_leftrightmove > 0.0f)
+                    if ( Default._look_downoffset_ratio > 0.0f || Default._look_downoffset_ratio_leftrightmove > 0.0f )
                     {
                         var ratio = Default._look_downoffset_ratio;
-                        var root = update.Target.RootNode;
-                        if (root != null)
+                        var root  = update.Target.RootNode;
+
+                        if ( root != null )
                         {
                             var x = Settings.Instance.DownOffsetX * ratio;
                             var y = Settings.Instance.DownOffsetY * ratio;
                             var z = Settings.Instance.DownOffsetZ * ratio;
 
-                            y += Settings.Instance.TryFixLeftRightMovementClipping *
-                                 Default._look_downoffset_ratio_leftrightmove;
+                            y += Settings.Instance.TryFixLeftRightMovementClipping * Default._look_downoffset_ratio_leftrightmove;
 
-                            if (x != 0.0f || y != 0.0f || z != 0.0f)
+                            if ( x != 0.0f || y != 0.0f || z != 0.0f )
                             {
                                 this.Offset1Result.Transform.Position.CopyFrom(this.BaseResult.Transform.Position);
                                 this.Offset1Result.Transform.Rotation.CopyFrom(root.WorldTransform.Rotation);
-                                this.ApplyPositionOffset(this.Offset1Result.Transform,
-                                    x,
-                                    y,
-                                    z,
-                                    this.BaseResult.Transform.Position);
+                                this.ApplyPositionOffset(this.Offset1Result.Transform, x, y, z, this.BaseResult.Transform.Position);
                             }
                         }
                     }
@@ -708,24 +723,18 @@ namespace IFPV
                         var hasRot = rx != 0.0f || ry != 0.0f;
                         var hasPos = px != 0.0f || py != 0.0f || pz != 0.0f;
 
-                        if (hasRot || hasPos)
+                        if ( hasRot || hasPos )
                         {
                             this.Offset1Result.Transform.CopyFrom(cur.Transform);
-                            if (hasRot)
+
+                            if ( hasRot )
                             {
-                                this.ApplyRotationOffset(this.Offset1Result.Transform.Rotation,
-                                    rx,
-                                    ry,
-                                    this.Offset1Result.Transform.Rotation);
+                                this.ApplyRotationOffset(this.Offset1Result.Transform.Rotation, rx, ry, this.Offset1Result.Transform.Rotation);
                             }
 
-                            if (hasPos)
+                            if ( hasPos )
                             {
-                                this.ApplyPositionOffset(this.Offset1Result.Transform,
-                                    px,
-                                    py,
-                                    pz,
-                                    this.Offset1Result.Transform.Position);
+                                this.ApplyPositionOffset(this.Offset1Result.Transform, px, py, pz, this.Offset1Result.Transform.Position);
                             }
 
                             cur = this.Offset1Result;
@@ -736,7 +745,8 @@ namespace IFPV
                     {
                         var extraX = 0.0f;
                         var extraY = 0.0f;
-                        if (this.LastActorTurnFrames > 0)
+
+                        if ( this.LastActorTurnFrames > 0 )
                         {
                             this.LastActorTurnFrames--;
                             extraX = this.LastActorTurnX;
@@ -744,19 +754,14 @@ namespace IFPV
                             //extraY = this.LastActorTurnY;
                         }
 
-                        var rx = (float)(this.Values.InputRotationX.CurrentValue + extraX) *
-                                 (float)this.Values.InputRotationXMultiplier.CurrentValue;
+                        var rx = (float)(this.Values.InputRotationX.CurrentValue + extraX) * (float)this.Values.InputRotationXMultiplier.CurrentValue;
 
-                        var ry = (float)(this.Values.InputRotationY.CurrentValue + extraY) *
-                                 (float)this.Values.InputRotationYMultiplier.CurrentValue;
+                        var ry = (float)(this.Values.InputRotationY.CurrentValue + extraY) * (float)this.Values.InputRotationYMultiplier.CurrentValue;
 
-                        if (rx != 0.0f || ry != 0.0f)
+                        if ( rx != 0.0f || ry != 0.0f )
                         {
                             this.InputResult.Transform.CopyFrom(cur.Transform);
-                            this.ApplyRotationOffset(this.InputResult.Transform.Rotation,
-                                rx,
-                                ry,
-                                this.InputResult.Transform.Rotation);
+                            this.ApplyRotationOffset(this.InputResult.Transform.Rotation, rx, ry, this.InputResult.Transform.Rotation);
 
                             cur = this.InputResult;
                         }
@@ -773,24 +778,18 @@ namespace IFPV
                         var hasRot = rx != 0.0f || ry != 0.0f;
                         var hasPos = px != 0.0f || py != 0.0f || pz != 0.0f;
 
-                        if (hasRot || hasPos)
+                        if ( hasRot || hasPos )
                         {
                             this.Offset2Result.Transform.CopyFrom(cur.Transform);
-                            if (hasRot)
+
+                            if ( hasRot )
                             {
-                                this.ApplyRotationOffset(this.Offset2Result.Transform.Rotation,
-                                    rx,
-                                    ry,
-                                    this.Offset2Result.Transform.Rotation);
+                                this.ApplyRotationOffset(this.Offset2Result.Transform.Rotation, rx, ry, this.Offset2Result.Transform.Rotation);
                             }
 
-                            if (hasPos)
+                            if ( hasPos )
                             {
-                                this.ApplyPositionOffset(this.Offset2Result.Transform,
-                                    px,
-                                    py,
-                                    pz,
-                                    this.Offset2Result.Transform.Position);
+                                this.ApplyPositionOffset(this.Offset2Result.Transform, px, py, pz, this.Offset2Result.Transform.Position);
                             }
 
                             cur = this.Offset2Result;
@@ -804,8 +803,7 @@ namespace IFPV
 
                     // Apply collision of camera so we don't go inside walls, this can be done within the same transform.
                     {
-                        this.DidCollideLastUpdate =
-                            CameraCollision.Apply(update, cur.Transform, cur.Transform.Position);
+                        this.DidCollideLastUpdate = CameraCollision.Apply(update, cur.Transform, cur.Transform.Position);
                     }
 
                     // Calculate final result.
@@ -819,12 +817,12 @@ namespace IFPV
 
                 this.Hide.UpdateFirstPersonSkeletonRotation(update);
 
-                if (update.GameCameraState is ThirdPersonState third)
+                if ( update.GameCameraState is ThirdPersonState third )
                 {
                     third.Position.CopyFrom(update.GameCameraNode.LocalTransform.Position);
                 }
 
-                if (this.WasUsingFirstPersonArms)
+                if ( this.WasUsingFirstPersonArms )
                 {
                     this.UpdateMagicNodePosition(update);
                 }
@@ -834,23 +832,18 @@ namespace IFPV
                 this.DidCollideLastUpdate = false;
             }
 
-            if (this.IsEnabled)
+            if ( this.IsEnabled )
             {
                 this.OnUpdating(1);
             }
 
-            if (!this.IsEnabled &&
-                Settings.Instance.ReplaceDefaultCamera &&
-                update.GameCameraState.Id == TESCameraStates.FirstPerson &&
-                this.IsGameCameraSwitchControlsEnabled())
+            if ( !this.IsEnabled && Settings.Instance.ReplaceDefaultCamera && update.GameCameraState.Id == TESCameraStates.FirstPerson && this.IsGameCameraSwitchControlsEnabled() )
             {
                 update.GameCamera.EnterThirdPerson();
                 this.SetWantState(WantStates.EnabledFromTogglePOV);
             }
 
-            this.FixSensitivityMode = this.IsEnabled &&
-                                      update.GameCameraState.Id == TESCameraStates.ThirdPerson2 &&
-                                      Memory.ReadUInt8(update.GameCameraState.Address + 0xDC) != 0;
+            this.FixSensitivityMode = this.IsEnabled && update.GameCameraState.Id == TESCameraStates.ThirdPerson2 && Memory.ReadUInt8(update.GameCameraState.Address + 0xDC) != 0;
         }
 
         private bool FixSensitivityMode;
@@ -859,7 +852,7 @@ namespace IFPV
 
         internal void UpdateSkeletonWithLastParameters()
         {
-            if (!this.LastSkeletonParameter.HasValue)
+            if ( !this.LastSkeletonParameter.HasValue )
             {
                 return;
             }
@@ -871,7 +864,8 @@ namespace IFPV
         private void UpdateSkeleton(bool showFirst, bool showThird, bool wantThirdPersonMode)
         {
             var plr = PlayerCharacter.Instance;
-            if (plr == null)
+
+            if ( plr == null )
             {
                 this.LastSkeletonParameter = null;
                 return;
@@ -880,7 +874,7 @@ namespace IFPV
             var fpSkeleton = plr.GetSkeletonNode(true);
             var tpSkeleton = plr.GetSkeletonNode(false);
 
-            if (fpSkeleton == null || tpSkeleton == null)
+            if ( fpSkeleton == null || tpSkeleton == null )
             {
                 this.LastSkeletonParameter = null;
                 return;
@@ -889,15 +883,15 @@ namespace IFPV
             this.LastSkeletonParameter = (showFirst ? 1 : 0) + (showThird ? 2 : 0) + (wantThirdPersonMode ? 4 : 0);
 
             var isThirdPersonMode = (Memory.ReadUInt8(plr.Address + 0xBDB) & 1) != 0;
-            var isFirst = (Utility.GetNiAVFlags(fpSkeleton) & 1) == 0;
-            var isThird = (Utility.GetNiAVFlags(tpSkeleton) & 1) == 0;
+            var isFirst           = (Utility.GetNiAVFlags(fpSkeleton)      & 1) == 0;
+            var isThird           = (Utility.GetNiAVFlags(tpSkeleton)      & 1) == 0;
 
-            if (isFirst == showFirst && isThird == showThird && wantThirdPersonMode == isThirdPersonMode)
+            if ( isFirst == showFirst && isThird == showThird && wantThirdPersonMode == isThirdPersonMode )
             {
                 return;
             }
 
-            if (wantThirdPersonMode != isThirdPersonMode)
+            if ( wantThirdPersonMode != isThirdPersonMode )
             {
                 Utility.ModNiAVFlags(fpSkeleton, 1, !wantThirdPersonMode);
                 Utility.ModNiAVFlags(tpSkeleton, 1, wantThirdPersonMode);
@@ -909,12 +903,12 @@ namespace IFPV
                 return;
             }
 
-            if (isFirst != showFirst)
+            if ( isFirst != showFirst )
             {
                 Utility.ModNiAVFlags(fpSkeleton, 1, !showFirst);
             }
 
-            if (isThird != showThird)
+            if ( isThird != showThird )
             {
                 Utility.ModNiAVFlags(tpSkeleton, 1, !showThird);
             }
@@ -922,26 +916,26 @@ namespace IFPV
 
         internal void FixSpineTwist(IntPtr twistModifier)
         {
-            if (!this.IsEnabled || !this.WasUsingFirstPersonArms)
+            if ( !this.IsEnabled || !this.WasUsingFirstPersonArms )
             {
                 return;
             }
 
             var namePtr = Memory.ReadPointer(twistModifier + 0x38);
-            if (namePtr == IntPtr.Zero)
+
+            if ( namePtr == IntPtr.Zero )
             {
                 return;
             }
 
             var ux = Memory.ReadUInt64(namePtr);
 
-            switch (ux)
+            switch ( ux )
             {
-                case 0x6361747441776F42: // BowAttac -> BowAttackSpineTwistModifier
-                case 0x697053636967614D: // MagicSpi -> MagicSpineTwistModifier
-                case 0x70536C6175746952
-                    : // RitualSp -> RitualSpellSpineTwistModifier + RitualSpell_AimedConcentrationLoop + RitualSpell_AimedConLoop_MG
-                case 0x69705374756F6853: // ShoutSpi -> ShoutSpineTwistModifier
+                case 0x6361747441776F42 : // BowAttac -> BowAttackSpineTwistModifier
+                case 0x697053636967614D : // MagicSpi -> MagicSpineTwistModifier
+                case 0x70536C6175746952 : // RitualSp -> RitualSpellSpineTwistModifier + RitualSpell_AimedConcentrationLoop + RitualSpell_AimedConLoop_MG
+                case 0x69705374756F6853 : // ShoutSpi -> ShoutSpineTwistModifier
                 {
                     Memory.WriteInt16(twistModifier + 0x64, -1);
                 }
@@ -957,19 +951,16 @@ namespace IFPV
         internal bool IsGameCameraSwitchControlsEnabled()
         {
             var controls = PlayerControls.Instance;
-            return controls != null &&
-                   Memory.InvokeCdecl(this.Plugin.PlayerControls_IsCamSwitchControlsEnabled, controls.Address).ToBool();
+            return controls != null && Memory.InvokeCdecl(this.Plugin.PlayerControls_IsCamSwitchControlsEnabled, controls.Address).ToBool();
         }
 
         private void OnEnabled(CameraUpdate update) => this.LastActorTurnFrames = 0;
 
-        private void OnDisabled(CameraUpdate update) => this.UpdateSkeleton(this.GameWantsSkeletonMode > 0,
-            this.GameWantsSkeletonMode < 0,
-            this.GameWantsSkeletonMode < 0);
+        private void OnDisabled(CameraUpdate update) => this.UpdateSkeleton(this.GameWantsSkeletonMode > 0, this.GameWantsSkeletonMode < 0, this.GameWantsSkeletonMode < 0);
 
         internal bool HookSwitchSkeleton(Actor actor, bool firstPerson)
         {
-            if (actor == null || !actor.IsPlayer || this.CustomSwitchSkeletonCall > 0)
+            if ( actor == null || !actor.IsPlayer || this.CustomSwitchSkeletonCall > 0 )
             {
                 return false;
             }
@@ -984,12 +975,12 @@ namespace IFPV
 
         internal bool GetOverwriteWeaponNode(TESForm obj, NiPoint3 pt)
         {
-            if (!this.IsEnabled)
+            if ( !this.IsEnabled )
             {
                 return false;
             }
 
-            if (obj == null || obj.FormId != this.LastTargetFormId)
+            if ( obj == null || obj.FormId != this.LastTargetFormId )
             {
                 return false;
             }
@@ -997,7 +988,8 @@ namespace IFPV
             var pcam = PlayerCamera.Instance;
 
             var pn = pcam?.Node;
-            if (pn == null)
+
+            if ( pn == null )
             {
                 return false;
             }
@@ -1011,34 +1003,35 @@ namespace IFPV
 
         internal NiAVObject GetOverwriteMagicNode(MagicCaster caster)
         {
-            if (!this.IsEnabled)
+            if ( !this.IsEnabled )
             {
                 return null;
             }
 
-            if (!(caster is ActorMagicCaster actorCaster))
+            if ( !(caster is ActorMagicCaster actorCaster) )
             {
                 return null;
             }
 
             var actor = actorCaster.Owner;
-            if (actor == null || actor.FormId != this.LastTargetFormId)
+
+            if ( actor == null || actor.FormId != this.LastTargetFormId )
             {
                 return null;
             }
 
             this.InitMagicNode();
 
-            if (this.MagicNodes == null)
+            if ( this.MagicNodes == null )
             {
                 return null;
             }
 
-            switch (actorCaster.ActorCasterType)
+            switch ( actorCaster.ActorCasterType )
             {
-                case EquippedSpellSlots.LeftHand: return this.MagicNodes[0];
-                case EquippedSpellSlots.RightHand: return this.MagicNodes[1];
-                case EquippedSpellSlots.Other: return this.MagicNodes[2];
+                case EquippedSpellSlots.LeftHand :  return this.MagicNodes[0];
+                case EquippedSpellSlots.RightHand : return this.MagicNodes[1];
+                case EquippedSpellSlots.Other :     return this.MagicNodes[2];
             }
 
             return null;
@@ -1048,15 +1041,15 @@ namespace IFPV
         {
             this.InitMagicNode();
 
-            if (this.MagicNodes == null)
+            if ( this.MagicNodes == null )
             {
                 return;
             }
 
-            for (var i = 0; i < this.MagicNodes.Length; i++)
+            for ( var i = 0; i < this.MagicNodes.Length; i++ )
             {
                 var node = this.MagicNodes[i];
-                var wt = node.WorldTransform;
+                var wt   = node.WorldTransform;
 
                 {
                     wt.CopyFrom(this.FinalResult.Transform);
@@ -1067,31 +1060,31 @@ namespace IFPV
 
         private void InitMagicNode()
         {
-            if (this.MagicNodeAllocation != null)
+            if ( this.MagicNodeAllocation != null )
             {
                 return;
             }
 
             const int count = 3;
-            const int size = 0x130;
+            const int size  = 0x130;
             const int size2 = 0x10;
             this.MagicNodeAllocation = Memory.Allocate((size * count) + (size2 * count));
-            this.MagicNodes = new NiNode[count];
-            this.MagicTranslates = new NiPoint3[count];
+            this.MagicNodes          = new NiNode[count];
+            this.MagicTranslates     = new NiPoint3[count];
             var s = Settings.Instance;
-            for (var i = 0; i < count; i++)
+
+            for ( var i = 0; i < count; i++ )
             {
                 var addrOfThis = this.MagicNodeAllocation.Address + (size * i);
                 Memory.InvokeCdecl(this.Plugin.NiNode_ctor, addrOfThis, 0);
                 this.MagicNodes[i] = MemoryObject.FromAddress<NiNode>(addrOfThis);
                 this.MagicNodes[i].IncRef();
 
-                this.MagicTranslates[i] =
-                    MemoryObject.FromAddress<NiPoint3>(this.MagicNodeAllocation.Address + (size * count) + (size2 * i));
+                this.MagicTranslates[i] = MemoryObject.FromAddress<NiPoint3>(this.MagicNodeAllocation.Address + (size * count) + (size2 * i));
 
-                switch (i)
+                switch ( i )
                 {
-                    case 0:
+                    case 0 :
                         this.MagicTranslates[i].X = s.MagicLeftOffsetX;
 
                         this.MagicTranslates[i].Y = s.MagicLeftOffsetY;
@@ -1100,7 +1093,7 @@ namespace IFPV
 
                         break;
 
-                    case 1:
+                    case 1 :
                         this.MagicTranslates[i].X = s.MagicRightOffsetX;
 
                         this.MagicTranslates[i].Y = s.MagicRightOffsetY;
@@ -1109,7 +1102,7 @@ namespace IFPV
 
                         break;
 
-                    case 2:
+                    case 2 :
                         this.MagicTranslates[i].X = s.MagicVoiceOffsetX;
 
                         this.MagicTranslates[i].Y = s.MagicVoiceOffsetY;
@@ -1118,7 +1111,7 @@ namespace IFPV
 
                         break;
 
-                    default:
+                    default :
                         this.MagicTranslates[i].X = 0.0f;
 
                         this.MagicTranslates[i].Y = 0.0f;
@@ -1131,14 +1124,14 @@ namespace IFPV
         }
 
         private MemoryAllocation MagicNodeAllocation;
-        private NiNode[] MagicNodes;
-        private NiPoint3[] MagicTranslates;
+        private NiNode[]         MagicNodes;
+        private NiPoint3[]       MagicTranslates;
 
         private void ApplyRotationOffset(NiMatrix33 matrix, float x, float y, NiMatrix33 result)
         {
-            if (x == 0.0f && y == 0.0f)
+            if ( x == 0.0f && y == 0.0f )
             {
-                if (!result.Equals(matrix))
+                if ( !result.Equals(matrix) )
                 {
                     result.CopyFrom(matrix);
                 }
@@ -1149,12 +1142,12 @@ namespace IFPV
             var rot = this.TempResult.Transform.Rotation;
             rot.Identity(1.0f);
 
-            if (y != 0.0f)
+            if ( y != 0.0f )
             {
                 rot.RotateX(y, rot);
             }
 
-            if (x != 0.0f)
+            if ( x != 0.0f )
             {
                 rot.RotateZ(-x, rot);
             }
@@ -1164,10 +1157,11 @@ namespace IFPV
 
         private void ApplyPositionOffset(NiTransform transform, float x, float y, float z, NiPoint3 result)
         {
-            if (x == 0.0f && y == 0.0f && z == 0.0f)
+            if ( x == 0.0f && y == 0.0f && z == 0.0f )
             {
                 var tpos = transform.Position;
-                if (!result.Equals(tpos))
+
+                if ( !result.Equals(tpos) )
                 {
                     result.CopyFrom(tpos);
                 }
@@ -1184,41 +1178,42 @@ namespace IFPV
 
         internal void HandleActorTurnToCamera(Actor actor, ThirdPersonState third, bool fromFreeLookChanged)
         {
-            if (third == null || actor == null)
+            if ( third == null || actor == null )
             {
                 return;
             }
 
-            double x = third.XRotationFromLastResetPoint;
-            double y = third.YRotationFromLastResetPoint;
-            var didx = 0.0;
-            var didy = 0.0;
+            double x    = third.XRotationFromLastResetPoint;
+            double y    = third.YRotationFromLastResetPoint;
+            var    didx = 0.0;
+            var    didy = 0.0;
 
-            if (x == 0.0 && y == 0.0)
+            if ( x == 0.0 && y == 0.0 )
             {
                 return;
             }
 
-            var max = 0.0;
+            var    max  = 0.0;
             double diff = this.Plugin._lastDiff2;
-            var time = this.Values.ActorTurnTime.CurrentValue;
+            var    time = this.Values.ActorTurnTime.CurrentValue;
 
-            if (time <= 0.0)
+            if ( time <= 0.0 )
             {
                 max = Math.PI * 2.0;
             }
-            else if (diff >= 1.0)
+            else if ( diff >= 1.0 )
             {
                 max = ((diff * 0.001) / time) * Math.PI * 2.0;
             }
 
             // Turn left or right.
-            if (x != 0.0)
+            if ( x != 0.0 )
             {
                 var actual = x;
-                if (Math.Abs(actual) > max)
+
+                if ( Math.Abs(actual) > max )
                 {
-                    if (actual < 0.0)
+                    if ( actual < 0.0 )
                     {
                         actual = -max;
                     }
@@ -1229,7 +1224,8 @@ namespace IFPV
                 }
 
                 Memory.InvokeCdecl(this.Plugin.ActorTurnZ, actor.Address, (float)actual);
-                if (actual == x)
+
+                if ( actual == x )
                 {
                     third.XRotationFromLastResetPoint = 0.0f;
                 }
@@ -1242,7 +1238,7 @@ namespace IFPV
             }
 
             // Turn up or down.
-            if (y != 0.0)
+            if ( y != 0.0 )
             {
                 var actual = y;
                 Memory.InvokeCdecl(this.Plugin.ActorTurnX, actor.Address, -(float)actual);
@@ -1252,23 +1248,24 @@ namespace IFPV
             }
 
             // Fix visual error with turning.
-            if (!fromFreeLookChanged)
+            if ( !fromFreeLookChanged )
             {
                 return;
             }
 
             const int duration = 0;
-            if (!this.IsEnabled || !(this.LastActorTurnFrames < duration))
+
+            if ( !this.IsEnabled || !(this.LastActorTurnFrames < duration) )
             {
                 return;
             }
 
-            this.LastActorTurnX = (float)didx;
-            this.LastActorTurnY = (float)didy;
+            this.LastActorTurnX      = (float)didx;
+            this.LastActorTurnY      = (float)didy;
             this.LastActorTurnFrames = duration;
         }
 
-#if PROFILING
+    #if PROFILING
         internal enum _performance_track : int
         {
             Frame,
@@ -1330,6 +1327,6 @@ namespace IFPV
 
             NetScriptFramework.Skyrim.MenuManager.ShowHUDMessage("Stopped profiling IFPV.", null, true);
         }
-#endif
+    #endif
     }
 }

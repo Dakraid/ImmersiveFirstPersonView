@@ -10,21 +10,22 @@
     using System.Text;
     using System.Threading;
     using System.Windows.Forms;
+
     using Tools;
     using Tools._Internal;
 
-    #region Main class
+#region Main class
 
     /// <summary>
     ///     Implement framework runtime methods. This will deal with initialization and shutdown.
     /// </summary>
     public static class Main
     {
-        #region Constructors
+    #region Constructors
 
-        #endregion
+    #endregion
 
-        #region Main members
+    #region Main members
 
         /// <summary>
         ///     The name of running framework.
@@ -76,9 +77,10 @@
             get
             {
                 var result = EnvironmentType;
-                if (result == 0)
+
+                if ( result == 0 )
                 {
-                    result = IntPtr.Size == 4 ? -1 : 1;
+                    result          = IntPtr.Size == 4 ? -1 : 1;
                     EnvironmentType = result;
                 }
 
@@ -119,19 +121,22 @@
         {
             var message = new StringBuilder();
             message.AppendLine("A critical or unhandled managed exception has occurred!");
-            if (e != null)
+
+            if ( e != null )
             {
-                if (e is MissingMethodException ||
-                    (e.InnerException != null && e.InnerException is MissingMethodException))
+                if ( e is MissingMethodException || (e.InnerException != null && e.InnerException is MissingMethodException) )
                 {
                     message.AppendLine();
+
                     message.AppendLine(
-                        "MissingMethodException is usually almost always caused by outdated framework or plugin versions. Please update your framework or plugins to latest version. Check which plugin may be causing the issue in the below stack trace.");
+                        "MissingMethodException is usually almost always caused by outdated framework or plugin versions. Please update your framework or plugins to latest version. Check which plugin may be causing the issue in the below stack trace."
+                    );
                 }
 
                 message.AppendLine();
                 var lines = LogFile.GetExceptionText(e);
-                foreach (var x in lines)
+
+                foreach ( var x in lines )
                 {
                     message.AppendLine(x);
                 }
@@ -147,11 +152,11 @@
         /// <param name="kill">Should we kill the process or exit normally.</param>
         public static void CriticalException(string message, bool kill)
         {
-            if (Log != null)
+            if ( Log != null )
             {
-                var spl = message.Replace("\r\n", "\n").Replace("\r", "\n")
-                    .Split(new[] {"\n"}, StringSplitOptions.None);
-                foreach (var x in spl)
+                var spl = message.Replace("\r\n", "\n").Replace("\r", "\n").Split(new[] { "\n" }, StringSplitOptions.None);
+
+                foreach ( var x in spl )
                 {
                     Log.AppendLine(x);
                 }
@@ -183,7 +188,7 @@
         ///     Gets the runtime version.
         /// </summary>
         /// <returns></returns>
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern int GetRuntimeVersion();
 
         /// <summary>
@@ -226,15 +231,14 @@
             try
             {
                 // Make sure state is correct.
-                if (Interlocked.CompareExchange(ref Status, 1, 0) != 0)
+                if ( Interlocked.CompareExchange(ref Status, 1, 0) != 0 )
                 {
                     throw new InvalidOperationException("Trying to initialize the framework more than once!");
                 }
 
-                if (GetRuntimeVersion() < RequiredRuntimeVersion)
+                if ( GetRuntimeVersion() < RequiredRuntimeVersion )
                 {
-                    throw new InvalidOperationException(
-                        "The runtime DLL version is too old! Make sure NetScriptFramework.Runtime.dll is updated.");
+                    throw new InvalidOperationException("The runtime DLL version is too old! Make sure NetScriptFramework.Runtime.dll is updated.");
                 }
 
                 // Setup path.
@@ -267,10 +271,10 @@
 
                 // Write startup info.
                 Log.AppendLine("Initializing framework version " + FrameworkVersion + ".");
-                if (!loadedConfiguration)
+
+                if ( !loadedConfiguration )
                 {
-                    Log.AppendLine(
-                        "Warning: failed to load configuration file! Attempting to create a new default one.");
+                    Log.AppendLine("Warning: failed to load configuration file! Attempting to create a new default one.");
                 }
                 else
                 {
@@ -278,7 +282,7 @@
                 }
 
                 // Initialize.
-                if (p.DelayedInitialize > 0)
+                if ( p.DelayedInitialize > 0 )
                 {
                     _saved_p = p;
                     var t = new Thread(_Run_Delayed_Initialize);
@@ -286,9 +290,9 @@
                 }
                 else { _Initialize_Actual(p); }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                if (Log != null)
+                if ( Log != null )
                 {
                     Log.Append(ex);
                 }
@@ -315,13 +319,13 @@
             var sw = new Stopwatch();
             sw.Start();
 
-            while (sw.ElapsedMilliseconds < p.DelayedInitialize)
+            while ( sw.ElapsedMilliseconds < p.DelayedInitialize )
             {
                 Thread.Sleep(1);
             }
 
             try { _Initialize_Actual(p); }
-            catch (Exception ex) { CriticalException(ex, false); }
+            catch ( Exception ex ) { CriticalException(ex, false); }
         }
 
         /// <summary>
@@ -360,7 +364,7 @@
         internal static void Shutdown()
         {
             // Make sure state is correct but don't throw because it is theoretically possible to shut down framework before initialize.
-            if (Interlocked.CompareExchange(ref Status, 2, 1) != 1)
+            if ( Interlocked.CompareExchange(ref Status, 2, 1) != 1 )
             {
                 return;
             }
@@ -400,8 +404,7 @@
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="UnhandledExceptionEventArgs" /> instance containing the event data.</param>
-        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e) =>
-            ProcessManagedUnhandledException(e.ExceptionObject as Exception);
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e) => ProcessManagedUnhandledException(e.ExceptionObject as Exception);
 
         /// <summary>
         ///     Processes the managed unhandled exception.
@@ -409,14 +412,14 @@
         /// <param name="ex">The exception object.</param>
         internal static void ProcessManagedUnhandledException(Exception ex)
         {
-            if (ex != null)
+            if ( ex != null )
             {
                 try
                 {
                     var cl = new ManagedCrashLog(ex);
                     cl.Write();
                 }
-                catch (Exception ex2) { Log.Append(ex2); }
+                catch ( Exception ex2 ) { Log.Append(ex2); }
             }
 
             CriticalException(ex, true);
@@ -430,23 +433,21 @@
         internal static bool UnhandledExceptionFilter(CPURegisters cpu)
         {
             var handled = 0;
-            var logmsg = "Unhandled native exception occurred at " + cpu.IP.ToHexString() +
-                         CrashLog.GetAddressInModule(cpu.IP, Process.GetCurrentProcess().Modules, " ") + " on thread " +
-                         Memory.GetCurrentNativeThreadId() + "!";
+            var logmsg  = "Unhandled native exception occurred at " + cpu.IP.ToHexString() + CrashLog.GetAddressInModule(cpu.IP, Process.GetCurrentProcess().Modules, " ") + " on thread " + Memory.GetCurrentNativeThreadId() + "!";
 
             try
             {
                 var cl = new NativeCrashLog(cpu);
                 handled = cl.Write();
 
-                if (cl.Skipped)
+                if ( cl.Skipped )
                 {
                     logmsg = null;
                 }
             }
-            catch (Exception ex2) { Log.Append(ex2); }
+            catch ( Exception ex2 ) { Log.Append(ex2); }
 
-            if (logmsg != null)
+            if ( logmsg != null )
             {
                 Log.AppendLine(logmsg);
             }
@@ -466,28 +467,29 @@
         /// <exception cref="System.ArgumentNullException">cpu</exception>
         public static bool WriteNativeCrashLog(CPURegisters cpu, int nativeThreadId, string filePath)
         {
-            if (cpu == null)
+            if ( cpu == null )
             {
                 throw new ArgumentNullException("cpu");
             }
 
-            if (string.IsNullOrEmpty(filePath))
+            if ( string.IsNullOrEmpty(filePath) )
             {
                 throw new ArgumentOutOfRangeException("filePath");
             }
 
-            if (nativeThreadId == int.MinValue)
+            if ( nativeThreadId == int.MinValue )
             {
                 nativeThreadId = Memory.GetCurrentNativeThreadId();
             }
 
             var handled = 0;
+
             try
             {
                 var cl = new NativeCrashLog(cpu);
                 handled = cl.Write(true, filePath, true);
             }
-            catch (Exception ex2) { Log.Append(ex2); }
+            catch ( Exception ex2 ) { Log.Append(ex2); }
 
             return handled > 0;
         }
@@ -526,12 +528,12 @@
         /// <param name="listener">The listener.</param>
         public static void AddDebugMessageListener(DebugMessageListener listener)
         {
-            if (listener == null)
+            if ( listener == null )
             {
                 return;
             }
 
-            lock (DebugLocker)
+            lock ( DebugLocker )
             {
                 DebugListeners.Add(listener);
                 Interlocked.Increment(ref HasDebugListeners);
@@ -545,13 +547,14 @@
         /// <returns></returns>
         public static bool RemoveDebugMessageListener(DebugMessageListener listener)
         {
-            if (listener == null)
+            if ( listener == null )
             {
                 return false;
             }
 
             bool removed;
-            lock (DebugLocker)
+
+            lock ( DebugLocker )
             {
                 removed = DebugListeners.Remove(listener);
                 Interlocked.Decrement(ref HasDebugListeners);
@@ -566,27 +569,29 @@
         /// <param name="message">The message.</param>
         public static void WriteDebugMessage(string message)
         {
-            if (message == null || Interlocked.CompareExchange(ref HasDebugListeners, 0, 0) == 0)
+            if ( message == null || Interlocked.CompareExchange(ref HasDebugListeners, 0, 0) == 0 )
             {
                 return;
             }
 
             Plugin sender = null;
+
             try
             {
                 var asm = Assembly.GetCallingAssembly();
-                if (asm != null)
+
+                if ( asm != null )
                 {
                     sender = PluginManager.GetPlugin(asm);
                 }
             }
             catch { }
 
-            lock (DebugLocker)
+            lock ( DebugLocker )
             {
-                if (DebugListeners.Count != 0)
+                if ( DebugListeners.Count != 0 )
                 {
-                    for (var i = DebugListeners.Count - 1; i >= 0; i--)
+                    for ( var i = DebugListeners.Count - 1; i >= 0; i-- )
                     {
                         DebugListeners[i].OnMessage(sender, message);
                     }
@@ -602,21 +607,24 @@
         public static ProcessModule GetMainTargetedModule()
         {
             var proc = Process.GetCurrentProcess();
-            if (Game == null)
+
+            if ( Game == null )
             {
                 return proc.MainModule;
             }
 
             var want = Game.ModuleName ?? string.Empty;
-            if (want.Length == 0)
+
+            if ( want.Length == 0 )
             {
                 return proc.MainModule;
             }
 
             var modules = proc.Modules;
-            foreach (ProcessModule m in modules)
+
+            foreach ( ProcessModule m in modules )
             {
-                if (!want.Equals(m.ModuleName, StringComparison.OrdinalIgnoreCase))
+                if ( !want.Equals(m.ModuleName, StringComparison.OrdinalIgnoreCase) )
                 {
                     continue;
                 }
@@ -627,9 +635,9 @@
             throw new FileNotFoundException("Main targeted module was not found in process!");
         }
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         ///     The status of framework.
@@ -662,21 +670,20 @@
         private static void PrepareConfiguration()
         {
             Config = new ConfigFile();
-            Config.AddSetting(_Config_Plugin_Path, Path.Combine(Config.Path, "Plugins"), "Path to plugins",
-                "Relative or absolute path to plugin files.");
-            Config.AddSetting(_Config_Plugin_Lib_Path, Path.Combine(Config.Path, "Plugins", "Lib"),
+            Config.AddSetting(_Config_Plugin_Path, Path.Combine(Config.Path, "Plugins"), "Path to plugins", "Relative or absolute path to plugin files.");
+
+            Config.AddSetting(
+                _Config_Plugin_Lib_Path,
+                Path.Combine(Config.Path, "Plugins", "Lib"),
                 "Path to plugin libraries",
-                "Relative or absolute path to plugin dependency libraries. You can place any additional DLL files your plugin requires here. These DLL files will not attempt to automatically load as plugins, you can also use DllImport attribute and it will search for the DLL's in this path. Any .NET libraries referenced by your plugin project will also search for them here.");
-            Config.AddSetting(_Config_Debug_CrashLog_Enabled, new Value(1), "Enable crash logs",
-                "Enable writing crash logs when the game crashes.");
-            Config.AddSetting(_Config_Debug_CrashLog_Path, Path.Combine(Config.Path, "Crash"), "Path to crash logs",
-                "The path where to write crash logs if enabled.");
-            Config.AddSetting(_Config_Debug_CrashLog_Append, new Value(0), "Append crash logs",
-                "Append all crash logs to same file or create a separate file for each crash.");
-            Config.AddSetting(_Config_Debug_CrashLog_StackCount, new Value(512), "Stack count",
-                "How many values to print from stack.");
-            Config.AddSetting(_Config_Debug_CrashLog_Modules, new Value(true), "Modules",
-                "Write loaded modules of process to crash log?");
+                "Relative or absolute path to plugin dependency libraries. You can place any additional DLL files your plugin requires here. These DLL files will not attempt to automatically load as plugins, you can also use DllImport attribute and it will search for the DLL's in this path. Any .NET libraries referenced by your plugin project will also search for them here."
+            );
+
+            Config.AddSetting(_Config_Debug_CrashLog_Enabled, new Value(1), "Enable crash logs", "Enable writing crash logs when the game crashes.");
+            Config.AddSetting(_Config_Debug_CrashLog_Path, Path.Combine(Config.Path, "Crash"), "Path to crash logs", "The path where to write crash logs if enabled.");
+            Config.AddSetting(_Config_Debug_CrashLog_Append, new Value(0), "Append crash logs", "Append all crash logs to same file or create a separate file for each crash.");
+            Config.AddSetting(_Config_Debug_CrashLog_StackCount, new Value(512), "Stack count", "How many values to print from stack.");
+            Config.AddSetting(_Config_Debug_CrashLog_Modules, new Value(true), "Modules", "Write loaded modules of process to crash log?");
         }
 
         /// <summary>
@@ -686,23 +693,25 @@
         {
             Log.AppendLine("Loading game library.");
             var found = new List<FileInfo>();
-            var dir = new DirectoryInfo(FrameworkPath);
+            var dir   = new DirectoryInfo(FrameworkPath);
             var files = dir.GetFiles();
-            foreach (var x in files)
+
+            foreach ( var x in files )
             {
                 var fileName = x.Name;
-                if (!fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ||
-                    !fileName.StartsWith(FrameworkName + ".", StringComparison.OrdinalIgnoreCase) ||
-                    fileName.Equals(FrameworkName + ".dll", StringComparison.OrdinalIgnoreCase) ||
-                    fileName.EndsWith(".implementations.dll", StringComparison.OrdinalIgnoreCase))
+
+                if ( !fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)                ||
+                     !fileName.StartsWith(FrameworkName + ".", StringComparison.OrdinalIgnoreCase) ||
+                     fileName.Equals(FrameworkName + ".dll", StringComparison.OrdinalIgnoreCase)   ||
+                     fileName.EndsWith(".implementations.dll", StringComparison.OrdinalIgnoreCase) )
                 {
                     continue;
                 }
 
                 fileName = fileName.Substring(FrameworkName.Length + 1);
-                fileName = fileName.Substring(0, fileName.Length - 4);
+                fileName = fileName.Substring(0, fileName.Length   - 4);
 
-                if (fileName.Length == 0 || fileName.Equals("Runtime", StringComparison.OrdinalIgnoreCase))
+                if ( fileName.Length == 0 || fileName.Equals("Runtime", StringComparison.OrdinalIgnoreCase) )
                 {
                     continue;
                 }
@@ -710,29 +719,27 @@
                 found.Add(x);
             }
 
-            if (found.Count == 0)
+            if ( found.Count == 0 )
             {
-                Log.AppendLine(
-                    "No game library DLL found! Game definitions will not be loaded but plugins may still load.");
+                Log.AppendLine("No game library DLL found! Game definitions will not be loaded but plugins may still load.");
                 return;
             }
 
-            if (found.Count > 1)
+            if ( found.Count > 1 )
             {
                 var fstr = string.Join(", ", found.Select(q => q.Name));
-                throw new InvalidOperationException(
-                    "Found more than one game library DLL! Only one game library may be active at a time. [" + fstr +
-                    "]");
+                throw new InvalidOperationException("Found more than one game library DLL! Only one game library may be active at a time. [" + fstr + "]");
             }
 
             {
-                var versionFile = found[0];
+                var versionFile     = found[0];
                 var versionFileName = versionFile.Name;
-                var ptIdx = versionFileName.LastIndexOf('.');
-                if (ptIdx >= 0)
+                var ptIdx           = versionFileName.LastIndexOf('.');
+
+                if ( ptIdx >= 0 )
                 {
                     var verss = string.Join("_", Memory.GetMainModuleVersion());
-                    versionFileName = versionFileName.Substring(0, ptIdx) + "." + verss + ".bin";
+                    versionFileName    = versionFileName.Substring(0, ptIdx) + "." + verss + ".bin";
                     VersionLibraryFile = new FileInfo(Path.Combine(versionFile.DirectoryName, versionFileName));
                     InitializeVersionInfo();
                 }
@@ -740,31 +747,33 @@
 
             Assembly assembly = null;
             Loader.Load(found[0], ref assembly);
-            if (assembly == null)
+
+            if ( assembly == null )
             {
                 throw new InvalidOperationException();
             }
 
-            var types = assembly.GetTypes();
+            var  types = assembly.GetTypes();
             Type valid = null;
-            foreach (var t in types)
+
+            foreach ( var t in types )
             {
-                if (!t.IsSubclassOf(typeof(Game)))
+                if ( !t.IsSubclassOf(typeof(Game)) )
                 {
                     continue;
                 }
 
-                if (t.IsAbstract)
+                if ( t.IsAbstract )
                 {
                     continue;
                 }
 
-                if (t.BaseType != typeof(Game))
+                if ( t.BaseType != typeof(Game) )
                 {
                     continue;
                 }
 
-                if (valid != null)
+                if ( valid != null )
                 {
                     throw new InvalidOperationException("Found more than one valid game header type!");
                 }
@@ -772,45 +781,44 @@
                 valid = t;
             }
 
-            if (valid == null)
+            if ( valid == null )
             {
                 throw new InvalidOperationException("Found game library but no valid game header type!");
             }
 
-            GameCreate = 1;
+            GameCreate              =  1;
             _is_initializing_plugin += 2;
+
             try
             {
                 var result = (Game)Activator.CreateInstance(valid);
-                var print = "`" + result.FullName + "` (" + result.LibraryVersion + ")";
-                Log.AppendLine("Loaded game library for " + print + ".");
+                var print  = "`"                          + result.FullName + "` (" + result.LibraryVersion + ")";
+                Log.AppendLine("Loaded game library for " + print           + ".");
                 Log.AppendLine("Running game version is " + string.Join(".", result.GameVersion));
                 var supportedExecutable = result.ExecutableName;
-                var haveExecutable = Process.GetCurrentProcess().MainModule.ModuleName;
-                if (!haveExecutable.Equals(supportedExecutable, StringComparison.OrdinalIgnoreCase))
+                var haveExecutable      = Process.GetCurrentProcess().MainModule.ModuleName;
+
+                if ( !haveExecutable.Equals(supportedExecutable, StringComparison.OrdinalIgnoreCase) )
                 {
-                    throw new InvalidOperationException("Game library " + print + " expected game executable `" +
-                                                        supportedExecutable + "` but have `" + haveExecutable + "`!");
+                    throw new InvalidOperationException("Game library " + print + " expected game executable `" + supportedExecutable + "` but have `" + haveExecutable + "`!");
                 }
 
-                if (!result.IsValidVersion)
+                if ( !result.IsValidVersion )
                 {
-                    throw new InvalidOperationException("Game library " + print + " does not support game version " +
-                                                        string.Join(".", result.GameVersion) + "!");
+                    throw new InvalidOperationException("Game library " + print + " does not support game version " + string.Join(".", result.GameVersion) + "!");
                 }
 
                 Game = result;
                 ValidateVersionLibrary();
 
-                if (VersionLibraryError != null)
+                if ( VersionLibraryError != null )
                 {
                     throw new InvalidOperationException("Version library error: " + VersionLibraryError + "!");
                 }
 
-                if (GameInfo == null && result.VersionLibraryHash != 0)
+                if ( GameInfo == null && result.VersionLibraryHash != 0 )
                 {
-                    throw new InvalidOperationException("Game library " + print +
-                                                        " requires a version library but one is not loaded!");
+                    throw new InvalidOperationException("Game library " + print + " requires a version library but one is not loaded!");
                 }
 
                 result._initialize();
@@ -823,9 +831,9 @@
         /// </summary>
         private static void InitializeVersionInfo()
         {
-            if (GameInfo == null && VersionLibraryError == null)
+            if ( GameInfo == null && VersionLibraryError == null )
             {
-                if (VersionLibraryFile != null && VersionLibraryFile.Exists)
+                if ( VersionLibraryFile != null && VersionLibraryFile.Exists )
                 {
                     try
                     {
@@ -835,13 +843,13 @@
                         GameInfo.ReadFromFile(VersionLibraryFile, 0);
                         ValidateVersionLibrary();
                     }
-                    catch (Exception ex)
+                    catch ( Exception ex )
                     {
-                        GameInfo = null;
+                        GameInfo            = null;
                         VersionLibraryError = "Exception when loading (" + ex.GetType().Name + "): " + ex.Message;
                     }
                 }
-                else if (VersionLibraryFile != null)
+                else if ( VersionLibraryFile != null )
                 {
                     VersionLibraryError = "File not found (" + VersionLibraryFile.Name + ")";
                 }
@@ -868,42 +876,40 @@
         private static void ValidateVersionLibrary()
         {
             var info = GameInfo;
-            if (info == null || VersionLibraryError != null)
+
+            if ( info == null || VersionLibraryError != null )
             {
                 return;
             }
 
-            var appVer = Memory.GetMainModuleVersion();
-            int? libver = null;
+            var    appVer  = Memory.GetMainModuleVersion();
+            int?   libver  = null;
             ulong? reqhash = null;
-            if (Game != null)
+
+            if ( Game != null )
             {
-                libver = Game.LibraryVersion;
+                libver  = Game.LibraryVersion;
                 reqhash = Game.VersionLibraryHash;
             }
 
-            if (info.FileVersion[0] != appVer[0] || info.FileVersion[1] != appVer[1] ||
-                info.FileVersion[2] != appVer[2] || info.FileVersion[3] != appVer[3])
+            if ( info.FileVersion[0] != appVer[0] || info.FileVersion[1] != appVer[1] || info.FileVersion[2] != appVer[2] || info.FileVersion[3] != appVer[3] )
             {
-                GameInfo = null;
-                VersionLibraryError = "File version mismatch, expected " + string.Join(".", info.FileVersion) +
-                                      " but have " + string.Join(".", appVer);
+                GameInfo            = null;
+                VersionLibraryError = "File version mismatch, expected " + string.Join(".", info.FileVersion) + " but have " + string.Join(".", appVer);
                 return;
             }
 
-            if (libver.HasValue && libver.Value != info.LibraryVersion)
+            if ( libver.HasValue && libver.Value != info.LibraryVersion )
             {
-                GameInfo = null;
-                VersionLibraryError = "DLL version mismatch, expected " + libver.Value + " but have " +
-                                      info.LibraryVersion;
+                GameInfo            = null;
+                VersionLibraryError = "DLL version mismatch, expected " + libver.Value + " but have " + info.LibraryVersion;
                 return;
             }
 
-            if (reqhash.HasValue && reqhash.Value != 0 && reqhash.Value != info.HashVersion)
+            if ( reqhash.HasValue && reqhash.Value != 0 && reqhash.Value != info.HashVersion )
             {
-                GameInfo = null;
-                VersionLibraryError = "DLL hash mismatch, expected " + reqhash.Value.ToString("X") + " but have " +
-                                      info.HashVersion.ToString("X");
+                GameInfo            = null;
+                VersionLibraryError = "DLL hash mismatch, expected " + reqhash.Value.ToString("X") + " but have " + info.HashVersion.ToString("X");
             }
         }
 
@@ -916,9 +922,10 @@
         public static GameInfo.GameTypeInfo GetTypeInfo(ulong id, bool noExcept = false)
         {
             var info = GameInfo;
-            if (info == null)
+
+            if ( info == null )
             {
-                if (noExcept)
+                if ( noExcept )
                 {
                     return null;
                 }
@@ -927,21 +934,21 @@
             }
 
             var dt = info.GetTypeInfo(id);
-            if (dt == null)
+
+            if ( dt == null )
             {
-                if (noExcept)
+                if ( noExcept )
                 {
                     return null;
                 }
 
-                throw new ArgumentException(
-                    "Type with unique identifier `" + id + "` was not found in version library!");
+                throw new ArgumentException("Type with unique identifier `" + id + "` was not found in version library!");
             }
 
             return dt;
         }
 
-        #region Setting names
+    #region Setting names
 
         /// <summary>
         ///     The plugin files path.
@@ -978,7 +985,7 @@
         /// </summary>
         internal const string _Config_Debug_CrashLog_Modules = "Debug.CrashLog.Modules";
 
-        #endregion
+    #endregion
 
         /// <summary>
         ///     Prepares and loads configuration file. If file failed to load it will attempt to create.
@@ -988,39 +995,33 @@
         {
             PrepareConfiguration();
             var loadedConfiguration = false;
-#if !DEBUG
+        #if !DEBUG
             try
             {
-#endif
-            loadedConfiguration = Config.Load();
-#if !DEBUG
+            #endif
+                loadedConfiguration = Config.Load();
+            #if !DEBUG
             }
-            catch
+            catch { }
+        #endif
+            if ( !loadedConfiguration )
             {
-
-            }
-#endif
-            if (!loadedConfiguration)
-            {
-#if !DEBUG
+            #if !DEBUG
                 try
                 {
-#endif
-                Config.Save();
-#if !DEBUG
+                #endif
+                    Config.Save();
+                #if !DEBUG
                 }
-                catch
-                {
-
-                }
-#endif
+                catch { }
+            #endif
             }
 
             return loadedConfiguration;
         }
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 }

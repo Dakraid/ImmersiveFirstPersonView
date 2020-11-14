@@ -4,9 +4,10 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Reflection;
+
     using Tools;
 
-    #region MemoryObject class
+#region MemoryObject class
 
     /// <summary>
     ///     Base implementation of a wrapper for an object that exists in memory.
@@ -15,11 +16,11 @@
     /// <seealso cref="NetScriptFramework.Tools.IArgument" />
     public abstract class MemoryObject : IMemoryObject, IArgument
     {
-        #region Constructors
+    #region Constructors
 
-        #endregion
+    #endregion
 
-        #region MemoryObject members
+    #region MemoryObject members
 
         /// <summary>
         ///     Gets the base address of the object in memory.
@@ -42,7 +43,7 @@
         {
             get
             {
-                if (this.Address == IntPtr.Zero)
+                if ( this.Address == IntPtr.Zero )
                 {
                     return false;
                 }
@@ -50,7 +51,8 @@
                 var size = IntPtr.Size;
 
                 var ti = this.TypeInfo.Info;
-                if (ti != null && ti.Size.HasValue)
+
+                if ( ti != null && ti.Size.HasValue )
                 {
                     size = ti.Size.Value;
                 }
@@ -78,7 +80,8 @@
             get
             {
                 var info = this.TypeInfo;
-                if (info != null && info.Info != null)
+
+                if ( info != null && info.Info != null )
                 {
                     return info.Info.Id;
                 }
@@ -101,25 +104,27 @@
         /// <typeparam name="T">Type of object to get.</typeparam>
         /// <param name="address">The base address of object.</param>
         /// <returns></returns>
-        public static T FromAddress<T>(IntPtr address) where T : IMemoryObject
+        public static T FromAddress <T>(IntPtr address) where T : IMemoryObject
         {
             var game = Main.Game;
-            if (game == null)
+
+            if ( game == null )
             {
                 throw new ArgumentException("Game library is not loaded! Unable to use types.");
             }
 
-            if (address != IntPtr.Zero)
+            if ( address != IntPtr.Zero )
             {
-                var type = typeof(T);
-                TypeDescriptor t = null;
+                var            type = typeof(T);
+                TypeDescriptor t    = null;
 
                 // VTable types are handled differently.
-                if (game.Types.TypesWithVTable.Contains(type))
+                if ( game.Types.TypesWithVTable.Contains(type) )
                 {
                     // Not using "TryRead" on purpose because bad pointer should cause exception instead of returning null!
                     var ptr = Memory.ReadPointer(address);
-                    if (Main.Game.Types.TypesByVTable.TryGetValue(ptr, out t))
+
+                    if ( Main.Game.Types.TypesByVTable.TryGetValue(ptr, out t) )
                     {
                         var mo = t.Creator();
                         mo.Address = address - t.OffsetInFullType;
@@ -134,10 +139,9 @@
 
                 {
                     // Invalid type. This usually means generic argument is wrong.
-                    if (!Main.Game.Types.TypesByNoVTable.TryGetValue(type, out t))
+                    if ( !Main.Game.Types.TypesByNoVTable.TryGetValue(type, out t) )
                     {
-                        throw new ArgumentException("Type \"" + typeof(T).Name +
-                                                    "\" is not registered with game library!");
+                        throw new ArgumentException("Type \"" + typeof(T).Name + "\" is not registered with game library!");
                     }
 
                     var mo = t.Creator();
@@ -164,42 +168,44 @@
         /// </exception>
         public static IMemoryObject FromAddress(Type t, IntPtr address)
         {
-            if (t == null)
+            if ( t == null )
             {
                 throw new ArgumentNullException("t");
             }
 
-            if (!t.IsInterface)
+            if ( !t.IsInterface )
             {
                 throw new ArgumentException("Type must be interface!");
             }
 
-            if (t == typeof(IMemoryObject) || t == typeof(IVirtualObject) || !typeof(IMemoryObject).IsAssignableFrom(t))
+            if ( t == typeof(IMemoryObject) || t == typeof(IVirtualObject) || !typeof(IMemoryObject).IsAssignableFrom(t) )
             {
                 throw new ArgumentException("Type must inherit from IMemoryObject!");
             }
 
             var game = Main.Game;
-            if (game == null)
+
+            if ( game == null )
             {
                 throw new ArgumentException("Game library is not loaded! Unable to use types.");
             }
 
-            if (address != IntPtr.Zero)
+            if ( address != IntPtr.Zero )
             {
                 TypeDescriptor td = null;
 
                 // VTable types are handled differently.
-                if (game.Types.TypesWithVTable.Contains(t))
+                if ( game.Types.TypesWithVTable.Contains(t) )
                 {
                     // Not using "TryRead" on purpose because bad pointer should cause exception instead of returning null!
                     var ptr = Memory.ReadPointer(address);
-                    if (Main.Game.Types.TypesByVTable.TryGetValue(ptr, out td))
+
+                    if ( Main.Game.Types.TypesByVTable.TryGetValue(ptr, out td) )
                     {
                         var mo = td.Creator();
                         mo.Address = address - td.OffsetInFullType;
 
-                        if (!t.IsAssignableFrom(td.ImplementationType))
+                        if ( !t.IsAssignableFrom(td.ImplementationType) )
                         {
                             throw new InvalidCastException();
                         }
@@ -212,7 +218,7 @@
 
                 {
                     // Invalid type. This usually means generic argument is wrong.
-                    if (!Main.Game.Types.TypesByNoVTable.TryGetValue(t, out td))
+                    if ( !Main.Game.Types.TypesByNoVTable.TryGetValue(t, out td) )
                     {
                         throw new ArgumentException("Type \"" + t.Name + "\" is not registered with game library!");
                     }
@@ -242,42 +248,46 @@
         public static IMemoryObject FromAddress(ulong vid, IntPtr address)
         {
             var game = Main.Game;
-            if (game == null)
+
+            if ( game == null )
             {
                 throw new ArgumentException("Game library is not loaded! Unable to use types.");
             }
 
-            if (address != IntPtr.Zero)
+            if ( address != IntPtr.Zero )
             {
                 var impl = game.GetImplementationById(vid);
-                if (impl == null)
+
+                if ( impl == null )
                 {
                     throw new ArgumentOutOfRangeException("Type with id " + vid + " was not found!");
                 }
 
                 List<TypeDescriptor> ls = null;
-                if (!game.Types.TypesByImplementation.TryGetValue(impl, out ls) || ls == null || ls.Count == 0)
+
+                if ( !game.Types.TypesByImplementation.TryGetValue(impl, out ls) || ls == null || ls.Count == 0 )
                 {
                     throw new ArgumentException("Type " + impl.Name + " does not have any registered descriptors!");
                 }
 
                 TypeDescriptor td = null;
-                foreach (var x in ls)
+
+                foreach ( var x in ls )
                 {
-                    if (x.OffsetInFullType == 0)
+                    if ( x.OffsetInFullType == 0 )
                     {
                         td = x;
                         break;
                     }
 
-                    if (td == null || x.OffsetInFullType < td.OffsetInFullType)
+                    if ( td == null || x.OffsetInFullType < td.OffsetInFullType )
                     {
                         td = x;
                     }
                 }
 
                 // Special case, we still want to detect if the cast is valid.
-                if (td.VTable.HasValue)
+                if ( td.VTable.HasValue )
                 {
                     return VirtualObject.FromAddress(address);
                 }
@@ -295,7 +305,7 @@
         /// </summary>
         /// <typeparam name="T">Type to cast to.</typeparam>
         /// <returns></returns>
-        public abstract IntPtr Cast<T>() where T : IMemoryObject;
+        public abstract IntPtr Cast <T>() where T : IMemoryObject;
 
         /// <summary>
         ///     Returns the virtual function table address of specified instance. It will return zero if not possible to get this
@@ -303,10 +313,11 @@
         /// </summary>
         /// <typeparam name="T">Type to get table for.</typeparam>
         /// <returns></returns>
-        public virtual IntPtr VTable<T>() where T : IVirtualObject
+        public virtual IntPtr VTable <T>() where T : IVirtualObject
         {
             var ptr = this.Cast<T>();
-            if (ptr != IntPtr.Zero)
+
+            if ( ptr != IntPtr.Zero )
             {
                 return Memory.ReadPointer(ptr);
             }
@@ -326,9 +337,9 @@
         /// <returns></returns>
         public virtual string GatherStringForCrashLog() => this.ToString();
 
-        #endregion
+    #endregion
 
-        #region Object members
+    #region Object members
 
         /// <summary>
         ///     Returns a hash code for this instance.
@@ -349,7 +360,8 @@
         public override bool Equals(object obj)
         {
             var mo = obj as MemoryObject;
-            if (mo != null)
+
+            if ( mo != null )
             {
                 return this.Address == mo.Address;
             }
@@ -370,7 +382,8 @@
         public bool Equals(IMemoryObject obj)
         {
             var mo = obj as MemoryObject;
-            if (mo != null)
+
+            if ( mo != null )
             {
                 return this.Address == mo.Address;
             }
@@ -390,9 +403,9 @@
             return ti != null ? ti.Name ?? "unknown" : "unknown";
         }
 
-        #endregion
+    #endregion
 
-        #region IArgument members
+    #region IArgument members
 
         /// <summary>
         ///     Parse an argument from this object.
@@ -404,7 +417,8 @@
         public IArgument ParseArgument(string key, Message message, Parser parser)
         {
             var prop = this._GetProperty(key);
-            if (prop == null || prop.GetMethod == null)
+
+            if ( prop == null || prop.GetMethod == null )
             {
                 return null;
             }
@@ -423,29 +437,31 @@
         public string ParseVariable(string key, Message message, Parser parser)
         {
             var prop = this._GetProperty(key);
-            if (prop == null || prop.GetMethod == null)
+
+            if ( prop == null || prop.GetMethod == null )
             {
                 return null;
             }
 
             object instance = prop.GetMethod.IsStatic ? null : this;
-            var result = prop.GetMethod.Invoke(instance, new object[0]);
-            if (ReferenceEquals(result, null))
+            var    result   = prop.GetMethod.Invoke(instance, new object[0]);
+
+            if ( ReferenceEquals(result, null) )
             {
                 return null;
             }
 
-            if (result is float)
+            if ( result is float )
             {
                 return ((float)result).ToString(CultureInfo.InvariantCulture);
             }
 
-            if (result is double)
+            if ( result is double )
             {
                 return ((double)result).ToString(CultureInfo.InvariantCulture);
             }
 
-            if (result is IntPtr)
+            if ( result is IntPtr )
             {
                 return ((IntPtr)result).ToHexString();
             }
@@ -470,26 +486,25 @@
         /// <returns></returns>
         private PropertyInfo _GetProperty(string name)
         {
-            if (string.IsNullOrEmpty(name))
+            if ( string.IsNullOrEmpty(name) )
             {
                 return null;
             }
 
             var t = this.GetType();
-            while (t != null)
+
+            while ( t != null )
             {
                 try
                 {
-                    var prop = t.GetProperty(
-                        name,
-                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
-                        BindingFlags.Static | BindingFlags.DeclaredOnly);
-                    if (prop != null)
+                    var prop = t.GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly);
+
+                    if ( prop != null )
                     {
                         return prop;
                     }
                 }
-                catch (AmbiguousMatchException) { }
+                catch ( AmbiguousMatchException ) { }
 
                 t = t.BaseType;
             }
@@ -497,12 +512,12 @@
             return null;
         }
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 
-    #region IMemoryObject interface
+#region IMemoryObject interface
 
     /// <summary>
     ///     Base implementation of a wrapper for an object that exists in memory. Use the Equals methods to check
@@ -556,7 +571,7 @@
         /// </summary>
         /// <typeparam name="T">Type to cast to.</typeparam>
         /// <returns></returns>
-        IntPtr Cast<T>() where T : IMemoryObject;
+        IntPtr Cast <T>() where T : IMemoryObject;
 
         /// <summary>
         ///     Returns the virtual function table address of specified instance. It will return zero if not possible to get this
@@ -564,7 +579,7 @@
         /// </summary>
         /// <typeparam name="T">Type to get table for.</typeparam>
         /// <returns></returns>
-        IntPtr VTable<T>() where T : IVirtualObject;
+        IntPtr VTable <T>() where T : IVirtualObject;
 
         /// <summary>
         ///     Gathers the objects for crash log.
@@ -579,17 +594,15 @@
         string GatherStringForCrashLog();
     }
 
-    #endregion
+#endregion
 
-    #region Unknown type
+#region Unknown type
 
     /// <summary>
     ///     This is an unknown type.
     /// </summary>
     /// <seealso cref="NetScriptFramework.IMemoryObject" />
-    public interface unknown : IMemoryObject
-    {
-    }
+    public interface unknown : IMemoryObject { }
 
     /// <summary>
     ///     The implementation for unknown type.
@@ -600,10 +613,7 @@
         /// <summary>
         ///     The type info.
         /// </summary>
-        private static readonly GameInfo.GameTypeInstanceInfo[] _TypeInfos =
-        {
-            new GameInfo.GameTypeInstanceInfo(0, null, null)
-        };
+        private static readonly GameInfo.GameTypeInstanceInfo[] _TypeInfos = { new GameInfo.GameTypeInstanceInfo(0, null, null) };
 
         /// <summary>
         ///     Gets all the type infos of this complete type.
@@ -618,10 +628,11 @@
         /// </summary>
         /// <typeparam name="T">Type to cast to.</typeparam>
         /// <returns></returns>
-        public override IntPtr Cast<T>()
+        public override IntPtr Cast <T>()
         {
             var t = typeof(T);
-            if (t == typeof(unknown))
+
+            if ( t == typeof(unknown) )
             {
                 return this.Address;
             }
@@ -630,17 +641,15 @@
         }
     }
 
-    #endregion
+#endregion
 
-    #region Void generic argument type
+#region Void generic argument type
 
     /// <summary>
     ///     This is a void generic argument.
     /// </summary>
     /// <seealso cref="NetScriptFramework.IMemoryObject" />
-    public interface VoidGenericArgument : IMemoryObject
-    {
-    }
+    public interface VoidGenericArgument : IMemoryObject { }
 
     /// <summary>
     ///     The implementation for void generic argument.
@@ -651,10 +660,7 @@
         /// <summary>
         ///     The type info.
         /// </summary>
-        private static readonly GameInfo.GameTypeInstanceInfo[] _TypeInfos =
-        {
-            new GameInfo.GameTypeInstanceInfo(0, null, null)
-        };
+        private static readonly GameInfo.GameTypeInstanceInfo[] _TypeInfos = { new GameInfo.GameTypeInstanceInfo(0, null, null) };
 
         /// <summary>
         ///     Gets all the type infos of this complete type.
@@ -669,10 +675,11 @@
         /// </summary>
         /// <typeparam name="T">Type to cast to.</typeparam>
         /// <returns></returns>
-        public override IntPtr Cast<T>()
+        public override IntPtr Cast <T>()
         {
             var t = typeof(T);
-            if (t == typeof(VoidGenericArgument))
+
+            if ( t == typeof(VoidGenericArgument) )
             {
                 return this.Address;
             }
@@ -681,5 +688,5 @@
         }
     }
 
-    #endregion
+#endregion
 }

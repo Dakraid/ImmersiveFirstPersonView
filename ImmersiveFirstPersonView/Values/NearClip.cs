@@ -1,6 +1,7 @@
 ﻿namespace IFPV.Values
 {
     using System;
+
     using NetScriptFramework.SkyrimSE;
 
     internal sealed class NearClip : CameraValueBase
@@ -41,13 +42,14 @@
 
         private void UpdateDefaultValue()
         {
-            if (this._defaultValue.HasValue)
+            if ( this._defaultValue.HasValue )
             {
                 return;
             }
 
             _setting = Setting.FindSettingByName("fNearDistance:Display", true, true);
-            if (_setting == null)
+
+            if ( _setting == null )
             {
                 throw new InvalidOperationException("Failed to find fNearDistance setting!");
             }

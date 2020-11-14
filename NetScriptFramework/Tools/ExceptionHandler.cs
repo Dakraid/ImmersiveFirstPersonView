@@ -17,19 +17,20 @@
         internal static void SuspendAllThreadsInCurrentProcess()
         {
             var threads = Process.GetCurrentProcess().Threads;
-            var cur = GetCurrentThreadId();
+            var cur     = GetCurrentThreadId();
 
-            for (var i = 0; i < threads.Count; i++)
+            for ( var i = 0; i < threads.Count; i++ )
             {
                 var t = threads[i];
 
-                if (t.Id == cur)
+                if ( t.Id == cur )
                 {
                     continue;
                 }
 
                 var handle = OpenThread(2, false, t.Id);
-                if (handle != IntPtr.Zero)
+
+                if ( handle != IntPtr.Zero )
                 {
                     SuspendThread(handle);
                     CloseHandle(handle);
@@ -43,19 +44,20 @@
         internal static void ResumeAllThreadsInCurrentProcess()
         {
             var threads = Process.GetCurrentProcess().Threads;
-            var cur = GetCurrentThreadId();
+            var cur     = GetCurrentThreadId();
 
-            for (var i = 0; i < threads.Count; i++)
+            for ( var i = 0; i < threads.Count; i++ )
             {
                 var t = threads[i];
 
-                if (t.Id == cur)
+                if ( t.Id == cur )
                 {
                     continue;
                 }
 
                 var handle = OpenThread(2, false, t.Id);
-                if (handle != IntPtr.Zero)
+
+                if ( handle != IntPtr.Zero )
                 {
                     ResumeThread(handle);
                     CloseHandle(handle);
@@ -70,25 +72,27 @@
         internal static void SuspendAllThreadsInCurrentProcess(int[] notThese)
         {
             var threads = Process.GetCurrentProcess().Threads;
-            var cur = GetCurrentThreadId();
+            var cur     = GetCurrentThreadId();
 
-            for (var i = 0; i < threads.Count; i++)
+            for ( var i = 0; i < threads.Count; i++ )
             {
                 var t = threads[i];
 
                 var id = t.Id;
-                if (id == cur)
+
+                if ( id == cur )
                 {
                     continue;
                 }
 
-                if (notThese != null && notThese.Contains(id))
+                if ( notThese != null && notThese.Contains(id) )
                 {
                     continue;
                 }
 
                 var handle = OpenThread(2, false, id);
-                if (handle != IntPtr.Zero)
+
+                if ( handle != IntPtr.Zero )
                 {
                     SuspendThread(handle);
                     CloseHandle(handle);
@@ -103,25 +107,27 @@
         internal static void ResumeAllThreadsInCurrentProcess(int[] notThese)
         {
             var threads = Process.GetCurrentProcess().Threads;
-            var cur = GetCurrentThreadId();
+            var cur     = GetCurrentThreadId();
 
-            for (var i = 0; i < threads.Count; i++)
+            for ( var i = 0; i < threads.Count; i++ )
             {
                 var t = threads[i];
 
                 var id = t.Id;
-                if (id == cur)
+
+                if ( id == cur )
                 {
                     continue;
                 }
 
-                if (notThese != null && notThese.Contains(id))
+                if ( notThese != null && notThese.Contains(id) )
                 {
                     continue;
                 }
 
                 var handle = OpenThread(2, false, id);
-                if (handle != IntPtr.Zero)
+
+                if ( handle != IntPtr.Zero )
                 {
                     ResumeThread(handle);
                     CloseHandle(handle);
@@ -138,7 +144,7 @@
             try { Main.Shutdown(); }
             catch { }
 
-            if (graceful)
+            if ( graceful )
             {
                 Environment.Exit(0);
             }
@@ -148,23 +154,19 @@
             }
         }
 
-        #region API calls
+    #region API calls
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [ DllImport("kernel32.dll", SetLastError = true) ]
         private static extern bool CloseHandle(IntPtr hObject);
 
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr OpenThread(uint dwDesiredAccess, bool bInheritHandle, int dwThreadId);
+        [ DllImport("kernel32.dll") ] private static extern IntPtr OpenThread(uint dwDesiredAccess, bool bInheritHandle, int dwThreadId);
 
-        [DllImport("kernel32.dll")]
-        private static extern uint SuspendThread(IntPtr hThread);
+        [ DllImport("kernel32.dll") ] private static extern uint SuspendThread(IntPtr hThread);
 
-        [DllImport("kernel32.dll")]
-        private static extern uint ResumeThread(IntPtr hThread);
+        [ DllImport("kernel32.dll") ] private static extern uint ResumeThread(IntPtr hThread);
 
-        [DllImport("kernel32.dll")]
-        internal static extern int GetCurrentThreadId();
+        [ DllImport("kernel32.dll") ] internal static extern int GetCurrentThreadId();
 
-        #endregion
+    #endregion
     }
 }

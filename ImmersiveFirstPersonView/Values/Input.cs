@@ -13,13 +13,16 @@
             get
             {
                 var pcam = PlayerCamera.Instance;
-                if (pcam != null)
+
+                if ( pcam != null )
                 {
                     var pstate = pcam.State;
-                    if (pstate != null)
+
+                    if ( pstate != null )
                     {
                         var pthird = pstate as ThirdPersonState;
-                        if (pthird != null)
+
+                        if ( pthird != null )
                         {
                             return pthird.XRotationFromLastResetPoint;
                         }
@@ -32,13 +35,16 @@
             set
             {
                 var pcam = PlayerCamera.Instance;
-                if (pcam != null)
+
+                if ( pcam != null )
                 {
                     var pstate = pcam.State;
-                    if (pstate != null)
+
+                    if ( pstate != null )
                     {
                         var pthird = pstate as ThirdPersonState;
-                        if (pthird != null)
+
+                        if ( pthird != null )
                         {
                             pthird.XRotationFromLastResetPoint = (float)value;
                         }
@@ -78,19 +84,24 @@ namespace IFPV.Values
             get
             {
                 var pcam = PlayerCamera.Instance;
-                if (pcam != null)
+
+                if ( pcam != null )
                 {
                     var pstate = pcam.State;
-                    if (pstate != null)
+
+                    if ( pstate != null )
                     {
                         var pthird = pstate as ThirdPersonState;
-                        if (pthird != null)
+
+                        if ( pthird != null )
                         {
                             var refHandle = pcam.TargetRefHandle;
-                            using (var objRefHolder = new ObjectRefHolder(refHandle))
+
+                            using ( var objRefHolder = new ObjectRefHolder(refHandle) )
                             {
                                 var amount = 0.0f;
-                                if (objRefHolder.IsValid)
+
+                                if ( objRefHolder.IsValid )
                                 {
                                     amount = -objRefHolder.Object.Rotation.X;
                                 }
@@ -108,19 +119,24 @@ namespace IFPV.Values
             set
             {
                 var pcam = PlayerCamera.Instance;
-                if (pcam != null)
+
+                if ( pcam != null )
                 {
                     var pstate = pcam.State;
-                    if (pstate != null)
+
+                    if ( pstate != null )
                     {
                         var pthird = pstate as ThirdPersonState;
-                        if (pthird != null)
+
+                        if ( pthird != null )
                         {
                             var refHandle = pcam.TargetRefHandle;
-                            using (var objRefHolder = new ObjectRefHolder(refHandle))
+
+                            using ( var objRefHolder = new ObjectRefHolder(refHandle) )
                             {
                                 var amount = 0.0f;
-                                if (objRefHolder.IsValid)
+
+                                if ( objRefHolder.IsValid )
                                 {
                                     amount = -objRefHolder.Object.Rotation.X;
                                 }
@@ -194,11 +210,10 @@ namespace IFPV.Values
     {
         private static double _def_value;
 
-        private static bool _init_d;
+        private static bool    _init_d;
         private static Setting _setting;
 
-        internal ExtraResponsiveControls() =>
-            this.Flags |= CameraValueFlags.NoTween | CameraValueFlags.DontUpdateIfDisabled;
+        internal ExtraResponsiveControls() => this.Flags |= CameraValueFlags.NoTween | CameraValueFlags.DontUpdateIfDisabled;
 
         internal override double ChangeSpeed => 1.0;
 
@@ -208,7 +223,7 @@ namespace IFPV.Values
             {
                 init();
 
-                if (_setting != null)
+                if ( _setting != null )
                 {
                     return _setting.GetBool() ? 0.0 : 1.0;
                 }
@@ -218,7 +233,7 @@ namespace IFPV.Values
 
             set
             {
-                if (_setting != null)
+                if ( _setting != null )
                 {
                     _setting.SetBool(value >= 0.5 ? false : true);
                 }
@@ -238,7 +253,7 @@ namespace IFPV.Values
 
         private static void init()
         {
-            if (_init_d)
+            if ( _init_d )
             {
                 return;
             }
@@ -247,7 +262,7 @@ namespace IFPV.Values
 
             _setting = Setting.FindSettingByName("bDampenPlayerControls:Controls", true, true);
 
-            if (_setting != null)
+            if ( _setting != null )
             {
                 _def_value = _setting.GetBool() ? 0.0 : 1.0;
             }

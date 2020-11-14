@@ -48,8 +48,8 @@ namespace IFPV
         {
             this.DefaultAmount = defaultAmount;
             this.CurrentAmount = defaultAmount;
-            this.MinAmount = minAmount;
-            this.MaxAmount = maxAmount;
+            this.MinAmount     = minAmount;
+            this.MaxAmount     = maxAmount;
         }
 
         /// <summary>
@@ -65,13 +65,13 @@ namespace IFPV
         {
             this.Tween.Clear();
 
-            if (amount == 0.0)
+            if ( amount == 0.0 )
             {
                 return;
             }
 
             var target = this.CurrentAmount + amount;
-            target = Math.Max(this.MinAmount, Math.Min(this.MaxAmount, target));
+            target             = Math.Max(this.MinAmount, Math.Min(this.MaxAmount, target));
             this.CurrentAmount = target;
         }
 
@@ -81,7 +81,7 @@ namespace IFPV
         /// <param name="now">The now.</param>
         internal void Pause(long now)
         {
-            if (++this.PausedCounter == 1)
+            if ( ++this.PausedCounter == 1 )
             {
                 this.Paused = now;
             }
@@ -109,7 +109,8 @@ namespace IFPV
             target = Math.Max(this.MinAmount, Math.Min(this.MaxAmount, target));
 
             var t = TweenData.Setup(target, time, type);
-            if (replace)
+
+            if ( replace )
             {
                 this.Tween.Clear();
             }
@@ -129,7 +130,8 @@ namespace IFPV
             target = Math.Max(this.MinAmount, Math.Min(this.MaxAmount, target));
 
             var t = TweenData.Setup(target, speed, type);
-            if (replace)
+
+            if ( replace )
             {
                 this.Tween.Clear();
             }
@@ -143,26 +145,27 @@ namespace IFPV
         /// <param name="now">The now.</param>
         internal void Unpause(long now)
         {
-            if (--this.PausedCounter == 0)
+            if ( --this.PausedCounter == 0 )
             {
                 long diff = 0;
-                if (this.Paused.HasValue)
+
+                if ( this.Paused.HasValue )
                 {
-                    diff = this.Paused.Value;
+                    diff        = this.Paused.Value;
                     this.Paused = null;
-                    diff = now - diff;
+                    diff        = now - diff;
                 }
 
-                if (diff > 0)
+                if ( diff > 0 )
                 {
-                    foreach (var t in this.Tween)
+                    foreach ( var t in this.Tween )
                     {
-                        if (t.BeginTime.HasValue)
+                        if ( t.BeginTime.HasValue )
                         {
                             t.BeginTime = t.BeginTime.Value + diff;
                         }
 
-                        if (t.EndTime.HasValue)
+                        if ( t.EndTime.HasValue )
                         {
                             t.EndTime = t.EndTime.Value + diff;
                         }
@@ -177,22 +180,22 @@ namespace IFPV
         /// <param name="now">The time now.</param>
         internal void Update(long now)
         {
-            while (this.PausedCounter <= 0 && this.Tween.Count != 0)
+            while ( this.PausedCounter <= 0 && this.Tween.Count != 0 )
             {
                 var t = this.Tween[0];
 
                 // Start this tween.
-                if (!t.EndTime.HasValue)
+                if ( !t.EndTime.HasValue )
                 {
                     t.BeginTime = now;
                     long time = 0;
-                    if (t.Duration.HasValue) { time = t.Duration.Value; }
-                    else if (t.Speed.HasValue)
-                    {
-                        var dur = (Math.Abs(t.EndAmount - this.CurrentAmount) / Math.Max(t.Speed.Value, 0.00001)) *
-                                  1000.0;
 
-                        if (dur > 60000.0)
+                    if ( t.Duration.HasValue ) { time = t.Duration.Value; }
+                    else if ( t.Speed.HasValue )
+                    {
+                        var dur = (Math.Abs(t.EndAmount - this.CurrentAmount) / Math.Max(t.Speed.Value, 0.00001)) * 1000.0;
+
+                        if ( dur > 60000.0 )
                         {
                             dur = 60000.0;
                         }
@@ -200,14 +203,14 @@ namespace IFPV
                         time = (long)dur;
                     }
 
-                    t.EndTime = now + time;
+                    t.EndTime     = now + time;
                     t.BeginAmount = this.CurrentAmount;
                 }
 
                 // Process this tween.
 
                 // Finished.
-                if (now >= t.EndTime.Value)
+                if ( now >= t.EndTime.Value )
                 {
                     this.CurrentAmount = t.EndAmount;
                     this.Tween.RemoveAt(0);
@@ -220,7 +223,7 @@ namespace IFPV
                 ratio = Utility.ApplyFormula(ratio, t.Type);
 
                 var amount = ((t.EndAmount - t.BeginAmount.Value) * ratio) + t.BeginAmount.Value;
-                amount = Math.Min(this.MaxAmount, Math.Max(this.MinAmount, amount));
+                amount             = Math.Min(this.MaxAmount, Math.Max(this.MinAmount, amount));
                 this.CurrentAmount = amount;
 
                 break;
@@ -255,25 +258,25 @@ namespace IFPV
 
         private sealed class TweenData
         {
-            internal double? BeginAmount;
-            internal long? BeginTime;
-            internal long? Duration;
-            internal double EndAmount;
-            internal long? EndTime;
-            internal double? Speed;
+            internal double?    BeginAmount;
+            internal long?      BeginTime;
+            internal long?      Duration;
+            internal double     EndAmount;
+            internal long?      EndTime;
+            internal double?    Speed;
             internal TweenTypes Type;
 
             private TweenData() { }
 
             internal static TweenData Setup(double targetValue, long time, TweenTypes type)
             {
-                var t = new TweenData {EndAmount = targetValue, Duration = time, Type = type};
+                var t = new TweenData { EndAmount = targetValue, Duration = time, Type = type };
                 return t;
             }
 
             internal static TweenData Setup(double targetValue, double speed, TweenTypes type)
             {
-                var t = new TweenData {EndAmount = targetValue, Speed = speed, Type = type};
+                var t = new TweenData { EndAmount = targetValue, Speed = speed, Type = type };
                 return t;
             }
         }

@@ -31,13 +31,15 @@
         /// <param name="result">The result is set here. Result may be set even when an exception is thrown.</param>
         public static void Load(FileInfo file, ref Assembly result)
         {
-            lock (Locker)
+            lock ( Locker )
             {
                 var r = Loaded.FirstOrDefault(q => q.FileName.Equals(file.Name, StringComparison.OrdinalIgnoreCase));
-                if (r != null)
+
+                if ( r != null )
                 {
                     result = r.Assembly;
-                    if (r.Exception != null)
+
+                    if ( r.Exception != null )
                     {
                         throw r.Exception;
                     }
@@ -45,7 +47,7 @@
                     return;
                 }
 
-                if (!file.Exists)
+                if ( !file.Exists )
                 {
                     throw new FileNotFoundException("Specified assembly file was not found!", file.FullName);
                 }
@@ -53,9 +55,9 @@
                 // Must use LoadFile instead of LoadFrom or the load context will not allow types to match up.
                 var a = Assembly.LoadFile(file.FullName);
 
-                r = new AssemblyLoadResult();
-                r.Assembly = a;
-                r.FileName = file.Name;
+                r           = new AssemblyLoadResult();
+                r.Assembly  = a;
+                r.FileName  = file.Name;
                 r.Exception = null;
 
                 Loaded.Add(r);
@@ -71,16 +73,16 @@
         /// <returns></returns>
         public static Assembly TryLoadAssembly(string name)
         {
-            if (name == Main.FrameworkName)
+            if ( name == Main.FrameworkName )
             {
                 return Assembly.GetExecutingAssembly();
             }
 
-            lock (Locker)
+            lock ( Locker )
             {
-                foreach (var a in Loaded)
+                foreach ( var a in Loaded )
                 {
-                    if (a.Assembly != null && a.Assembly.GetName().Name == name)
+                    if ( a.Assembly != null && a.Assembly.GetName().Name == name )
                     {
                         return a.Assembly;
                     }
@@ -93,7 +95,8 @@
 
                 {
                     var plugin = Main.Config.GetValue(Main._Config_Plugin_Path);
-                    if (plugin != null)
+
+                    if ( plugin != null )
                     {
                         paths[0] = plugin.ToString();
                     }
@@ -101,27 +104,31 @@
 
                 {
                     var plugin = Main.Config.GetValue(Main._Config_Plugin_Lib_Path);
-                    if (plugin != null)
+
+                    if ( plugin != null )
                     {
                         paths[1] = plugin.ToString();
                     }
                 }
 
-                for (var i = 0; i < paths.Length; i++)
+                for ( var i = 0; i < paths.Length; i++ )
                 {
                     var p = paths[i];
-                    if (p == null)
+
+                    if ( p == null )
                     {
                         continue;
                     }
 
                     var fileName = Path.Combine(p, name + ".dll");
                     var fileInfo = new FileInfo(fileName);
-                    if (!fileInfo.Exists)
+
+                    if ( !fileInfo.Exists )
                     {
                         fileName = Path.Combine(p, name + ".exe");
                         fileInfo = new FileInfo(fileName);
-                        if (!fileInfo.Exists)
+
+                        if ( !fileInfo.Exists )
                         {
                             continue;
                         }
@@ -130,7 +137,7 @@
                     Assembly a = null;
                     Load(fileInfo, ref a);
 
-                    if (a != null)
+                    if ( a != null )
                     {
                         return a;
                     }
@@ -150,14 +157,16 @@
         {
             // Get name for custom loading.
             var name = e.Name;
-            if (name != null && name.Contains(","))
+
+            if ( name != null && name.Contains(",") )
             {
                 name = name.Substring(0, name.IndexOf(","));
             }
 
             // Try to use our method of loading.
             var result = TryLoadAssembly(name);
-            if (result != null)
+
+            if ( result != null )
             {
                 return result;
             }
@@ -176,15 +185,17 @@
             // Set up custom dependency path for plugins. When plugins use custom dependency with DllImport for example they
             // can store them in the appropriate path instead of having to put them in the main executable folder.
             var path = Main.Config.GetValue(Main._Config_Plugin_Lib_Path);
-            if (path != null)
+
+            if ( path != null )
             {
                 var pString = path.ToString();
-                if (!string.IsNullOrEmpty(pString) && pString != ".")
+
+                if ( !string.IsNullOrEmpty(pString) && pString != "." )
                 {
                     try { AddDLLSearchPath(pString); }
-                    catch (Exception ex)
+                    catch ( Exception ex )
                     {
-                        if (Main.Log != null)
+                        if ( Main.Log != null )
                         {
                             Main.Log.AppendLine("Failed to add \"" + pString + "\" to DLL path search!");
                             Main.Log.Append(ex);
@@ -196,7 +207,7 @@
 
         private static void AddDLLSearchPath(string path)
         {
-            if (string.IsNullOrEmpty(path) || path == ".")
+            if ( string.IsNullOrEmpty(path) || path == "." )
             {
                 return;
             }
@@ -205,7 +216,7 @@
 
             //SetDllDirectory(fullPath);
 
-            if (!Path.IsPathRooted(path))
+            if ( !Path.IsPathRooted(path) )
             {
                 path = Path.GetFullPath(path);
             }
@@ -219,7 +230,7 @@
         /// </summary>
         /// <param name="lpPathName">Path.</param>
         /// <returns></returns>
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [ DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true) ]
         private static extern bool SetDllDirectory(string lpPathName);
     }
 

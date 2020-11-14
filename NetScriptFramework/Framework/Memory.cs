@@ -9,6 +9,7 @@
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
+
     using Tools;
     using Tools._Internal;
 
@@ -26,29 +27,31 @@
         /// <returns></returns>
         public static bool ExploreRTTI(IntPtr obj, ref IntPtr baseObj, ref List<Tuple<IntPtr, int>> typeDescriptors)
         {
-            var ptrSize = IntPtr.Size;
+            var ptrSize         = IntPtr.Size;
             var maxInheritCount = 0x80;
-            var ls = new List<Tuple<IntPtr, int>>();
-            using (var alloc = Allocate((maxInheritCount + 2) * ptrSize))
+            var ls              = new List<Tuple<IntPtr, int>>();
+
+            using ( var alloc = Allocate((maxInheritCount + 2) * ptrSize) )
             {
                 var addrOfBase = alloc.Address - (ptrSize * 2);
                 WritePointer(addrOfBase, IntPtr.Zero);
                 Explore_RTTI(obj, addrOfBase, alloc.Address, maxInheritCount, Main.GetMainTargetedModule().BaseAddress);
 
                 var _base = ReadPointer(addrOfBase);
-                if (_base == IntPtr.Zero)
+
+                if ( _base == IntPtr.Zero )
                 {
                     return false;
                 }
 
-                for (var i = 0; i < maxInheritCount; i += 2)
+                for ( var i = 0; i < maxInheritCount; i += 2 )
                 {
-                    var objTypeId = ReadPointer(alloc.Address + (i * ptrSize));
-                    var objOffset = ReadInt32(alloc.Address + ((i + 1) * ptrSize));
+                    var objTypeId = ReadPointer(alloc.Address + (i       * ptrSize));
+                    var objOffset = ReadInt32(alloc.Address   + ((i + 1) * ptrSize));
                     ls.Add(new Tuple<IntPtr, int>(objTypeId, objOffset));
                 }
 
-                baseObj = _base;
+                baseObj         = _base;
                 typeDescriptors = ls;
             }
 
@@ -75,17 +78,15 @@
         ///     Suspends all threads except current and specified.
         /// </summary>
         /// <param name="specified">The specified threads not to suspend.</param>
-        public static void SuspendAllThreadsExceptCurrentAndSpecified(int[] specified) =>
-            RTHandler.SuspendAllThreadsInCurrentProcess(specified);
+        public static void SuspendAllThreadsExceptCurrentAndSpecified(int[] specified) => RTHandler.SuspendAllThreadsInCurrentProcess(specified);
 
         /// <summary>
         ///     Resumes all threads except current and specified.
         /// </summary>
         /// <param name="specified">The specified threads not to resume.</param>
-        public static void ResumeAllThreadsExceptCurrentAndSpecified(int[] specified) =>
-            RTHandler.ResumeAllThreadsInCurrentProcess(specified);
+        public static void ResumeAllThreadsExceptCurrentAndSpecified(int[] specified) => RTHandler.ResumeAllThreadsInCurrentProcess(specified);
 
-        #region Native functions
+    #region Native functions
 
         /// <summary>
         ///     Invokes a "thiscall" native function.
@@ -96,9 +97,10 @@
         /// <returns></returns>
         public static IntPtr InvokeThisCall(IntPtr thisAddress, IntPtr funcAddress, params InvokeArgument[] args)
         {
-            var count = 0;
+            var      count    = 0;
             IntPtr[] prepared = null;
-            if (Main.Is64Bit)
+
+            if ( Main.Is64Bit )
             {
                 prepared = PrepareArguments(0, args, thisAddress, ref count);
                 return InvokeCdecl(funcAddress, new IntPtr(count), prepared);
@@ -117,20 +119,21 @@
         /// <returns></returns>
         public static float InvokeThisCallF(IntPtr thisAddress, IntPtr funcAddress, params InvokeArgument[] args)
         {
-            var count = 0;
+            var      count    = 0;
             IntPtr[] prepared = null;
-            IntPtr result;
-            byte[] converted = null;
-            if (Main.Is64Bit)
+            IntPtr   result;
+            byte[]   converted = null;
+
+            if ( Main.Is64Bit )
             {
-                prepared = PrepareArguments(1, args, thisAddress, ref count);
-                result = InvokeCdeclF(funcAddress, new IntPtr(count), prepared);
+                prepared  = PrepareArguments(1, args, thisAddress, ref count);
+                result    = InvokeCdeclF(funcAddress, new IntPtr(count), prepared);
                 converted = BitConverter.GetBytes(result.ToInt64());
                 return BitConverter.ToSingle(converted, 0);
             }
 
-            prepared = PrepareArguments(1, args, null, ref count);
-            result = InvokeThisCallF(thisAddress, funcAddress, new IntPtr(count), prepared);
+            prepared  = PrepareArguments(1, args, null, ref count);
+            result    = InvokeThisCallF(thisAddress, funcAddress, new IntPtr(count), prepared);
             converted = BitConverter.GetBytes(result.ToInt32());
             return BitConverter.ToSingle(converted, 0);
         }
@@ -144,20 +147,21 @@
         /// <returns></returns>
         public static double InvokeThisCallD(IntPtr thisAddress, IntPtr funcAddress, params InvokeArgument[] args)
         {
-            var count = 0;
+            var      count    = 0;
             IntPtr[] prepared = null;
-            IntPtr result;
-            byte[] converted = null;
-            if (Main.Is64Bit)
+            IntPtr   result;
+            byte[]   converted = null;
+
+            if ( Main.Is64Bit )
             {
-                prepared = PrepareArguments(2, args, thisAddress, ref count);
-                result = InvokeCdeclD(funcAddress, new IntPtr(count), prepared);
+                prepared  = PrepareArguments(2, args, thisAddress, ref count);
+                result    = InvokeCdeclD(funcAddress, new IntPtr(count), prepared);
                 converted = BitConverter.GetBytes(result.ToInt64());
                 return BitConverter.ToDouble(converted, 0);
             }
 
-            prepared = PrepareArguments(2, args, null, ref count);
-            result = InvokeThisCallD(thisAddress, funcAddress, new IntPtr(count), prepared);
+            prepared  = PrepareArguments(2, args, null, ref count);
+            result    = InvokeThisCallD(thisAddress, funcAddress, new IntPtr(count), prepared);
             converted = BitConverter.GetBytes(result.ToInt32());
             return BitConverter.ToSingle(converted, 0);
         }
@@ -170,12 +174,12 @@
         /// <returns></returns>
         public static IntPtr InvokeStdCall(IntPtr funcAddress, params InvokeArgument[] args)
         {
-            if (Main.Is64Bit)
+            if ( Main.Is64Bit )
             {
                 return InvokeCdecl(funcAddress, args);
             }
 
-            var count = 0;
+            var count    = 0;
             var prepared = PrepareArguments(0, args, null, ref count);
             return InvokeStdCall(funcAddress, new IntPtr(count), prepared);
         }
@@ -188,14 +192,14 @@
         /// <returns></returns>
         public static float InvokeStdCallF(IntPtr funcAddress, params InvokeArgument[] args)
         {
-            if (Main.Is64Bit)
+            if ( Main.Is64Bit )
             {
                 return InvokeCdeclF(funcAddress, args);
             }
 
-            var count = 0;
-            var prepared = PrepareArguments(1, args, null, ref count);
-            var result = InvokeStdCallF(funcAddress, new IntPtr(count), prepared);
+            var count     = 0;
+            var prepared  = PrepareArguments(1, args, null, ref count);
+            var result    = InvokeStdCallF(funcAddress, new IntPtr(count), prepared);
             var converted = BitConverter.GetBytes(result.ToInt32());
             return BitConverter.ToSingle(converted, 0);
         }
@@ -208,14 +212,14 @@
         /// <returns></returns>
         public static double InvokeStdCallD(IntPtr funcAddress, params InvokeArgument[] args)
         {
-            if (Main.Is64Bit)
+            if ( Main.Is64Bit )
             {
                 return InvokeCdeclD(funcAddress, args);
             }
 
-            var count = 0;
-            var prepared = PrepareArguments(2, args, null, ref count);
-            var result = InvokeStdCallD(funcAddress, new IntPtr(count), prepared);
+            var count     = 0;
+            var prepared  = PrepareArguments(2, args, null, ref count);
+            var result    = InvokeStdCallD(funcAddress, new IntPtr(count), prepared);
             var converted = BitConverter.GetBytes(result.ToInt32());
             return BitConverter.ToSingle(converted, 0);
         }
@@ -228,7 +232,7 @@
         /// <returns></returns>
         public static IntPtr InvokeCdecl(IntPtr funcAddress, params InvokeArgument[] args)
         {
-            var count = 0;
+            var count    = 0;
             var prepared = PrepareArguments(0, args, null, ref count);
             return InvokeCdecl(funcAddress, new IntPtr(count), prepared);
         }
@@ -241,10 +245,11 @@
         /// <returns></returns>
         public static float InvokeCdeclF(IntPtr funcAddress, params InvokeArgument[] args)
         {
-            var count = 0;
+            var count    = 0;
             var prepared = PrepareArguments(1, args, null, ref count);
-            var result = InvokeCdeclF(funcAddress, new IntPtr(count), prepared);
-            if (Main.Is64Bit)
+            var result   = InvokeCdeclF(funcAddress, new IntPtr(count), prepared);
+
+            if ( Main.Is64Bit )
             {
                 var converted = BitConverter.GetBytes(result.ToInt64());
                 return BitConverter.ToSingle(converted, 0);
@@ -264,10 +269,11 @@
         /// <returns></returns>
         public static double InvokeCdeclD(IntPtr funcAddress, params InvokeArgument[] args)
         {
-            var count = 0;
+            var count    = 0;
             var prepared = PrepareArguments(2, args, null, ref count);
-            var result = InvokeCdeclD(funcAddress, new IntPtr(count), prepared);
-            if (Main.Is64Bit)
+            var result   = InvokeCdeclD(funcAddress, new IntPtr(count), prepared);
+
+            if ( Main.Is64Bit )
             {
                 var converted = BitConverter.GetBytes(result.ToInt64());
                 return BitConverter.ToDouble(converted, 0);
@@ -279,64 +285,61 @@
             }
         }
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         internal static extern void IncIgnoreException();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         internal static extern void DecIgnoreException();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
-        private static extern IntPtr InvokeThisCall(IntPtr thisAddress, IntPtr funcAddress, IntPtr argCount,
-            IntPtr[] argData);
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
+        private static extern IntPtr InvokeThisCall(IntPtr thisAddress, IntPtr funcAddress, IntPtr argCount, IntPtr[] argData);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern IntPtr InvokeStdCall(IntPtr funcAddress, IntPtr argCount, IntPtr[] argData);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern IntPtr InvokeCdecl(IntPtr funcAddress, IntPtr argCount, IntPtr[] argData);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern IntPtr InvokeCdecl_addr();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
-        private static extern IntPtr InvokeThisCallF(IntPtr thisAddress, IntPtr funcAddress, IntPtr argCount,
-            IntPtr[] argData);
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
+        private static extern IntPtr InvokeThisCallF(IntPtr thisAddress, IntPtr funcAddress, IntPtr argCount, IntPtr[] argData);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern IntPtr InvokeStdCallF(IntPtr funcAddress, IntPtr argCount, IntPtr[] argData);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
-        private static extern IntPtr InvokeThisCallD(IntPtr thisAddress, IntPtr funcAddress, IntPtr argCount,
-            IntPtr[] argData);
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
+        private static extern IntPtr InvokeThisCallD(IntPtr thisAddress, IntPtr funcAddress, IntPtr argCount, IntPtr[] argData);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern IntPtr InvokeStdCallD(IntPtr funcAddress, IntPtr argCount, IntPtr[] argData);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern IntPtr InvokeCdeclF(IntPtr funcAddress, IntPtr argCount, IntPtr[] argData);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern IntPtr InvokeCdeclF_addr();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern IntPtr InvokeCdeclD(IntPtr funcAddress, IntPtr argCount, IntPtr[] argData);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern IntPtr InvokeCdeclD_addr();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         internal static extern void ReadDQFrom(byte[] source, byte[] dest);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         internal static extern void WriteDQTo(byte[] source, byte[] dest);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         internal static extern void ReadFQFrom(byte[] source, byte[] dest);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         internal static extern void WriteFQTo(byte[] source, byte[] dest);
 
-        private static IntPtr _Invoke_Cdecl_address = IntPtr.Zero;
+        private static IntPtr _Invoke_Cdecl_address  = IntPtr.Zero;
         private static IntPtr _Invoke_CdeclF_address = IntPtr.Zero;
         private static IntPtr _Invoke_CdeclD_address = IntPtr.Zero;
 
@@ -351,24 +354,23 @@
         /// <param name="count">Argument count to pass.</param>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        private static IntPtr[] PrepareArguments(int funcReturnType, InvokeArgument[] args, IntPtr? thisPtr,
-            ref int count)
+        private static IntPtr[] PrepareArguments(int funcReturnType, InvokeArgument[] args, IntPtr? thisPtr, ref int count)
         {
-            if (args == null)
+            if ( args == null )
             {
                 args = new InvokeArgument[0];
             }
 
             // Stack size can't support more.
-            if (args.Length >= 32)
+            if ( args.Length >= 32 )
             {
-                throw new ArgumentOutOfRangeException(
-                    "Invoke argument count can't exceed 31!"); // Actually can be 32 if thisPtr is not set.
+                throw new ArgumentOutOfRangeException("Invoke argument count can't exceed 31!"); // Actually can be 32 if thisPtr is not set.
             }
 
-            if (!Main.Is64Bit)
+            if ( !Main.Is64Bit )
             {
                 throw new NotImplementedException();
+
                 /*IntPtr[] result = new IntPtr[args.Length];
                 for (int i = 0, j = args.Length - 1; i < args.Length; i++, j--)
                     result[j] = args[i].ValueOther;
@@ -376,34 +378,41 @@
                 return result;*/
             }
 
-            if (!thisPtr.HasValue)
+            if ( !thisPtr.HasValue )
             {
                 var result = new IntPtr[args.Length * 2];
-                for (var i = 0; i < args.Length; i++)
+
+                for ( var i = 0; i < args.Length; i++ )
                 {
-                    var a = args[i];
+                    var a    = args[i];
                     var type = a.ValueType;
                     result[i * 2] = _Argument_Jmp_Address[(funcReturnType * 15) + (Math.Min(4, i) * 3) + type];
-                    switch (type)
+
+                    switch ( type )
                     {
-                        case 0:
+                        case 0 :
                             result[(i * 2) + 1] = a.ValueOther;
                             break;
-                        case 1:
+
+                        case 1 :
                         {
-                            var converted = BitConverter.GetBytes(a.ValueFloat);
+                            var  converted  = BitConverter.GetBytes(a.ValueFloat);
                             long converted2 = BitConverter.ToUInt32(converted, 0);
                             result[(i * 2) + 1] = new IntPtr(converted2);
                         }
+
                             break;
-                        case 2:
+
+                        case 2 :
                         {
-                            var converted = BitConverter.GetBytes(a.ValueDouble);
+                            var  converted  = BitConverter.GetBytes(a.ValueDouble);
                             long converted2 = BitConverter.ToUInt32(converted, 0);
                             result[(i * 2) + 1] = new IntPtr(converted2);
                         }
+
                             break;
-                        default: throw new NotImplementedException();
+
+                        default : throw new NotImplementedException();
                     }
                 }
 
@@ -412,35 +421,42 @@
             }
             else
             {
-                var result = new IntPtr[(args.Length + 1) * 2];
+                var result = new IntPtr[(args.Length + 1)        * 2];
                 result[0] = _Argument_Jmp_Address[funcReturnType * 15];
                 result[1] = thisPtr.Value;
-                for (var j = 0; j < args.Length; j++)
+
+                for ( var j = 0; j < args.Length; j++ )
                 {
-                    var a = args[j];
+                    var a    = args[j];
                     var type = a.ValueType;
-                    var i = j + 1;
+                    var i    = j + 1;
                     result[i * 2] = _Argument_Jmp_Address[(funcReturnType * 15) + (Math.Min(4, i) * 3) + type];
-                    switch (type)
+
+                    switch ( type )
                     {
-                        case 0:
+                        case 0 :
                             result[(i * 2) + 1] = a.ValueOther;
                             break;
-                        case 1:
+
+                        case 1 :
                         {
-                            var converted = BitConverter.GetBytes(a.ValueFloat);
+                            var  converted  = BitConverter.GetBytes(a.ValueFloat);
                             long converted2 = BitConverter.ToUInt32(converted, 0);
                             result[(i * 2) + 1] = new IntPtr(converted2);
                         }
+
                             break;
-                        case 2:
+
+                        case 2 :
                         {
-                            var converted = BitConverter.GetBytes(a.ValueDouble);
+                            var  converted  = BitConverter.GetBytes(a.ValueDouble);
                             long converted2 = BitConverter.ToUInt32(converted, 0);
                             result[(i * 2) + 1] = new IntPtr(converted2);
                         }
+
                             break;
-                        default: throw new NotImplementedException();
+
+                        default : throw new NotImplementedException();
                     }
                 }
 
@@ -449,9 +465,9 @@
             }
         }
 
-        #endregion
+    #endregion
 
-        #region Allocation
+    #region Allocation
 
         /// <summary>
         ///     Allocates memory in current process. Returned value contains information about the allocation, including the base
@@ -478,24 +494,24 @@
         /// <exception cref="System.OutOfMemoryException">Failed to allocate memory using C allocator! Requested size was ...</exception>
         public static MemoryAllocation Allocate(int size, int align = 0, bool execute = false)
         {
-            if (size <= 0)
+            if ( size <= 0 )
             {
                 throw new ArgumentOutOfRangeException("size", "Size can't be zero or negative!");
             }
 
-            if (align < 0)
+            if ( align < 0 )
             {
                 throw new ArgumentOutOfRangeException("align", "Alignment can't be negative!");
             }
 
-            if (execute)
+            if ( execute )
             {
-                if (size > 1024 * 1024)
+                if ( size > 1024 * 1024 )
                 {
                     throw new ArgumentOutOfRangeException("size");
                 }
 
-                if (_codePageDefault < 0)
+                if ( _codePageDefault < 0 )
                     //SYSTEM_INFO si;
                     //GetSystemInfo(&si);
                     //_codePageDefault = Math.Max(65536, si.dwAllocationGranularity);
@@ -504,12 +520,14 @@
                 }
 
                 MemoryAllocation result = null;
-                lock (_codePageLocker)
+
+                lock ( _codePageLocker )
                 {
-                    for (var i = 0; i < _codePageList.Count; i++)
+                    for ( var i = 0; i < _codePageList.Count; i++ )
                     {
                         result = _codePageList[i].Get(size);
-                        if (result != null)
+
+                        if ( result != null )
                         {
                             return result;
                         }
@@ -525,10 +543,10 @@
             else
             {
                 var result = AllocateC(size, align);
-                if (result == IntPtr.Zero)
+
+                if ( result == IntPtr.Zero )
                 {
-                    throw new OutOfMemoryException("Failed to allocate memory using C allocator! Requested size was " +
-                                                   size + ".");
+                    throw new OutOfMemoryException("Failed to allocate memory using C allocator! Requested size was " + size + ".");
                 }
 
                 return new MemoryAllocation(result, size, align, MemoryAllocation.MemoryAllocationTypes.Heap, null);
@@ -543,16 +561,16 @@
         /// <exception cref="System.ArgumentOutOfRangeException">size</exception>
         public static MemoryStruct AllocateStruct(int size)
         {
-            if (size < 0)
+            if ( size < 0 )
             {
                 throw new ArgumentOutOfRangeException("size");
             }
 
             var alloc = Allocate(Math.Max(0x10, size), 0x10);
-            var mem = new MemoryStruct();
+            var mem   = new MemoryStruct();
             mem.Allocation = alloc;
-            mem.Size = size;
-            mem.Fields = new ulong[size];
+            mem.Size       = size;
+            mem.Fields     = new ulong[size];
             return mem;
         }
 
@@ -573,19 +591,19 @@
         /// <exception cref="System.InvalidOperationException"></exception>
         public static MemoryAllocation AllocateString(string text, bool wide)
         {
-            if (text == null)
+            if ( text == null )
             {
                 throw new ArgumentNullException("text");
             }
 
             var result = wide ? Marshal.StringToHGlobalUni(text) : Marshal.StringToHGlobalAnsi(text);
-            if (result == IntPtr.Zero)
+
+            if ( result == IntPtr.Zero )
             {
                 throw new InvalidOperationException();
             }
 
-            return new MemoryAllocation(result, (wide ? 2 : 1) * (text.Length + 1), 0,
-                MemoryAllocation.MemoryAllocationTypes.String, null);
+            return new MemoryAllocation(result, (wide ? 2 : 1) * (text.Length + 1), 0, MemoryAllocation.MemoryAllocationTypes.String, null);
         }
 
         /// <summary>
@@ -602,56 +620,55 @@
         /// <param name="page">The page.</param>
         internal static void FreeCode(IntPtr address, int size, CodePageAllocator page)
         {
-            lock (_codePageLocker) { page.Free(address, size); }
+            lock ( _codePageLocker ) { page.Free(address, size); }
         }
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         internal static extern IntPtr AllocateC(int size, int align);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         internal static extern void FreeC(IntPtr buf, bool align);
 
-        private static readonly object _codePageLocker = new object();
-        private static readonly List<CodePageAllocator> _codePageList = new List<CodePageAllocator>();
-        private static int _codePageDefault = -1;
+        private static readonly object                  _codePageLocker  = new object();
+        private static readonly List<CodePageAllocator> _codePageList    = new List<CodePageAllocator>();
+        private static          int                     _codePageDefault = -1;
 
-        #endregion
+    #endregion
 
-        #region Query
+    #region Query
 
-        [DllImport("kernel32.dll")]
-        private static extern int VirtualQuery(IntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, int dwLength);
+        [ DllImport("kernel32.dll") ] private static extern int VirtualQuery(IntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, int dwLength);
 
-        [StructLayout(LayoutKind.Sequential)]
+        [ StructLayout(LayoutKind.Sequential) ]
         private struct MEMORY_BASIC_INFORMATION
         {
             public readonly IntPtr BaseAddress;
             public readonly IntPtr AllocationBase;
-            public readonly uint AllocationProtect;
+            public readonly uint   AllocationProtect;
             public readonly IntPtr RegionSize;
-            public readonly uint State;
-            public readonly uint Protect;
-            public readonly uint Type;
+            public readonly uint   State;
+            public readonly uint   Protect;
+            public readonly uint   Type;
         }
 
         /// <summary>
         ///     Memory allocation protection flags.
         /// </summary>
-        [Flags]
+        [ Flags ]
         public enum AllocationProtectFlags : uint
         {
-            None = 0,
-            PAGE_EXECUTE = 0x00000010,
-            PAGE_EXECUTE_READ = 0x00000020,
+            None                   = 0,
+            PAGE_EXECUTE           = 0x00000010,
+            PAGE_EXECUTE_READ      = 0x00000020,
             PAGE_EXECUTE_READWRITE = 0x00000040,
             PAGE_EXECUTE_WRITECOPY = 0x00000080,
-            PAGE_NOACCESS = 0x00000001,
-            PAGE_READONLY = 0x00000002,
-            PAGE_READWRITE = 0x00000004,
-            PAGE_WRITECOPY = 0x00000008,
-            PAGE_GUARD = 0x00000100,
-            PAGE_NOCACHE = 0x00000200,
-            PAGE_WRITECOMBINE = 0x00000400
+            PAGE_NOACCESS          = 0x00000001,
+            PAGE_READONLY          = 0x00000002,
+            PAGE_READWRITE         = 0x00000004,
+            PAGE_WRITECOPY         = 0x00000008,
+            PAGE_GUARD             = 0x00000100,
+            PAGE_NOCACHE           = 0x00000200,
+            PAGE_WRITECOMBINE      = 0x00000400
         }
 
         /// <summary>
@@ -664,18 +681,19 @@
         /// <param name="size">The size of the region in bytes starting from base address.</param>
         /// <param name="flags">The protection flags.</param>
         /// <returns></returns>
-        public static bool GetRegionInfo(IntPtr address, ref IntPtr baseAddress, ref long size,
-            ref AllocationProtectFlags flags)
+        public static bool GetRegionInfo(IntPtr address, ref IntPtr baseAddress, ref long size, ref AllocationProtectFlags flags)
         {
             MEMORY_BASIC_INFORMATION result;
-            var ok = VirtualQuery(address, out result, Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION)));
-            if (ok == 0)
+            var                      ok = VirtualQuery(address, out result, Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION)));
+
+            if ( ok == 0 )
             {
                 return false;
             }
 
             baseAddress = result.BaseAddress;
-            if (Main.Is64Bit)
+
+            if ( Main.Is64Bit )
             {
                 size = result.RegionSize.ToInt64();
             }
@@ -701,45 +719,44 @@
         ///     flag.
         /// </param>
         /// <returns></returns>
-        public static bool IsValidRegion(AllocationProtectFlags flags, bool read, bool write, bool executable,
-            bool allowGuard = false)
+        public static bool IsValidRegion(AllocationProtectFlags flags, bool read, bool write, bool executable, bool allowGuard = false)
         {
-            if ((flags & AllocationProtectFlags.PAGE_NOACCESS) != AllocationProtectFlags.None)
+            if ( (flags & AllocationProtectFlags.PAGE_NOACCESS) != AllocationProtectFlags.None )
             {
                 return false;
             }
 
-            if (!allowGuard && (flags & AllocationProtectFlags.PAGE_GUARD) != AllocationProtectFlags.None)
+            if ( !allowGuard && (flags & AllocationProtectFlags.PAGE_GUARD) != AllocationProtectFlags.None )
             {
                 return false;
             }
 
-            if (read)
+            if ( read )
             {
-                if ((flags & (AllocationProtectFlags.PAGE_EXECUTE_READ | AllocationProtectFlags.PAGE_EXECUTE_READWRITE |
-                              AllocationProtectFlags.PAGE_EXECUTE_WRITECOPY |
-                              AllocationProtectFlags.PAGE_READONLY | AllocationProtectFlags.PAGE_READWRITE |
-                              AllocationProtectFlags.PAGE_WRITECOPY)) == AllocationProtectFlags.None)
+                if ( (flags &
+                      (AllocationProtectFlags.PAGE_EXECUTE_READ      |
+                       AllocationProtectFlags.PAGE_EXECUTE_READWRITE |
+                       AllocationProtectFlags.PAGE_EXECUTE_WRITECOPY |
+                       AllocationProtectFlags.PAGE_READONLY          |
+                       AllocationProtectFlags.PAGE_READWRITE         |
+                       AllocationProtectFlags.PAGE_WRITECOPY)) ==
+                     AllocationProtectFlags.None )
                 {
                     return false;
                 }
             }
 
-            if (write)
+            if ( write )
             {
-                if ((flags & (AllocationProtectFlags.PAGE_EXECUTE_READWRITE |
-                              AllocationProtectFlags.PAGE_EXECUTE_WRITECOPY | AllocationProtectFlags.PAGE_READWRITE |
-                              AllocationProtectFlags.PAGE_WRITECOPY)) == AllocationProtectFlags.None)
+                if ( (flags & (AllocationProtectFlags.PAGE_EXECUTE_READWRITE | AllocationProtectFlags.PAGE_EXECUTE_WRITECOPY | AllocationProtectFlags.PAGE_READWRITE | AllocationProtectFlags.PAGE_WRITECOPY)) == AllocationProtectFlags.None )
                 {
                     return false;
                 }
             }
 
-            if (executable)
+            if ( executable )
             {
-                if ((flags & (AllocationProtectFlags.PAGE_EXECUTE | AllocationProtectFlags.PAGE_EXECUTE_READ |
-                              AllocationProtectFlags.PAGE_EXECUTE_READWRITE |
-                              AllocationProtectFlags.PAGE_EXECUTE_WRITECOPY)) == AllocationProtectFlags.None)
+                if ( (flags & (AllocationProtectFlags.PAGE_EXECUTE | AllocationProtectFlags.PAGE_EXECUTE_READ | AllocationProtectFlags.PAGE_EXECUTE_READWRITE | AllocationProtectFlags.PAGE_EXECUTE_WRITECOPY)) == AllocationProtectFlags.None )
                 {
                     return false;
                 }
@@ -758,45 +775,44 @@
         /// <param name="executable">If set to <c>true</c> then we must have code execution access to this region.</param>
         /// <param name="allowGuard">Allow the page to be guarded?</param>
         /// <returns></returns>
-        public static bool IsValidRegion(IntPtr address, int size, bool read, bool write, bool executable,
-            bool allowGuard = false)
+        public static bool IsValidRegion(IntPtr address, int size, bool read, bool write, bool executable, bool allowGuard = false)
         {
-            var alloc_base = IntPtr.Zero;
-            long alloc_size = 0;
-            var alloc_flags = AllocationProtectFlags.None;
+            var  alloc_base  = IntPtr.Zero;
+            long alloc_size  = 0;
+            var  alloc_flags = AllocationProtectFlags.None;
 
-            if (!GetRegionInfo(address, ref alloc_base, ref alloc_size, ref alloc_flags))
+            if ( !GetRegionInfo(address, ref alloc_base, ref alloc_size, ref alloc_flags) )
             {
                 return false;
             }
 
-            if (!IsValidRegion(alloc_flags, read, write, executable, allowGuard))
+            if ( !IsValidRegion(alloc_flags, read, write, executable, allowGuard) )
             {
                 return false;
             }
 
-            var b = Main.Is64Bit ? alloc_base.ToUInt64() : alloc_base.ToUInt32();
+            var b     = Main.Is64Bit ? alloc_base.ToUInt64() : alloc_base.ToUInt32();
             var begin = Main.Is64Bit ? address.ToUInt64() : address.ToUInt32();
-            var end = b + unchecked((ulong)alloc_size);
+            var end   = b + unchecked((ulong)alloc_size);
 
-            if (begin >= end || begin < b)
+            if ( begin >= end || begin < b )
             {
                 return false;
             }
 
-            if (size <= 0)
+            if ( size <= 0 )
             {
                 return true;
             }
 
             var available = end - begin;
-            var want = (ulong)size;
+            var want      = (ulong)size;
             return want <= available;
         }
 
-        #endregion
+    #endregion
 
-        #region Reading
+    #region Reading
 
         /// <summary>
         ///     Reads value from specified memory address.
@@ -1100,7 +1116,8 @@
         public static bool TryReadPointer(IntPtr address, ref IntPtr result, bool protect = false)
         {
             var r = new byte[IntPtr.Size];
-            if (!TryRead(address, r, r.Length, protect))
+
+            if ( !TryRead(address, r, r.Length, protect) )
             {
                 return false;
             }
@@ -1121,13 +1138,15 @@
         /// <returns></returns>
         public static string ReadString(IntPtr address, bool wide, bool protect = false)
         {
-            using (var ms = new MemoryStream(128))
+            using ( var ms = new MemoryStream(128) )
             {
                 var r = new byte[wide ? 2 : 1];
-                while (true)
+
+                while ( true )
                 {
                     Read(address, r, r.Length, protect);
-                    if ((wide && BitConverter.ToChar(r, 0) == '\0') || (!wide && r[0] == 0))
+
+                    if ( (wide && BitConverter.ToChar(r, 0) == '\0') || (!wide && r[0] == 0) )
                     {
                         break;
                     }
@@ -1150,20 +1169,21 @@
         internal static string ReadStringIfItsString(IntPtr address, bool escapeChars)
         {
             var countGood = 0;
-            var countBad = 0;
-            var countOk = 0;
+            var countBad  = 0;
+            var countOk   = 0;
 
-            using (var ms = new MemoryStream(128))
+            using ( var ms = new MemoryStream(128) )
             {
                 var r = new byte[1];
-                while (true)
+
+                while ( true )
                 {
-                    if (!TryRead(address, r, r.Length, false))
+                    if ( !TryRead(address, r, r.Length, false) )
                     {
                         break;
                     }
 
-                    if (r[0] == 0)
+                    if ( r[0] == 0 )
                     {
                         break;
                     }
@@ -1172,36 +1192,37 @@
                     ms.Write(r, 0, r.Length);
 
                     var did = false;
-                    switch (r[0])
+
+                    switch ( r[0] )
                     {
-                        case 9: // \t
-                        case 0xD: // \r
+                        case 9 :   // \t
+                        case 0xD : // \r
                             countOk++;
                             did = true;
                             break;
 
-                        case 0xA: // \n
+                        case 0xA : // \n
                             countGood++;
                             did = true;
                             break;
                     }
 
-                    if (!did && r[0] < 0x20)
+                    if ( !did && r[0] < 0x20 )
                     {
                         countBad++;
                         did = true;
                     }
-                    else if (!did && r[0] < 0x7F)
+                    else if ( !did && r[0] < 0x7F )
                     {
                         countGood++;
                         did = true;
                     }
-                    else if (!did && r[0] < 176)
+                    else if ( !did && r[0] < 176 )
                     {
                         countOk++;
                         did = true;
                     }
-                    else if (!did)
+                    else if ( !did )
                     {
                         countBad++;
                         did = true;
@@ -1209,20 +1230,23 @@
                 }
 
                 var total = countGood + countOk + countBad;
-                if (total <= 0)
+
+                if ( total <= 0 )
                 {
                     return null;
                 }
 
                 var score = (countBad * -20) + (countOk * 1) + (countGood * 4);
-                if (score < 0)
+
+                if ( score < 0 )
                 {
                     return null;
                 }
 
                 r = ms.ToArray();
                 var rs = Encoding.ASCII.GetString(r);
-                if (escapeChars)
+
+                if ( escapeChars )
                 {
                     rs = rs.Replace("\n", "\\n");
                     rs = rs.Replace("\r", "\\r");
@@ -1245,13 +1269,14 @@
         /// <returns></returns>
         public static byte[] ReadBytes(IntPtr address, int length, bool protect = false)
         {
-            if (length < 0)
+            if ( length < 0 )
             {
                 throw new ArgumentOutOfRangeException("length");
             }
 
             var result = new byte[length];
-            if (length > 0)
+
+            if ( length > 0 )
             {
                 Read(address, result, length, protect);
             }
@@ -1283,36 +1308,38 @@
         /// <returns></returns>
         public static bool VerifyBytes(IntPtr address, string hex, bool protect = false)
         {
-            if (hex == null)
+            if ( hex == null )
             {
                 throw new ArgumentNullException(nameof(hex));
             }
 
-            if (hex.Length == 0)
+            if ( hex.Length == 0 )
             {
                 return true;
             }
 
             var parsed = new List<byte?>(32);
+
             {
                 byte cur_val = 0;
-                var cur_i = 0;
-                var cur_w = false;
+                var  cur_i   = 0;
+                var  cur_w   = false;
 
                 var index = 0;
-                var len = hex.Length;
-                while (index < len)
+                var len   = hex.Length;
+
+                while ( index < len )
                 {
                     var c = hex[index];
 
-                    switch (c)
+                    switch ( c )
                     {
-                        case ' ':
-                        case '-':
+                        case ' ' :
+                        case '-' :
                         {
-                            if (cur_i > 0)
+                            if ( cur_i > 0 )
                             {
-                                if (cur_w)
+                                if ( cur_w )
                                 {
                                     parsed.Add(null);
                                 }
@@ -1321,35 +1348,35 @@
                                     parsed.Add(cur_val);
                                 }
 
-                                cur_i = 0;
+                                cur_i   = 0;
                                 cur_val = 0;
-                                cur_w = false;
+                                cur_w   = false;
                             }
 
                             index++;
                             continue;
                         }
 
-                        case '*':
-                        case '?':
-                        case '.':
+                        case '*' :
+                        case '?' :
+                        case '.' :
                         {
-                            if (cur_i > 0)
+                            if ( cur_i > 0 )
                             {
-                                if (cur_w && cur_i == 1) // ?[?]
+                                if ( cur_w && cur_i == 1 ) // ?[?]
                                 {
                                     cur_i++;
                                 }
-                                else if (cur_w && cur_i == 2) // ??[?]
+                                else if ( cur_w && cur_i == 2 ) // ??[?]
                                 {
                                     parsed.Add(null);
                                     cur_i = 1;
                                 }
-                                else if (!cur_w) // n[?]
+                                else if ( !cur_w ) // n[?]
                                 {
                                     parsed.Add(cur_val);
-                                    cur_w = true;
-                                    cur_i = 1;
+                                    cur_w   = true;
+                                    cur_i   = 1;
                                     cur_val = 0;
                                 }
                             }
@@ -1363,65 +1390,66 @@
                             continue;
                         }
 
-                        case '0':
-                        case '1':
-                        case '2':
-                        case '3':
-                        case '4':
-                        case '5':
-                        case '6':
-                        case '7':
-                        case '8':
-                        case '9':
-                        case 'a':
-                        case 'b':
-                        case 'c':
-                        case 'd':
-                        case 'e':
-                        case 'f':
-                        case 'A':
-                        case 'B':
-                        case 'C':
-                        case 'D':
-                        case 'E':
-                        case 'F':
+                        case '0' :
+                        case '1' :
+                        case '2' :
+                        case '3' :
+                        case '4' :
+                        case '5' :
+                        case '6' :
+                        case '7' :
+                        case '8' :
+                        case '9' :
+                        case 'a' :
+                        case 'b' :
+                        case 'c' :
+                        case 'd' :
+                        case 'e' :
+                        case 'f' :
+                        case 'A' :
+                        case 'B' :
+                        case 'C' :
+                        case 'D' :
+                        case 'E' :
+                        case 'F' :
                         {
                             byte val = 0;
-                            if (c >= '0' && c <= '9')
+
+                            if ( c >= '0' && c <= '9' )
                             {
                                 val = (byte)(c - '0');
                             }
-                            else if (c >= 'a' && c <= 'f')
+                            else if ( c >= 'a' && c <= 'f' )
                             {
                                 val = (byte)((c - 'a') + 10);
                             }
-                            else if (c >= 'A' && c <= 'F')
+                            else if ( c >= 'A' && c <= 'F' )
                             {
                                 val = (byte)((c - 'A') + 10);
                             }
 
-                            if (cur_i > 0)
+                            if ( cur_i > 0 )
                             {
-                                if (cur_w)
+                                if ( cur_w )
                                 {
                                     parsed.Add(null);
-                                    cur_i = 1;
-                                    cur_w = false;
+                                    cur_i   = 1;
+                                    cur_w   = false;
                                     cur_val = val;
                                 }
                                 else
                                 {
                                     cur_val <<= 4;
-                                    cur_val |= val;
+                                    cur_val |=  val;
                                     parsed.Add(cur_val);
 
                                     cur_val = 0;
-                                    cur_i = 0;
+                                    cur_i   = 0;
                                 }
                             }
                             else
                             {
-                                cur_i = 1;
+                                cur_i   = 1;
                                 cur_val = val;
                             }
 
@@ -1429,14 +1457,13 @@
                             continue;
                         }
 
-                        default:
-                            throw new FormatException("Unknown symbol in hex string: '" + c + "'!");
+                        default : throw new FormatException("Unknown symbol in hex string: '" + c + "'!");
                     }
                 }
 
-                if (cur_i > 0)
+                if ( cur_i > 0 )
                 {
-                    if (cur_w)
+                    if ( cur_w )
                     {
                         parsed.Add(null);
                     }
@@ -1448,16 +1475,19 @@
             }
 
             var bytes = ReadBytes(address, parsed.Count, protect);
-            for (var i = 0; i < bytes.Length; i++)
+
+            for ( var i = 0; i < bytes.Length; i++ )
             {
                 var comp = parsed[i];
-                if (!comp.HasValue)
+
+                if ( !comp.HasValue )
                 {
                     continue;
                 }
 
                 var val = bytes[i];
-                if (comp.Value != val)
+
+                if ( comp.Value != val )
                 {
                     return false;
                 }
@@ -1482,15 +1512,16 @@
         /// <returns></returns>
         public static bool TryReadBytes(IntPtr address, int length, ref byte[] result, bool protect = false)
         {
-            if (length < 0)
+            if ( length < 0 )
             {
                 throw new ArgumentOutOfRangeException(nameof(length));
             }
 
             var r = new byte[length];
-            if (length > 0)
+
+            if ( length > 0 )
             {
-                if (!TryRead(address, r, length, protect))
+                if ( !TryRead(address, r, length, protect) )
                 {
                     return false;
                 }
@@ -1500,9 +1531,9 @@
             return true;
         }
 
-        #endregion
+    #endregion
 
-        #region Writing
+    #region Writing
 
         /// <summary>
         ///     Writes value to specified memory address.
@@ -1515,7 +1546,7 @@
         /// </param>
         public static void WriteInt8(IntPtr address, sbyte value, bool protect = false)
         {
-            var r = new[] {unchecked((byte)value)};
+            var r = new[] { unchecked((byte)value) };
             Write(address, r, 0, r.Length, protect);
         }
 
@@ -1530,7 +1561,7 @@
         /// </param>
         public static void WriteUInt8(IntPtr address, byte value, bool protect = false)
         {
-            var r = new[] {value};
+            var r = new[] { value };
             Write(address, r, 0, r.Length, protect);
         }
 
@@ -1780,7 +1811,7 @@
         /// <exception cref="System.ArgumentNullException">value</exception>
         public static void WriteString(IntPtr address, string value, bool wide, bool protect = false)
         {
-            if (value == null)
+            if ( value == null )
             {
                 throw new ArgumentNullException("value");
             }
@@ -1798,8 +1829,7 @@
         ///     If set to <c>true</c> then change protection flags of memory page before writing and return after.
         ///     Only set this true if you are sure you don't have write permissions!
         /// </param>
-        public static void WriteBytes(IntPtr address, byte[] value, bool protect = false) =>
-            Write(address, value, 0, value.Length, protect);
+        public static void WriteBytes(IntPtr address, byte[] value, bool protect = false) => Write(address, value, 0, value.Length, protect);
 
         /// <summary>
         ///     Writes value to specified memory address.
@@ -1812,8 +1842,7 @@
         ///     If set to <c>true</c> then change protection flags of memory page before writing and return after.
         ///     Only set this true if you are sure you don't have write permissions!
         /// </param>
-        public static void WriteBytes(IntPtr address, byte[] value, int index, int length, bool protect = false) =>
-            Write(address, value, index, length, protect);
+        public static void WriteBytes(IntPtr address, byte[] value, int index, int length, bool protect = false) => Write(address, value, index, length, protect);
 
         /// <summary>
         ///     Writes zero bytes to specified memory address.
@@ -1826,18 +1855,18 @@
         /// </param>
         public static void WriteZero(IntPtr address, int size, bool protect = false)
         {
-            if (size < 0)
+            if ( size < 0 )
             {
                 throw new ArgumentOutOfRangeException("size", "Size must not be negative!");
             }
 
-            if (size <= ZeroBytes.Length)
+            if ( size <= ZeroBytes.Length )
             {
                 WriteBytes(address, ZeroBytes, 0, size, protect);
             }
             else
             {
-                for (var i = 0; i < size; i += ZeroBytes.Length)
+                for ( var i = 0; i < size; i += ZeroBytes.Length )
                 {
                     var len = Math.Min(ZeroBytes.Length, size - i);
                     WriteBytes(address, ZeroBytes, 0, len, protect);
@@ -1853,10 +1882,9 @@
         /// <param name="size">The size.</param>
         /// <param name="protectSource">if set to <c>true</c> [protect source].</param>
         /// <param name="protectTarget">if set to <c>true</c> [protect target].</param>
-        public static void Copy(IntPtr source, IntPtr target, int size, bool protectSource = false,
-            bool protectTarget = false)
+        public static void Copy(IntPtr source, IntPtr target, int size, bool protectSource = false, bool protectTarget = false)
         {
-            if (size < 0)
+            if ( size < 0 )
             {
                 throw new ArgumentOutOfRangeException("size", "Size must not be negative!");
             }
@@ -1943,48 +1971,51 @@
         /// <returns></returns>
         public static bool FindCodeCave(IntPtr page, int size, ref IntPtr result)
         {
-            var baseAddr = IntPtr.Zero;
+            var  baseAddr = IntPtr.Zero;
             long pageSize = 0;
-            var flags = AllocationProtectFlags.None;
-            if (size <= 0 || size > 256 || !GetRegionInfo(page, ref baseAddr, ref pageSize, ref flags) ||
-                !IsValidRegion(flags, true, false, false))
+            var  flags    = AllocationProtectFlags.None;
+
+            if ( size <= 0 || size > 256 || !GetRegionInfo(page, ref baseAddr, ref pageSize, ref flags) || !IsValidRegion(flags, true, false, false) )
             {
                 return false;
             }
 
-            var cur = baseAddr.ToInt64();
-            var max = cur + pageSize;
-            var batch = 4096;
+            var cur       = baseAddr.ToInt64();
+            var max       = cur + pageSize;
+            var batch     = 4096;
             var searching = new byte[size];
-            for (var i = 0; i < size; i++)
+
+            for ( var i = 0; i < size; i++ )
             {
                 searching[i] = 0xCC;
             }
 
-            while (cur < max)
+            while ( cur < max )
             {
                 var can = Math.Min(max - cur, batch);
                 var buf = ReadBytes(new IntPtr(cur), (int)can);
-                for (var i = 0; i < buf.Length - (size + 1); i++)
+
+                for ( var i = 0; i < buf.Length - (size + 1); i++ )
                 {
-                    if (buf[i] != 0xC3)
+                    if ( buf[i] != 0xC3 )
                     {
                         continue;
                     }
 
-                    var j = i + 1;
-                    var k = 0;
+                    var j  = i + 1;
+                    var k  = 0;
                     var ok = true;
-                    for (; k < size; k++, j++)
+
+                    for ( ; k < size; k++, j++ )
                     {
-                        if (buf[j] != searching[k])
+                        if ( buf[j] != searching[k] )
                         {
                             ok = false;
                             break;
                         }
                     }
 
-                    if (ok)
+                    if ( ok )
                     {
                         result = new IntPtr(cur + i + 1);
                         return true;
@@ -2007,47 +2038,51 @@
         {
             var result = new List<IntPtr>();
 
-            var baseAddr = IntPtr.Zero;
+            var  baseAddr = IntPtr.Zero;
             long pageSize = 0;
-            var flags = AllocationProtectFlags.None;
-            if (!GetRegionInfo(page, ref baseAddr, ref pageSize, ref flags))
+            var  flags    = AllocationProtectFlags.None;
+
+            if ( !GetRegionInfo(page, ref baseAddr, ref pageSize, ref flags) )
             {
                 return result;
             }
 
-            var cur = baseAddr.ToInt64();
-            var max = cur + pageSize;
-            var batch = 4096;
+            var cur       = baseAddr.ToInt64();
+            var max       = cur + pageSize;
+            var batch     = 4096;
             var searching = new byte[size];
-            for (var i = 0; i < size; i++)
+
+            for ( var i = 0; i < size; i++ )
             {
                 searching[i] = 0xCC;
             }
 
-            while (cur < max)
+            while ( cur < max )
             {
                 var can = Math.Min(max - cur, batch);
                 var buf = ReadBytes(new IntPtr(cur), (int)can);
-                for (var i = 0; i < buf.Length - (size + 1); i++)
+
+                for ( var i = 0; i < buf.Length - (size + 1); i++ )
                 {
-                    if (buf[i] != 0xC3)
+                    if ( buf[i] != 0xC3 )
                     {
                         continue;
                     }
 
-                    var j = i + 1;
-                    var k = 0;
+                    var j  = i + 1;
+                    var k  = 0;
                     var ok = true;
-                    for (; k < size; k++, j++)
+
+                    for ( ; k < size; k++, j++ )
                     {
-                        if (buf[j] != searching[k])
+                        if ( buf[j] != searching[k] )
                         {
                             ok = false;
                             break;
                         }
                     }
 
-                    if (ok)
+                    if ( ok )
                     {
                         result.Add(new IntPtr(cur + i + 1));
                         i += size;
@@ -2086,35 +2121,33 @@
         ///     The replaced code would require a code cave but didn't find an available
         ///     code cave of length  + jmpAway.Length +  in the code page!
         /// </exception>
-        public static void WriteNativeCode(IntPtr address, int includeLength, int replaceLength, byte[] assemblyCode,
-            bool placeIncludedCodeBeforeNewCode = true)
+        public static void WriteNativeCode(IntPtr address, int includeLength, int replaceLength, byte[] assemblyCode, bool placeIncludedCodeBeforeNewCode = true)
         {
-            if (!Main.Is64Bit)
+            if ( !Main.Is64Bit )
             {
                 throw new NotImplementedException();
             }
 
-            if (assemblyCode == null)
+            if ( assemblyCode == null )
             {
                 throw new ArgumentNullException("assemblyCode");
             }
 
-            if (replaceLength < 5)
+            if ( replaceLength < 5 )
             {
-                throw new ArgumentOutOfRangeException("replaceLength",
-                    "Replaced code length must be at least 5 bytes!");
+                throw new ArgumentOutOfRangeException("replaceLength", "Replaced code length must be at least 5 bytes!");
             }
 
             var relCallAddr = IntPtr.Zero;
-            var returnAddr = address + replaceLength;
+            var returnAddr  = address + replaceLength;
             var includeCode = includeLength > 0 ? ReadBytes(address, Math.Abs(includeLength)) : new byte[0];
-            var isRelCall = false;
+            var isRelCall   = false;
 
-            if (includeCode.Length == 5 && includeCode[0] == 0xE8)
+            if ( includeCode.Length == 5 && includeCode[0] == 0xE8 )
             {
                 relCallAddr = address + 5 + BitConverter.ToInt32(includeCode, 1);
-                includeCode = new byte[6] {0xFF, 0x15, 0, 0, 0, 0}; // dummy
-                isRelCall = true;
+                includeCode = new byte[6] { 0xFF, 0x15, 0, 0, 0, 0 }; // dummy
+                isRelCall   = true;
             }
 
             var alloc = Allocate(assemblyCode.Length + includeCode.Length + 0x40, 0, true);
@@ -2123,44 +2156,44 @@
             WritePointer(alloc.Address, relCallAddr, true);
             WritePointer(alloc.Address + 8, returnAddr, true);
 
-            using (var ms = new MemoryStream(assemblyCode.Length + includeCode.Length + 0x30))
+            using ( var ms = new MemoryStream(assemblyCode.Length + includeCode.Length + 0x30) )
             {
-                using (var wr = new BinaryWriter(ms))
+                using ( var wr = new BinaryWriter(ms) )
                 {
                     wr.Write((byte)0x58); // pop rax
 
-                    if (placeIncludedCodeBeforeNewCode)
+                    if ( placeIncludedCodeBeforeNewCode )
                     {
-                        if (isRelCall)
+                        if ( isRelCall )
                         {
-                            wr.Write(new byte[] {0xFF, 0x15}); // call [rip+relCall]
+                            wr.Write(new byte[] { 0xFF, 0x15 }); // call [rip+relCall]
                             wr.Write(-(0x10 + (int)ms.Position + 4));
                         }
-                        else if (includeCode.Length != 0)
+                        else if ( includeCode.Length != 0 )
                         {
                             wr.Write(includeCode); // includeCode
                         }
                     }
 
-                    if (assemblyCode.Length != 0)
+                    if ( assemblyCode.Length != 0 )
                     {
                         wr.Write(assemblyCode); // assemblyCode
                     }
 
-                    if (!placeIncludedCodeBeforeNewCode)
+                    if ( !placeIncludedCodeBeforeNewCode )
                     {
-                        if (isRelCall)
+                        if ( isRelCall )
                         {
-                            wr.Write(new byte[] {0xFF, 0x15}); // call [rip+relCall]
+                            wr.Write(new byte[] { 0xFF, 0x15 }); // call [rip+relCall]
                             wr.Write(-(0x10 + (int)ms.Position + 4));
                         }
-                        else if (includeCode.Length != 0)
+                        else if ( includeCode.Length != 0 )
                         {
                             wr.Write(includeCode); // includeCode
                         }
                     }
 
-                    wr.Write(new byte[] {0xFF, 0x25}); // jmp [rip+returnAddr]
+                    wr.Write(new byte[] { 0xFF, 0x25 }); // jmp [rip+returnAddr]
                     wr.Write(-(0x8 + (int)ms.Position + 4));
 
                     WriteBytes(alloc.Address + 0x10, ms.ToArray(), true);
@@ -2168,34 +2201,33 @@
             }
 
             byte[] jmpAway;
-            using (var ms = new MemoryStream(16))
+
+            using ( var ms = new MemoryStream(16) )
             {
-                using (var wr = new BinaryWriter(ms))
+                using ( var wr = new BinaryWriter(ms) )
                 {
-                    wr.Write((byte)0x50); // push rax
-                    wr.Write(new byte[] {0x48, 0xB8}); // mov rax, ...
+                    wr.Write((byte)0x50);                // push rax
+                    wr.Write(new byte[] { 0x48, 0xB8 }); // mov rax, ...
                     wr.Write((alloc.Address + 0x10).ToInt64());
-                    wr.Write(new byte[] {0xFF, 0xE0}); // jmp rax
+                    wr.Write(new byte[] { 0xFF, 0xE0 }); // jmp rax
 
                     jmpAway = ms.ToArray();
                 }
             }
 
-            if (replaceLength < jmpAway.Length)
+            if ( replaceLength < jmpAway.Length )
             {
                 var cave = IntPtr.Zero;
-                if (!FindCodeCave(address, jmpAway.Length, ref cave))
+
+                if ( !FindCodeCave(address, jmpAway.Length, ref cave) )
                 {
-                    throw new ArgumentException(
-                        "The replaced code would require a code cave but didn't find an available code cave of length " +
-                        jmpAway.Length +
-                        " in the code page!");
+                    throw new ArgumentException("The replaced code would require a code cave but didn't find an available code cave of length " + jmpAway.Length + " in the code page!");
                 }
 
                 WriteBytes(cave, jmpAway, true);
 
                 var fromAddress = (address + 5).ToInt64();
-                var toAddress = cave.ToInt64();
+                var toAddress   = cave.ToInt64();
 
                 var diff = (int)(toAddress - fromAddress);
 
@@ -2205,9 +2237,9 @@
             else { WriteBytes(address, jmpAway, true); }
         }
 
-        #endregion
+    #endregion
 
-        #region Internal methods
+    #region Internal methods
 
         /// <summary>
         ///     Converts the specified pointer to a unsigned long value.
@@ -2216,7 +2248,7 @@
         /// <returns></returns>
         internal static ulong Convert(IntPtr ptr)
         {
-            if (Main.Is64Bit)
+            if ( Main.Is64Bit )
             {
                 return unchecked((ulong)ptr.ToInt64());
             }
@@ -2231,7 +2263,7 @@
         /// <returns></returns>
         internal static IntPtr Convert(ulong ptr)
         {
-            if (Main.Is64Bit)
+            if ( Main.Is64Bit )
             {
                 return new IntPtr(unchecked((long)ptr));
             }
@@ -2251,79 +2283,78 @@
         /// <exception cref="NetScriptFramework.MemoryAccessException"></exception>
         private static void Read(IntPtr address, byte[] buffer, int length, bool protect, int intl = 0)
         {
-            if (!protect)
+            if ( !protect )
             {
-                if (intl == 0)
+                if ( intl == 0 )
                 {
-                    if (MemoryCopy(address, 0, buffer, 0, length) != length)
+                    if ( MemoryCopy(address, 0, buffer, 0, length) != length )
                     {
                         throw new MemoryAccessException(address, length, false);
                     }
                 }
                 else
                 {
-                    switch (intl)
+                    switch ( intl )
                     {
-                        case 1:
-                            if (MemoryReadInterlocked32(address, buffer) == 0)
+                        case 1 :
+                            if ( MemoryReadInterlocked32(address, buffer) == 0 )
                             {
                                 throw new MemoryAccessException(address, 4, false);
                             }
 
                             break;
 
-                        case 2:
-                            if (MemoryReadInterlocked64(address, buffer) == 0)
+                        case 2 :
+                            if ( MemoryReadInterlocked64(address, buffer) == 0 )
                             {
                                 throw new MemoryAccessException(address, 8, false);
                             }
 
                             break;
 
-                        default:
-                            throw new InvalidOperationException();
+                        default : throw new InvalidOperationException();
                     }
                 }
 
                 return;
             }
 
-            lock (ProtectedMemoryLocker)
+            lock ( ProtectedMemoryLocker )
             {
                 uint oldProtect = 0;
-                if (!VirtualProtect(address, (uint)length, 0x40, out oldProtect))
+
+                if ( !VirtualProtect(address, (uint)length, 0x40, out oldProtect) )
                 {
                     throw new MemoryAccessException(address, length, 1);
                 }
 
                 try
                 {
-                    if (intl == 0)
+                    if ( intl == 0 )
                     {
                         Marshal.Copy(address, buffer, 0, length);
                     }
                     else
                     {
-                        switch (intl)
+                        switch ( intl )
                         {
-                            case 1:
-                                if (MemoryReadInterlocked32(address, buffer) == 0)
+                            case 1 :
+                                if ( MemoryReadInterlocked32(address, buffer) == 0 )
                                 {
                                     throw new MemoryAccessException(address, 4, false);
                                 }
 
                                 break;
 
-                            case 2:
-                                if (MemoryReadInterlocked64(address, buffer) == 0)
+                            case 2 :
+                                if ( MemoryReadInterlocked64(address, buffer) == 0 )
                                 {
                                     throw new MemoryAccessException(address, 8, false);
                                 }
 
                                 break;
 
-                            default:
-                                throw new InvalidOperationException();
+                            default : throw new InvalidOperationException();
                         }
                     }
                 }
@@ -2342,79 +2373,78 @@
         /// <exception cref="NetScriptFramework.MemoryAccessException"></exception>
         private static bool TryRead(IntPtr address, byte[] buffer, int length, bool protect, int intl = 0)
         {
-            if (!protect)
+            if ( !protect )
             {
-                if (intl == 0)
+                if ( intl == 0 )
                 {
-                    if (MemoryCopy(address, 0, buffer, 0, length) != length)
+                    if ( MemoryCopy(address, 0, buffer, 0, length) != length )
                     {
                         return false;
                     }
                 }
                 else
                 {
-                    switch (intl)
+                    switch ( intl )
                     {
-                        case 1:
-                            if (MemoryReadInterlocked32(address, buffer) == 0)
+                        case 1 :
+                            if ( MemoryReadInterlocked32(address, buffer) == 0 )
                             {
                                 return false;
                             }
 
                             break;
 
-                        case 2:
-                            if (MemoryReadInterlocked64(address, buffer) == 0)
+                        case 2 :
+                            if ( MemoryReadInterlocked64(address, buffer) == 0 )
                             {
                                 return false;
                             }
 
                             break;
 
-                        default:
-                            throw new InvalidOperationException();
+                        default : throw new InvalidOperationException();
                     }
                 }
 
                 return true;
             }
 
-            lock (ProtectedMemoryLocker)
+            lock ( ProtectedMemoryLocker )
             {
                 uint oldProtect = 0;
-                if (!VirtualProtect(address, (uint)length, 0x40, out oldProtect))
+
+                if ( !VirtualProtect(address, (uint)length, 0x40, out oldProtect) )
                 {
                     return false;
                 }
 
                 try
                 {
-                    if (intl == 0)
+                    if ( intl == 0 )
                     {
                         Marshal.Copy(address, buffer, 0, length);
                     }
                     else
                     {
-                        switch (intl)
+                        switch ( intl )
                         {
-                            case 1:
-                                if (MemoryReadInterlocked32(address, buffer) == 0)
+                            case 1 :
+                                if ( MemoryReadInterlocked32(address, buffer) == 0 )
                                 {
                                     return false;
                                 }
 
                                 break;
 
-                            case 2:
-                                if (MemoryReadInterlocked64(address, buffer) == 0)
+                            case 2 :
+                                if ( MemoryReadInterlocked64(address, buffer) == 0 )
                                 {
                                     return false;
                                 }
 
                                 break;
 
-                            default:
-                                throw new InvalidOperationException();
+                            default : throw new InvalidOperationException();
                         }
                     }
                 }
@@ -2437,143 +2467,142 @@
         /// </exception>
         private static void Write(IntPtr address, byte[] buffer, int index, int length, bool protect, int intl = 0)
         {
-            if (!protect)
+            if ( !protect )
             {
-                if (intl == 0)
+                if ( intl == 0 )
                 {
-                    if (MemoryCopy(buffer, index, address, 0, length) != length)
+                    if ( MemoryCopy(buffer, index, address, 0, length) != length )
                     {
                         throw new MemoryAccessException(address, length, true);
                     }
                 }
                 else
                 {
-                    switch (intl)
+                    switch ( intl )
                     {
-                        case 1:
-                            if (MemoryWriteInterlocked32(buffer, address) == 0)
+                        case 1 :
+                            if ( MemoryWriteInterlocked32(buffer, address) == 0 )
                             {
                                 throw new MemoryAccessException(address, 4, true);
                             }
 
                             break;
 
-                        case 2:
-                            if (MemoryWriteInterlocked64(buffer, address) == 0)
+                        case 2 :
+                            if ( MemoryWriteInterlocked64(buffer, address) == 0 )
                             {
                                 throw new MemoryAccessException(address, 8, true);
                             }
 
                             break;
 
-                        case 3:
-                            if (MemoryIncrementInterlocked32(buffer, address) == 0)
+                        case 3 :
+                            if ( MemoryIncrementInterlocked32(buffer, address) == 0 )
                             {
                                 throw new MemoryAccessException(address, 4, true);
                             }
 
                             break;
 
-                        case 4:
-                            if (MemoryDecrementInterlocked32(buffer, address) == 0)
+                        case 4 :
+                            if ( MemoryDecrementInterlocked32(buffer, address) == 0 )
                             {
                                 throw new MemoryAccessException(address, 4, true);
                             }
 
                             break;
 
-                        case 5:
-                            if (MemoryIncrementInterlocked64(buffer, address) == 0)
+                        case 5 :
+                            if ( MemoryIncrementInterlocked64(buffer, address) == 0 )
                             {
                                 throw new MemoryAccessException(address, 8, true);
                             }
 
                             break;
 
-                        case 6:
-                            if (MemoryDecrementInterlocked64(buffer, address) == 0)
+                        case 6 :
+                            if ( MemoryDecrementInterlocked64(buffer, address) == 0 )
                             {
                                 throw new MemoryAccessException(address, 8, true);
                             }
 
                             break;
 
-                        default:
-                            throw new NotImplementedException();
+                        default : throw new NotImplementedException();
                     }
                 }
 
                 return;
             }
 
-            lock (ProtectedMemoryLocker)
+            lock ( ProtectedMemoryLocker )
             {
                 uint oldProtect = 0;
-                if (!VirtualProtect(address, (uint)length, 0x40, out oldProtect))
+
+                if ( !VirtualProtect(address, (uint)length, 0x40, out oldProtect) )
                 {
                     throw new MemoryAccessException(address, length, -1);
                 }
 
                 try
                 {
-                    if (intl == 0)
+                    if ( intl == 0 )
                     {
                         Marshal.Copy(buffer, index, address, length);
                     }
                     else
                     {
-                        switch (intl)
+                        switch ( intl )
                         {
-                            case 1:
-                                if (MemoryWriteInterlocked32(buffer, address) == 0)
+                            case 1 :
+                                if ( MemoryWriteInterlocked32(buffer, address) == 0 )
                                 {
                                     throw new MemoryAccessException(address, 4, true);
                                 }
 
                                 break;
 
-                            case 2:
-                                if (MemoryWriteInterlocked64(buffer, address) == 0)
+                            case 2 :
+                                if ( MemoryWriteInterlocked64(buffer, address) == 0 )
                                 {
                                     throw new MemoryAccessException(address, 8, true);
                                 }
 
                                 break;
 
-                            case 3:
-                                if (MemoryIncrementInterlocked32(buffer, address) == 0)
+                            case 3 :
+                                if ( MemoryIncrementInterlocked32(buffer, address) == 0 )
                                 {
                                     throw new MemoryAccessException(address, 4, true);
                                 }
 
                                 break;
 
-                            case 4:
-                                if (MemoryDecrementInterlocked32(buffer, address) == 0)
+                            case 4 :
+                                if ( MemoryDecrementInterlocked32(buffer, address) == 0 )
                                 {
                                     throw new MemoryAccessException(address, 4, true);
                                 }
 
                                 break;
 
-                            case 5:
-                                if (MemoryIncrementInterlocked64(buffer, address) == 0)
+                            case 5 :
+                                if ( MemoryIncrementInterlocked64(buffer, address) == 0 )
                                 {
                                     throw new MemoryAccessException(address, 8, true);
                                 }
 
                                 break;
 
-                            case 6:
-                                if (MemoryDecrementInterlocked64(buffer, address) == 0)
+                            case 6 :
+                                if ( MemoryDecrementInterlocked64(buffer, address) == 0 )
                                 {
                                     throw new MemoryAccessException(address, 8, true);
                                 }
 
                                 break;
 
-                            default:
-                                throw new NotImplementedException();
+                            default : throw new NotImplementedException();
                         }
                     }
                 }
@@ -2589,14 +2618,16 @@
         {
             var result = new int[4];
             result[0] = 1;
-            var module = Process.GetCurrentProcess().MainModule;
+            var module          = Process.GetCurrentProcess().MainModule;
             var fileVersionInfo = module.FileVersionInfo;
-            if (fileVersionInfo != null)
+
+            if ( fileVersionInfo != null )
             {
                 var arr = Game.GetModuleVersion(fileVersionInfo);
-                if (arr != null)
+
+                if ( arr != null )
                 {
-                    for (var i = 0; i < 4 && i < arr.Length; i++)
+                    for ( var i = 0; i < 4 && i < arr.Length; i++ )
                     {
                         result[i] = arr[i];
                     }
@@ -2612,49 +2643,44 @@
         /// </summary>
         private static readonly object ProtectedMemoryLocker = new object();
 
-        [DllImport("kernel32.dll")]
-        private static extern bool VirtualProtect(IntPtr lpAddress, uint dwSize, uint flNewProtect,
-            out uint lpflOldProtect);
+        [ DllImport("kernel32.dll") ] private static extern bool VirtualProtect(IntPtr lpAddress, uint dwSize, uint flNewProtect, out uint lpflOldProtect);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
-        private static extern int MemoryCopy(IntPtr source, int sourceIndex, byte[] destination, int destinationIndex,
-            int length);
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
+        private static extern int MemoryCopy(IntPtr source, int sourceIndex, byte[] destination, int destinationIndex, int length);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
-        private static extern int MemoryCopy(byte[] source, int sourceIndex, IntPtr destination, int destinationIndex,
-            int length);
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
+        private static extern int MemoryCopy(byte[] source, int sourceIndex, IntPtr destination, int destinationIndex, int length);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern int MemoryReadInterlocked32(IntPtr address, byte[] result);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern int MemoryReadInterlocked64(IntPtr address, byte[] result);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern int MemoryWriteInterlocked32(byte[] result, IntPtr address);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern int MemoryWriteInterlocked64(byte[] result, IntPtr address);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern int MemoryIncrementInterlocked64(byte[] result, IntPtr address);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern int MemoryDecrementInterlocked64(byte[] result, IntPtr address);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern int MemoryIncrementInterlocked32(byte[] result, IntPtr address);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern int MemoryDecrementInterlocked32(byte[] result, IntPtr address);
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
-        private static extern void Explore_RTTI(IntPtr obj, IntPtr baseObj, IntPtr data, int dataMaxCount,
-            IntPtr moduleBase);
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
+        private static extern void Explore_RTTI(IntPtr obj, IntPtr baseObj, IntPtr data, int dataMaxCount, IntPtr moduleBase);
 
-        #endregion
+    #endregion
 
-        #region Injection
+    #region Injection
 
         /// <summary>
         ///     Writes the assembly NOP opcodes to address. This will use safe writing so we can write on code pages as well.
@@ -2663,13 +2689,14 @@
         /// <param name="count">The count.</param>
         public static void WriteNop(IntPtr address, int count)
         {
-            if (count <= 0)
+            if ( count <= 0 )
             {
                 return;
             }
 
             var data = new byte[count];
-            for (var i = 0; i < data.Length; i++)
+
+            for ( var i = 0; i < data.Length; i++ )
             {
                 data[i] = 0x90;
             }
@@ -2798,140 +2825,143 @@
         /// <exception cref="System.NotImplementedException"></exception>
         public static void WriteHook(HookParameters parameters)
         {
-            if (parameters == null)
+            if ( parameters == null )
             {
                 throw new ArgumentNullException(nameof(parameters));
             }
 
-            if (parameters.Address == IntPtr.Zero)
+            if ( parameters.Address == IntPtr.Zero )
             {
                 throw new ArgumentNullException("parameters.Address");
             }
 
-            if (parameters.Before == null && parameters.After == null)
+            if ( parameters.Before == null && parameters.After == null )
             {
                 throw new ArgumentNullException("parameters.Before && parameters.After");
             }
 
-            if (Main._is_initializing_plugin != 2)
+            if ( Main._is_initializing_plugin != 2 )
             {
                 throw new InvalidOperationException("Writing code hooks is only allowed during plugin initialization!");
             }
 
             HookBase handler = null;
-            if (parameters.Before != null && parameters.After != null)
+
+            if ( parameters.Before != null && parameters.After != null )
             {
                 handler = HookBoth.Instance;
             }
-            else if (parameters.Before != null)
+            else if ( parameters.Before != null )
             {
                 handler = HookBefore.Instance;
             }
-            else if (parameters.After != null)
+            else if ( parameters.After != null )
             {
                 handler = HookAfter.Instance;
             }
 
             var isLongHook = false;
-            var target = IntPtr.Zero;
-            var include1 = IntPtr.Zero;
-            var include2 = IntPtr.Zero;
+            var target     = IntPtr.Zero;
+            var include1   = IntPtr.Zero;
+            var include2   = IntPtr.Zero;
 
-            if (Main.Is64Bit && (parameters.ForceLongJump || parameters.ReplaceLength >= 13))
+            if ( Main.Is64Bit && (parameters.ForceLongJump || parameters.ReplaceLength >= 13) )
             {
                 isLongHook = true;
             }
 
-            handler?.BuildHook(parameters.Address, parameters.ReplaceLength, parameters.Address,
-                parameters.IncludeLength, isLongHook, ref target, ref include1, ref include2);
-            if (!isLongHook && Main.Is64Bit)
+            handler?.BuildHook(parameters.Address, parameters.ReplaceLength, parameters.Address, parameters.IncludeLength, isLongHook, ref target, ref include1, ref include2);
+
+            if ( !isLongHook && Main.Is64Bit )
             {
                 var addr_s = parameters.Address.ToInt64();
                 var addr_t = target.ToInt64() - 5;
 
-                if (addr_t > addr_s)
+                if ( addr_t > addr_s )
                 {
-                    if (addr_t - addr_s <= int.MaxValue) { }
+                    if ( addr_t - addr_s <= int.MaxValue ) { }
                     else { throw new InvalidOperationException(); }
                 }
                 else
                 {
-                    if (addr_t - addr_s >= int.MinValue) { }
+                    if ( addr_t - addr_s >= int.MinValue ) { }
                     else { throw new InvalidOperationException(); }
                 }
             }
 
             var requiredLength = isLongHook ? 13 : 5;
-            if (parameters.ReplaceLength < requiredLength)
+
+            if ( parameters.ReplaceLength < requiredLength )
             {
-                throw new ArgumentException("parameters.ReplaceLength",
-                    "Replace length must be at least " + requiredLength + " bytes when " +
-                    (isLongHook ? "far jump" : "near jump") + " is used!");
+                throw new ArgumentException("parameters.ReplaceLength", "Replace length must be at least " + requiredLength + " bytes when " + (isLongHook ? "far jump" : "near jump") + " is used!");
             }
 
-            if (parameters.IncludeLength < 0)
+            if ( parameters.IncludeLength < 0 )
             {
-                throw new ArgumentOutOfRangeException("parameters.IncludeLength",
-                    "Include length can't be a negative value!");
+                throw new ArgumentOutOfRangeException("parameters.IncludeLength", "Include length can't be a negative value!");
             }
 
             var assembly = Assembly.GetCallingAssembly();
-            var plugin = PluginManager.GetPlugins().FirstOrDefault(q => q.Assembly == assembly);
+            var plugin   = PluginManager.GetPlugins().FirstOrDefault(q => q.Assembly == assembly);
 
             var info = new HookInfo
             {
-                Address = parameters.Address,
-                Length = parameters.ReplaceLength,
-                Assembly = assembly,
-                Plugin = plugin,
-                Before = parameters.Before,
-                After = parameters.After,
+                Address   = parameters.Address,
+                Length    = parameters.ReplaceLength,
+                Assembly  = assembly,
+                Plugin    = plugin,
+                Before    = parameters.Before,
+                After     = parameters.After,
                 IsFarJump = isLongHook,
-                Include = include1,
-                Include2 = include2
+                Include   = include1,
+                Include2  = include2
             };
 
             HookInfo conflict = null;
-            if ((conflict = AddHookIfNoOverlap(info, info.Address, info.Length, parameters.Pattern)) != null)
+
+            if ( (conflict = AddHookIfNoOverlap(info, info.Address, info.Length, parameters.Pattern)) != null )
             {
-                var placedBy = (conflict.Plugin != null ? conflict.Plugin.GetInternalString() :
-                                   conflict.Assembly != null ? conflict.Assembly.GetName().FullName : "(null)") ??
+                var placedBy = (conflict.Plugin   != null ? conflict.Plugin.GetInternalString() :
+                                conflict.Assembly != null ? conflict.Assembly.GetName().FullName : "(null)") ??
                                string.Empty;
-                throw new InvalidOperationException("Unable to place .NET hook at address 0x" +
-                                                    Convert(parameters.Address).ToString("X") + " - 0x" +
-                                                    (Convert(parameters.Address) + (uint)parameters.ReplaceLength)
-                                                    .ToString("X") +
-                                                    " because there is another hook already in place that would overlap! Previous hook was placed by " +
-                                                    placedBy);
+
+                throw new InvalidOperationException(
+                    "Unable to place .NET hook at address 0x"                                                          +
+                    Convert(parameters.Address).ToString("X")                                                          +
+                    " - 0x"                                                                                            +
+                    (Convert(parameters.Address) + (uint)parameters.ReplaceLength).ToString("X")                       +
+                    " because there is another hook already in place that would overlap! Previous hook was placed by " +
+                    placedBy
+                );
             }
 
-            HookRealMap[info.Address.ToInt64()] = info;
+            HookRealMap[info.Address.ToInt64()]                     = info;
             HookMap[info.Address.ToInt64() + (isLongHook ? 13 : 5)] = info;
 
             byte[] source = null;
 
-            if (!Main.Is64Bit)
+            if ( !Main.Is64Bit )
             {
                 throw new NotImplementedException();
             }
 
-            source = isLongHook
-                ? GetHookBytesSource64_Far(parameters.Address, target)
-                : GetHookBytesSource64_Near(parameters.Address, target);
+            source = isLongHook ? GetHookBytesSource64_Far(parameters.Address, target) : GetHookBytesSource64_Near(parameters.Address, target);
 
-            if (source == null || source.Length > parameters.ReplaceLength)
+            if ( source == null || source.Length > parameters.ReplaceLength )
             {
                 throw new InvalidOperationException();
             }
 
             WriteBytes(parameters.Address, source, true);
-            if (parameters.ReplaceLength <= requiredLength)
+
+            if ( parameters.ReplaceLength <= requiredLength )
             {
                 return;
             }
 
             var nops = new byte[parameters.ReplaceLength - requiredLength];
-            for (var i = 0; i < nops.Length; i++)
+
+            for ( var i = 0; i < nops.Length; i++ )
             {
                 nops[i] = 0x90;
             }
@@ -2946,7 +2976,7 @@
         {
             Main.Log.AppendLine("Preparing .NET code hooking.");
 
-            _Invoke_Cdecl_address = InvokeCdecl_addr();
+            _Invoke_Cdecl_address  = InvokeCdecl_addr();
             _Invoke_CdeclF_address = InvokeCdeclF_addr();
             _Invoke_CdeclD_address = InvokeCdeclD_addr();
 
@@ -2998,10 +3028,10 @@
                 _Invoke_CdeclD_address + 0xB6, // arg3 type2
                 _Invoke_CdeclD_address + 0xBF, // arg4 type0
                 _Invoke_CdeclD_address + 0xBF, // arg4 type1
-                _Invoke_CdeclD_address + 0xBF // arg4 type2
+                _Invoke_CdeclD_address + 0xBF  // arg4 type2
             };
 
-            _unmanagedDoAction = GetDoActionAddress();
+            _unmanagedDoAction   = GetDoActionAddress();
             CPURegisters.Offsets = new CPURegisters.CPUOffsets();
         }
 
@@ -3013,24 +3043,28 @@
         internal static void GetInProgressHooks(List<HookInfo> hooks, ref int count)
         {
             var tlsBase = GetCurrentTLSValue();
-            if (tlsBase == IntPtr.Zero)
+
+            if ( tlsBase == IntPtr.Zero )
             {
                 return;
             }
 
             count = ReadInt32(tlsBase);
-            if (count == 0)
+
+            if ( count == 0 )
             {
                 return;
             }
 
-            var ptr = ReadPointer(tlsBase + (Main.Is64Bit ? 8 : 4));
+            var ptr  = ReadPointer(tlsBase + (Main.Is64Bit ? 8 : 4));
             var size = GetHookContextSize();
-            for (var i = 0; i < count; i++)
+
+            for ( var i = 0; i < count; i++ )
             {
                 var addr = ReadPointer(ptr + (size - 0x18));
                 var info = GetHookReal(addr);
-                if (info != null)
+
+                if ( info != null )
                 {
                     hooks.Add(info);
                 }
@@ -3039,13 +3073,13 @@
             }
         }
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern IntPtr GetDoActionAddress();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern IntPtr GetCurrentTLSValue();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         private static extern int GetHookContextSize();
 
         /// <summary>
@@ -3059,14 +3093,13 @@
             // push rcx
             // mov rcx, 1234
             // call rcx
-            var result = new byte[] {0x51, 0x48, 0xB9}.Concat(BitConverter.GetBytes(target.ToInt64()))
-                .Concat(new byte[] {0xFF, 0xD1}).ToArray();
-#if DEBUG
+            var result = new byte[] { 0x51, 0x48, 0xB9 }.Concat(BitConverter.GetBytes(target.ToInt64())).Concat(new byte[] { 0xFF, 0xD1 }).ToArray();
+        #if DEBUG
             if (result.Length != 13)
             {
                 throw new InvalidOperationException();
             }
-#endif
+        #endif
             return result;
         }
 
@@ -3079,23 +3112,22 @@
         private static byte[] GetHookBytesSource64_Near(IntPtr source, IntPtr target)
         {
             // call 1234
-            var value = (int)(target.ToInt64() - 5 - source.ToInt64());
-            var result = new byte[] {0xE8}.Concat(BitConverter.GetBytes(value)).ToArray();
-#if DEBUG
+            var value  = (int)(target.ToInt64() - 5 - source.ToInt64());
+            var result = new byte[] { 0xE8 }.Concat(BitConverter.GetBytes(value)).ToArray();
+        #if DEBUG
             if (result.Length != 5)
             {
                 throw new InvalidOperationException();
             }
-#endif
+        #endif
             return result;
         }
 
-        internal static IntPtr _unmanagedDoAction = IntPtr.Zero;
-        private static readonly Dictionary<long, HookInfo> HookMap = new Dictionary<long, HookInfo>();
-        private static readonly Dictionary<long, HookInfo> HookRealMap = new Dictionary<long, HookInfo>();
+        internal static         IntPtr                     _unmanagedDoAction = IntPtr.Zero;
+        private static readonly Dictionary<long, HookInfo> HookMap            = new Dictionary<long, HookInfo>();
+        private static readonly Dictionary<long, HookInfo> HookRealMap        = new Dictionary<long, HookInfo>();
 
-        private static readonly List<Tuple<ulong, ulong, HookInfo>> HookOverlapList =
-            new List<Tuple<ulong, ulong, HookInfo>>();
+        private static readonly List<Tuple<ulong, ulong, HookInfo>> HookOverlapList = new List<Tuple<ulong, ulong, HookInfo>>();
 
         /// <summary>
         ///     Adds the hook if no overlap with other hooks.
@@ -3111,26 +3143,25 @@
             var max = min + (uint)size;
 
             var ls = HookOverlapList;
-            for (var i = 0; i < ls.Count; i++)
+
+            for ( var i = 0; i < ls.Count; i++ )
             {
-                var t = ls[i];
+                var t     = ls[i];
                 var min_t = t.Item1;
                 var max_t = t.Item2;
 
-                if (min <= min_t)
+                if ( min <= min_t )
                 {
-                    if (max > min_t)
+                    if ( max > min_t )
                     {
                         return t.Item3;
                     }
 
-                    if (!string.IsNullOrEmpty(pattern))
+                    if ( !string.IsNullOrEmpty(pattern) )
                     {
-                        if (!VerifyBytes(begin, pattern))
+                        if ( !VerifyBytes(begin, pattern) )
                         {
-                            throw new ArgumentException("Trying to install hook at " + begin.ToHexString() +
-                                                        ", but the expected byte pattern of \"" + pattern +
-                                                        "\" does not match!");
+                            throw new ArgumentException("Trying to install hook at " + begin.ToHexString() + ", but the expected byte pattern of \"" + pattern + "\" does not match!");
                         }
                     }
 
@@ -3138,19 +3169,17 @@
                     return null;
                 }
 
-                if (max_t > min)
+                if ( max_t > min )
                 {
                     return t.Item3;
                 }
             }
 
-            if (!string.IsNullOrEmpty(pattern))
+            if ( !string.IsNullOrEmpty(pattern) )
             {
-                if (!VerifyBytes(begin, pattern))
+                if ( !VerifyBytes(begin, pattern) )
                 {
-                    throw new ArgumentException("Trying to install hook at " + begin.ToHexString() +
-                                                ", but the expected byte pattern of \"" + pattern +
-                                                "\" does not match!");
+                    throw new ArgumentException("Trying to install hook at " + begin.ToHexString() + ", but the expected byte pattern of \"" + pattern + "\" does not match!");
                 }
             }
 
@@ -3166,7 +3195,8 @@
         private static HookInfo GetHook(IntPtr addr)
         {
             HookInfo result = null;
-            if (HookMap.TryGetValue(addr.ToInt64(), out result))
+
+            if ( HookMap.TryGetValue(addr.ToInt64(), out result) )
             {
                 return result;
             }
@@ -3182,7 +3212,8 @@
         private static HookInfo GetHookReal(IntPtr addr)
         {
             HookInfo result = null;
-            if (HookRealMap.TryGetValue(addr.ToInt64(), out result))
+
+            if ( HookRealMap.TryGetValue(addr.ToInt64(), out result) )
             {
                 return result;
             }
@@ -3212,17 +3243,18 @@
 
                 // Get action.
                 var hook = GetHook(hookAddr);
-                if (hook == null)
+
+                if ( hook == null )
                 {
-                    throw new InvalidOperationException("Trying to invoke missing hook (0x" +
-                                                        hookAddr.ToInt64().ToString("X") + ")!");
+                    throw new InvalidOperationException("Trying to invoke missing hook (0x" + hookAddr.ToInt64().ToString("X") + ")!");
                 }
 
                 // Decide handler type.
                 HookBase handler = null;
-                if (hook.Before == null)
+
+                if ( hook.Before == null )
                 {
-                    if (hook.After != null)
+                    if ( hook.After != null )
                     {
                         handler = HookAfter.Instance;
                     }
@@ -3231,33 +3263,34 @@
                         throw new InvalidOperationException("Trying to invoke hook with no handlers!");
                     }
                 }
-                else if (hook.After != null) { handler = HookBoth.Instance; }
-                else { handler = HookBefore.Instance; }
+                else if ( hook.After != null ) { handler = HookBoth.Instance; }
+                else { handler                           = HookBefore.Instance; }
 
                 // Create CPU register info.
                 var cpu = new CPURegisters(cpu_address, handler);
 
                 // Fix some things according to hook.
-                cpu.IP = hook.Address + hook.Length;
-                cpu.Include = pass == 0 ? hook.Include : hook.Include2;
-                cpu.Hook = hook.Address;
+                cpu.IP        = hook.Address + hook.Length;
+                cpu.Include   = pass == 0 ? hook.Include : hook.Include2;
+                cpu.Hook      = hook.Address;
                 cpu.AllowSkip = pass == 0;
 
                 // Perform action.
                 var ac = pass == 0 ? hook.Before : hook.After;
-                if (ac != null)
+
+                if ( ac != null )
                 {
                     ac(cpu);
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
                 // We can't rely on AppDomain.CurrentDomain.UnhandledException event here because if it happens in main thread the native exception handler is invoked before managed.
                 Main.ProcessManagedUnhandledException(ex);
             }
         }
 
-        #endregion
+    #endregion
     }
 
     /// <summary>
@@ -3319,7 +3352,7 @@
     /// <seealso cref="NetScriptFramework.TemporaryObject" />
     public sealed class MemoryAllocation : TemporaryObject
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="MemoryAllocation" /> class.
@@ -3329,19 +3362,18 @@
         /// <param name="align">The align.</param>
         /// <param name="type">The type.</param>
         /// <param name="page">The page.</param>
-        internal MemoryAllocation(IntPtr address, int size, int align, MemoryAllocationTypes type,
-            CodePageAllocator page)
+        internal MemoryAllocation(IntPtr address, int size, int align, MemoryAllocationTypes type, CodePageAllocator page)
         {
-            this.Address = address;
-            this.Size = size;
-            this.Align = align;
-            this.Type = type;
+            this.Address  = address;
+            this.Size     = size;
+            this.Align    = align;
+            this.Type     = type;
             this.CodePage = page;
         }
 
-        #endregion
+    #endregion
 
-        #region MemoryAllocation members
+    #region MemoryAllocation members
 
         /// <summary>
         ///     The code page if it is code.
@@ -3400,26 +3432,25 @@
         /// <exception cref="System.InvalidOperationException"></exception>
         protected override void Free()
         {
-            switch (this.Type)
+            switch ( this.Type )
             {
-                case MemoryAllocationTypes.Heap:
+                case MemoryAllocationTypes.Heap :
                     Memory.FreeC(this.Address, this.Align != 0);
                     break;
 
-                case MemoryAllocationTypes.Code:
+                case MemoryAllocationTypes.Code :
                     Memory.FreeCode(this.Address, this.Size, this.CodePage);
                     break;
 
-                case MemoryAllocationTypes.String:
+                case MemoryAllocationTypes.String :
                     Memory.FreeString(this.Address);
                     break;
 
-                default:
-                    throw new InvalidOperationException();
+                default : throw new InvalidOperationException();
             }
         }
 
-        #endregion
+    #endregion
     }
 
     /// <summary>
@@ -3427,7 +3458,7 @@
     /// </summary>
     public sealed class InvokeArgument
     {
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="InvokeArgument" /> class.
@@ -3454,9 +3485,9 @@
         /// </summary>
         internal int ValueType = -1;
 
-        #endregion
+    #endregion
 
-        #region InvokeArgument members
+    #region InvokeArgument members
 
         /// <summary>
         ///     Performs an implicit conversion from <see cref="IntPtr" /> to <see cref="InvokeArgument" />.
@@ -3465,8 +3496,7 @@
         /// <returns>
         ///     The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(IntPtr value) =>
-            new InvokeArgument {ValueOther = value, ValueType = 0};
+        public static implicit operator InvokeArgument(IntPtr value) => new InvokeArgument { ValueOther = value, ValueType = 0 };
 
         /// <summary>
         ///     Performs an implicit conversion from <see cref="Int32" /> to <see cref="InvokeArgument" />.
@@ -3475,8 +3505,7 @@
         /// <returns>
         ///     The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(int value) =>
-            new InvokeArgument {ValueOther = new IntPtr(value), ValueType = 0};
+        public static implicit operator InvokeArgument(int value) => new InvokeArgument { ValueOther = new IntPtr(value), ValueType = 0 };
 
         /// <summary>
         ///     Performs an implicit conversion from <see cref="System.Int64" /> to <see cref="InvokeArgument" />.
@@ -3485,8 +3514,7 @@
         /// <returns>
         ///     The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(long value) =>
-            new InvokeArgument {ValueOther = new IntPtr(value), ValueType = 0};
+        public static implicit operator InvokeArgument(long value) => new InvokeArgument { ValueOther = new IntPtr(value), ValueType = 0 };
 
         /// <summary>
         ///     Performs an implicit conversion from <see cref="System.UInt32" /> to <see cref="InvokeArgument" />.
@@ -3495,8 +3523,7 @@
         /// <returns>
         ///     The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(uint value) =>
-            new InvokeArgument {ValueOther = new IntPtr(unchecked((int)value)), ValueType = 0};
+        public static implicit operator InvokeArgument(uint value) => new InvokeArgument { ValueOther = new IntPtr(unchecked((int)value)), ValueType = 0 };
 
         /// <summary>
         ///     Performs an implicit conversion from <see cref="System.UInt64" /> to <see cref="InvokeArgument" />.
@@ -3505,8 +3532,7 @@
         /// <returns>
         ///     The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(ulong value) =>
-            new InvokeArgument {ValueOther = new IntPtr(unchecked((long)value)), ValueType = 0};
+        public static implicit operator InvokeArgument(ulong value) => new InvokeArgument { ValueOther = new IntPtr(unchecked((long)value)), ValueType = 0 };
 
         /// <summary>
         ///     Performs an implicit conversion from <see cref="System.Int16" /> to <see cref="InvokeArgument" />.
@@ -3515,8 +3541,7 @@
         /// <returns>
         ///     The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(short value) =>
-            new InvokeArgument {ValueOther = new IntPtr(unchecked((ushort)value)), ValueType = 0};
+        public static implicit operator InvokeArgument(short value) => new InvokeArgument { ValueOther = new IntPtr(unchecked((ushort)value)), ValueType = 0 };
 
         /// <summary>
         ///     Performs an implicit conversion from <see cref="System.UInt16" /> to <see cref="InvokeArgument" />.
@@ -3525,8 +3550,7 @@
         /// <returns>
         ///     The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(ushort value) =>
-            new InvokeArgument {ValueOther = new IntPtr(value), ValueType = 0};
+        public static implicit operator InvokeArgument(ushort value) => new InvokeArgument { ValueOther = new IntPtr(value), ValueType = 0 };
 
         /// <summary>
         ///     Performs an implicit conversion from <see cref="System.Byte" /> to <see cref="InvokeArgument" />.
@@ -3535,8 +3559,7 @@
         /// <returns>
         ///     The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(byte value) =>
-            new InvokeArgument {ValueOther = new IntPtr(value), ValueType = 0};
+        public static implicit operator InvokeArgument(byte value) => new InvokeArgument { ValueOther = new IntPtr(value), ValueType = 0 };
 
         /// <summary>
         ///     Performs an implicit conversion from <see cref="System.SByte" /> to <see cref="InvokeArgument" />.
@@ -3545,8 +3568,7 @@
         /// <returns>
         ///     The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(sbyte value) =>
-            new InvokeArgument {ValueOther = new IntPtr(unchecked((byte)value)), ValueType = 0};
+        public static implicit operator InvokeArgument(sbyte value) => new InvokeArgument { ValueOther = new IntPtr(unchecked((byte)value)), ValueType = 0 };
 
         /// <summary>
         ///     Performs an implicit conversion from <see cref="System.Boolean" /> to <see cref="InvokeArgument" />.
@@ -3555,8 +3577,7 @@
         /// <returns>
         ///     The result of the conversion.
         /// </returns>
-        public static implicit operator InvokeArgument(bool value) =>
-            new InvokeArgument {ValueOther = new IntPtr(value ? 1 : 0), ValueType = 0};
+        public static implicit operator InvokeArgument(bool value) => new InvokeArgument { ValueOther = new IntPtr(value ? 1 : 0), ValueType = 0 };
 
         /// <summary>
         ///     Performs an implicit conversion from <see cref="System.Double" /> to <see cref="InvokeArgument" />.
@@ -3567,14 +3588,14 @@
         /// </returns>
         public static implicit operator InvokeArgument(double value)
         {
-            if (!Main.Is64Bit)
+            if ( !Main.Is64Bit )
             {
                 // This is correct.
                 var converted = BitConverter.GetBytes((float)value);
-                return new InvokeArgument {ValueOther = new IntPtr(BitConverter.ToInt32(converted, 0)), ValueType = 0};
+                return new InvokeArgument { ValueOther = new IntPtr(BitConverter.ToInt32(converted, 0)), ValueType = 0 };
             }
 
-            return new InvokeArgument {ValueDouble = value, ValueType = 2};
+            return new InvokeArgument { ValueDouble = value, ValueType = 2 };
         }
 
         /// <summary>
@@ -3586,17 +3607,17 @@
         /// </returns>
         public static implicit operator InvokeArgument(float value)
         {
-            if (!Main.Is64Bit)
+            if ( !Main.Is64Bit )
             {
                 // This is correct.
                 var converted = BitConverter.GetBytes(value);
-                return new InvokeArgument {ValueOther = new IntPtr(BitConverter.ToInt32(converted, 0)), ValueType = 0};
+                return new InvokeArgument { ValueOther = new IntPtr(BitConverter.ToInt32(converted, 0)), ValueType = 0 };
             }
 
-            return new InvokeArgument {ValueFloat = value, ValueType = 1};
+            return new InvokeArgument { ValueFloat = value, ValueType = 1 };
         }
 
-        #endregion
+    #endregion
     }
 
     /// <summary>
@@ -3745,20 +3766,21 @@
         /// <param name="size">The full size of code page.</param>
         internal CodePageAllocator(int size)
         {
-            if (size <= 0)
+            if ( size <= 0 )
             {
                 throw new ArgumentOutOfRangeException("size", "Size must be positive!");
             }
 
-            this.Size = size;
+            this.Size      = size;
             this.Available = new SortedDictionary<ulong, int>();
-            this.Begin = VirtualAlloc(IntPtr.Zero, new IntPtr(size), 0x3000, 0x40);
-            if (this.Begin == IntPtr.Zero)
+            this.Begin     = VirtualAlloc(IntPtr.Zero, new IntPtr(size), 0x3000, 0x40);
+
+            if ( this.Begin == IntPtr.Zero )
             {
                 throw new OutOfMemoryException("Failed to allocate memory for code page!");
             }
 
-            this.End = this.Begin + size;
+            this.End                                   = this.Begin + size;
             this.Available[Memory.Convert(this.Begin)] = size;
         }
 
@@ -3770,37 +3792,38 @@
         /// <returns></returns>
         internal MemoryAllocation Get(int size)
         {
-            if (this.Available.Count == 0)
+            if ( this.Available.Count == 0 )
             {
                 return null;
             }
 
-            ulong found = 0;
-            var foundTotal = 0;
-            foreach (var x in this.Available)
+            ulong found      = 0;
+            var   foundTotal = 0;
+
+            foreach ( var x in this.Available )
 
             {
-                if (x.Value >= size)
+                if ( x.Value >= size )
                 {
-                    found = x.Key;
+                    found      = x.Key;
                     foundTotal = x.Value;
                     break;
                 }
             }
 
-            if (found == 0)
+            if ( found == 0 )
             {
                 return null;
             }
 
             this.Available.Remove(found);
-            if (foundTotal > size)
+
+            if ( foundTotal > size )
             {
                 this.Available[found + (uint)size] = foundTotal - size;
             }
 
-            return new MemoryAllocation(Memory.Convert(found), size, 0, MemoryAllocation.MemoryAllocationTypes.Code,
-                this);
+            return new MemoryAllocation(Memory.Convert(found), size, 0, MemoryAllocation.MemoryAllocationTypes.Code, this);
         }
 
         /// <summary>
@@ -3810,39 +3833,40 @@
         /// <param name="size">The size of allocation.</param>
         internal void Free(IntPtr addr, int size)
         {
-            var addr_u = Memory.Convert(addr);
-            ulong keyFound = 0;
-            var valueFound = 0;
-            var found = 0;
-            foreach (var x in this.Available)
+            var   addr_u     = Memory.Convert(addr);
+            ulong keyFound   = 0;
+            var   valueFound = 0;
+            var   found      = 0;
+
+            foreach ( var x in this.Available )
 
             {
-                if (x.Key + (uint)x.Value == addr_u)
+                if ( x.Key + (uint)x.Value == addr_u )
                 {
-                    keyFound = x.Key;
+                    keyFound   = x.Key;
                     valueFound = x.Value;
-                    found = 1;
+                    found      = 1;
                     break;
                 }
 
-                if (addr_u + (uint)size == x.Key)
+                if ( addr_u + (uint)size == x.Key )
                 {
-                    keyFound = x.Key;
+                    keyFound   = x.Key;
                     valueFound = x.Value;
-                    found = 2;
+                    found      = 2;
                     break;
                 }
             }
 
-            if (found == 0)
+            if ( found == 0 )
             {
                 this.Available[addr_u] = size;
             }
-            else if (found == 1)
+            else if ( found == 1 )
             {
                 this.Available[keyFound] = valueFound + size;
             }
-            else if (found == 2)
+            else if ( found == 2 )
             {
                 this.Available.Remove(keyFound);
                 this.Available[addr_u] = valueFound + size;
@@ -3850,18 +3874,17 @@
             else { throw new NotImplementedException(); }
         }
 
-        #region Api calls
+    #region Api calls
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern IntPtr VirtualAlloc(IntPtr lpAddress, IntPtr dwSize, uint lAllocationType,
-            uint flProtect);
+        [ DllImport("kernel32.dll", SetLastError = true) ]
+        private static extern IntPtr VirtualAlloc(IntPtr lpAddress, IntPtr dwSize, uint lAllocationType, uint flProtect);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [ DllImport("kernel32.dll", SetLastError = true) ]
         private static extern bool VirtualFree(IntPtr lpAddress, IntPtr dwSize, uint dwFreeType);
 
-        #endregion
+    #endregion
 
-        #region IDisposable interface
+    #region IDisposable interface
 
         /// <summary>
         ///     The disposed value to avoid redundant calls.
@@ -3877,11 +3900,11 @@
         /// </param>
         private void Dispose(bool disposing)
         {
-            if (!this.disposedValue)
+            if ( !this.disposedValue )
             {
                 //if (disposing) { }
 
-                if (this.Begin != IntPtr.Zero)
+                if ( this.Begin != IntPtr.Zero )
                 {
                     VirtualFree(this.Begin, IntPtr.Zero, 0x8000);
                     this.Begin = IntPtr.Zero;
@@ -3905,7 +3928,7 @@
             GC.SuppressFinalize(this);
         }
 
-        #endregion
+    #endregion
     }
 
     /// <summary>
@@ -3918,7 +3941,7 @@
         /// </summary>
         private readonly HookBase IsFromHook;
 
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="CPURegisters" /> class.
@@ -3927,20 +3950,21 @@
         /// <param name="isFromHook">Is this from hook?</param>
         internal CPURegisters(IntPtr address, HookBase isFromHook)
         {
-            this.Address = address;
+            this.Address    = address;
             this.IsFromHook = isFromHook;
 
             var handler = this.IsFromHook;
-            if (handler != null)
+
+            if ( handler != null )
             {
                 this.AX = Memory.ReadPointer(this.Address + VerifyOffset(Offsets.Hook_AX, "Reading Hook AX register"));
                 this.CX = Memory.ReadPointer(this.Address + VerifyOffset(Offsets.Hook_CX, "Reading Hook CX register"));
             }
         }
 
-        #endregion
+    #endregion
 
-        #region CPURegisters members
+    #region CPURegisters members
 
         /// <summary>
         ///     Verifies the offset.
@@ -3951,7 +3975,7 @@
         /// <exception cref="System.NotSupportedException"></exception>
         private static int VerifyOffset(int offset, string name)
         {
-            if (offset < 0)
+            if ( offset < 0 )
             {
                 throw new NotSupportedException(name + " is not supported!");
             }
@@ -3967,7 +3991,7 @@
         /// </value>
         public IntPtr AX
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.AX, "Reading AX register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.AX, "Reading AX register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.AX, "Writing AX register"), value);
         }
 
@@ -3979,7 +4003,7 @@
         /// </value>
         public IntPtr BX
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.BX, "Reading BX register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.BX, "Reading BX register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.BX, "Writing BX register"), value);
         }
 
@@ -3991,7 +4015,7 @@
         /// </value>
         public IntPtr CX
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.CX, "Reading CX register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.CX, "Reading CX register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.CX, "Writing CX register"), value);
         }
 
@@ -4003,7 +4027,7 @@
         /// </value>
         public IntPtr DX
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.DX, "Reading DX register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.DX, "Reading DX register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.DX, "Writing DX register"), value);
         }
 
@@ -4015,7 +4039,7 @@
         /// </value>
         public IntPtr DI
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.DI, "Reading DI register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.DI, "Reading DI register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.DI, "Writing DI register"), value);
         }
 
@@ -4027,7 +4051,7 @@
         /// </value>
         public IntPtr SI
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.SI, "Reading SI register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.SI, "Reading SI register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.SI, "Writing SI register"), value);
         }
 
@@ -4039,7 +4063,7 @@
         /// </value>
         public IntPtr BP
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.BP, "Reading BP register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.BP, "Reading BP register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.BP, "Writing BP register"), value);
         }
 
@@ -4051,7 +4075,7 @@
         /// </value>
         public IntPtr SP
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.SP, "Reading SP register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.SP, "Reading SP register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.SP, "Writing SP register"), value);
         }
 
@@ -4063,7 +4087,7 @@
         /// </value>
         public IntPtr FLAGS
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.FLAGS, "Reading FLAGS register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.FLAGS, "Reading FLAGS register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.FLAGS, "Writing FLAGS register"), value);
         }
 
@@ -4101,7 +4125,7 @@
         {
             get
             {
-                if (this.IsFromHook == null)
+                if ( this.IsFromHook == null )
                 {
                     return IntPtr.Zero;
                 }
@@ -4110,7 +4134,7 @@
             }
             internal set
             {
-                if (this.IsFromHook == null)
+                if ( this.IsFromHook == null )
                 {
                     throw new InvalidOperationException();
                 }
@@ -4129,23 +4153,21 @@
         {
             get
             {
-                if (this.IsFromHook == null)
+                if ( this.IsFromHook == null )
                 {
                     return IntPtr.Zero;
                 }
 
-                return Memory.ReadPointer(this.Address +
-                                          VerifyOffset(Offsets.Hook_OrigReturnAfter, "Reading original hook address"));
+                return Memory.ReadPointer(this.Address + VerifyOffset(Offsets.Hook_OrigReturnAfter, "Reading original hook address"));
             }
             set
             {
-                if (this.IsFromHook == null)
+                if ( this.IsFromHook == null )
                 {
                     throw new InvalidOperationException();
                 }
 
-                Memory.WritePointer(
-                    this.Address + VerifyOffset(Offsets.Hook_OrigReturnAfter, "Writing original hook address"), value);
+                Memory.WritePointer(this.Address + VerifyOffset(Offsets.Hook_OrigReturnAfter, "Writing original hook address"), value);
             }
         }
 
@@ -4154,12 +4176,12 @@
         /// </summary>
         public void Skip()
         {
-            if (this.IsFromHook == null)
+            if ( this.IsFromHook == null )
             {
                 throw new InvalidOperationException("This is only available when executing a hook!");
             }
 
-            if (this.AllowSkip)
+            if ( this.AllowSkip )
             {
                 this.Include = this.IsFromHook.EmptyInclude;
             }
@@ -4176,7 +4198,7 @@
         {
             get
             {
-                if (this.IsFromHook == null)
+                if ( this.IsFromHook == null )
                 {
                     return -1;
                 }
@@ -4193,7 +4215,7 @@
         /// </value>
         internal IntPtr Include
         {
-            get => Memory.ReadPointer(this.Address + Offsets.IP);
+            get => Memory.ReadPointer(this.Address  + Offsets.IP);
             set => Memory.WritePointer(this.Address + Offsets.IP, value);
         }
 
@@ -4213,7 +4235,7 @@
         /// </value>
         public double XMM0
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM0, "Reading XMM0 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM0, "Reading XMM0 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM0, "Writing XMM0 register"), value);
         }
 
@@ -4225,7 +4247,7 @@
         /// </value>
         public double XMM1
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM1, "Reading XMM1 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM1, "Reading XMM1 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM1, "Writing XMM1 register"), value);
         }
 
@@ -4237,7 +4259,7 @@
         /// </value>
         public double XMM2
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM2, "Reading XMM2 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM2, "Reading XMM2 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM2, "Writing XMM2 register"), value);
         }
 
@@ -4249,7 +4271,7 @@
         /// </value>
         public double XMM3
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM3, "Reading XMM3 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM3, "Reading XMM3 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM3, "Writing XMM3 register"), value);
         }
 
@@ -4261,7 +4283,7 @@
         /// </value>
         public double XMM4
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM4, "Reading XMM4 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM4, "Reading XMM4 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM4, "Writing XMM4 register"), value);
         }
 
@@ -4273,7 +4295,7 @@
         /// </value>
         public double XMM5
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM5, "Reading XMM5 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM5, "Reading XMM5 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM5, "Writing XMM5 register"), value);
         }
 
@@ -4285,7 +4307,7 @@
         /// </value>
         public double XMM6
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM6, "Reading XMM6 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM6, "Reading XMM6 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM6, "Writing XMM6 register"), value);
         }
 
@@ -4297,7 +4319,7 @@
         /// </value>
         public double XMM7
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM7, "Reading XMM7 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM7, "Reading XMM7 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM7, "Writing XMM7 register"), value);
         }
 
@@ -4310,7 +4332,7 @@
         /// </value>
         public double XMM8
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM8, "Reading XMM8 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM8, "Reading XMM8 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM8, "Writing XMM8 register"), value);
         }
 
@@ -4323,7 +4345,7 @@
         /// </value>
         public double XMM9
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM9, "Reading XMM9 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM9, "Reading XMM9 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM9, "Writing XMM9 register"), value);
         }
 
@@ -4336,7 +4358,7 @@
         /// </value>
         public double XMM10
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM10, "Reading XMM10 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM10, "Reading XMM10 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM10, "Writing XMM10 register"), value);
         }
 
@@ -4349,7 +4371,7 @@
         /// </value>
         public double XMM11
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM11, "Reading XMM11 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM11, "Reading XMM11 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM11, "Writing XMM11 register"), value);
         }
 
@@ -4362,7 +4384,7 @@
         /// </value>
         public double XMM12
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM12, "Reading XMM12 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM12, "Reading XMM12 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM12, "Writing XMM12 register"), value);
         }
 
@@ -4375,7 +4397,7 @@
         /// </value>
         public double XMM13
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM13, "Reading XMM13 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM13, "Reading XMM13 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM13, "Writing XMM13 register"), value);
         }
 
@@ -4388,7 +4410,7 @@
         /// </value>
         public double XMM14
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM14, "Reading XMM14 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM14, "Reading XMM14 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM14, "Writing XMM14 register"), value);
         }
 
@@ -4401,7 +4423,7 @@
         /// </value>
         public double XMM15
         {
-            get => Memory.ReadDouble128(this.Address + VerifyOffset(Offsets.XMM15, "Reading XMM15 register"));
+            get => Memory.ReadDouble128(this.Address  + VerifyOffset(Offsets.XMM15, "Reading XMM15 register"));
             set => Memory.WriteDouble128(this.Address + VerifyOffset(Offsets.XMM15, "Writing XMM15 register"), value);
         }
 
@@ -4413,7 +4435,7 @@
         /// </value>
         public float XMM0f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM0, "Reading XMM0 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM0, "Reading XMM0 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM0, "Writing XMM0 register"), value);
         }
 
@@ -4425,7 +4447,7 @@
         /// </value>
         public float XMM1f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM1, "Reading XMM1 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM1, "Reading XMM1 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM1, "Writing XMM1 register"), value);
         }
 
@@ -4437,7 +4459,7 @@
         /// </value>
         public float XMM2f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM2, "Reading XMM2 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM2, "Reading XMM2 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM2, "Writing XMM2 register"), value);
         }
 
@@ -4449,7 +4471,7 @@
         /// </value>
         public float XMM3f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM3, "Reading XMM3 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM3, "Reading XMM3 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM3, "Writing XMM3 register"), value);
         }
 
@@ -4461,7 +4483,7 @@
         /// </value>
         public float XMM4f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM4, "Reading XMM4 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM4, "Reading XMM4 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM4, "Writing XMM4 register"), value);
         }
 
@@ -4473,7 +4495,7 @@
         /// </value>
         public float XMM5f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM5, "Reading XMM5 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM5, "Reading XMM5 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM5, "Writing XMM5 register"), value);
         }
 
@@ -4485,7 +4507,7 @@
         /// </value>
         public float XMM6f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM6, "Reading XMM6 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM6, "Reading XMM6 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM6, "Writing XMM6 register"), value);
         }
 
@@ -4497,7 +4519,7 @@
         /// </value>
         public float XMM7f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM7, "Reading XMM7 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM7, "Reading XMM7 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM7, "Writing XMM7 register"), value);
         }
 
@@ -4510,7 +4532,7 @@
         /// </value>
         public float XMM8f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM8, "Reading XMM8 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM8, "Reading XMM8 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM8, "Writing XMM8 register"), value);
         }
 
@@ -4523,7 +4545,7 @@
         /// </value>
         public float XMM9f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM9, "Reading XMM9 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM9, "Reading XMM9 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM9, "Writing XMM9 register"), value);
         }
 
@@ -4536,7 +4558,7 @@
         /// </value>
         public float XMM10f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM10, "Reading XMM10 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM10, "Reading XMM10 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM10, "Writing XMM10 register"), value);
         }
 
@@ -4549,7 +4571,7 @@
         /// </value>
         public float XMM11f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM11, "Reading XMM11 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM11, "Reading XMM11 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM11, "Writing XMM11 register"), value);
         }
 
@@ -4562,7 +4584,7 @@
         /// </value>
         public float XMM12f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM12, "Reading XMM12 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM12, "Reading XMM12 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM12, "Writing XMM12 register"), value);
         }
 
@@ -4575,7 +4597,7 @@
         /// </value>
         public float XMM13f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM13, "Reading XMM13 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM13, "Reading XMM13 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM13, "Writing XMM13 register"), value);
         }
 
@@ -4588,7 +4610,7 @@
         /// </value>
         public float XMM14f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM14, "Reading XMM14 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM14, "Reading XMM14 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM14, "Writing XMM14 register"), value);
         }
 
@@ -4601,7 +4623,7 @@
         /// </value>
         public float XMM15f
         {
-            get => Memory.ReadFloat128(this.Address + VerifyOffset(Offsets.XMM15, "Reading XMM15 register"));
+            get => Memory.ReadFloat128(this.Address  + VerifyOffset(Offsets.XMM15, "Reading XMM15 register"));
             set => Memory.WriteFloat128(this.Address + VerifyOffset(Offsets.XMM15, "Writing XMM15 register"), value);
         }
 
@@ -4614,7 +4636,7 @@
         /// </value>
         public IntPtr R8
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R8, "Reading R8 register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.R8, "Reading R8 register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.R8, "Writing R8 register"), value);
         }
 
@@ -4627,7 +4649,7 @@
         /// </value>
         public IntPtr R9
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R9, "Reading R9 register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.R9, "Reading R9 register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.R9, "Writing R9 register"), value);
         }
 
@@ -4640,7 +4662,7 @@
         /// </value>
         public IntPtr R10
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R10, "Reading R10 register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.R10, "Reading R10 register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.R10, "Writing R10 register"), value);
         }
 
@@ -4653,7 +4675,7 @@
         /// </value>
         public IntPtr R11
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R11, "Reading R11 register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.R11, "Reading R11 register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.R11, "Writing R11 register"), value);
         }
 
@@ -4666,7 +4688,7 @@
         /// </value>
         public IntPtr R12
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R12, "Reading R12 register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.R12, "Reading R12 register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.R12, "Writing R12 register"), value);
         }
 
@@ -4679,7 +4701,7 @@
         /// </value>
         public IntPtr R13
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R13, "Reading R13 register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.R13, "Reading R13 register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.R13, "Writing R13 register"), value);
         }
 
@@ -4692,7 +4714,7 @@
         /// </value>
         public IntPtr R14
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R14, "Reading R14 register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.R14, "Reading R14 register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.R14, "Writing R14 register"), value);
         }
 
@@ -4705,7 +4727,7 @@
         /// </value>
         public IntPtr R15
         {
-            get => Memory.ReadPointer(this.Address + VerifyOffset(Offsets.R15, "Reading R15 register"));
+            get => Memory.ReadPointer(this.Address  + VerifyOffset(Offsets.R15, "Reading R15 register"));
             set => Memory.WritePointer(this.Address + VerifyOffset(Offsets.R15, "Writing R15 register"), value);
         }
 
@@ -4721,7 +4743,8 @@
             get
             {
                 var o = VerifyOffset(Offsets.ST0, "Reading ST0 register");
-                if (this.STCount <= 0)
+
+                if ( this.STCount <= 0 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4731,7 +4754,8 @@
             set
             {
                 var o = VerifyOffset(Offsets.ST0, "Writing ST0 register");
-                if (this.STCount <= 0)
+
+                if ( this.STCount <= 0 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4752,7 +4776,8 @@
             get
             {
                 var o = VerifyOffset(Offsets.ST1, "Reading ST1 register");
-                if (this.STCount <= 1)
+
+                if ( this.STCount <= 1 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4762,7 +4787,8 @@
             set
             {
                 var o = VerifyOffset(Offsets.ST1, "Writing ST1 register");
-                if (this.STCount <= 1)
+
+                if ( this.STCount <= 1 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4783,7 +4809,8 @@
             get
             {
                 var o = VerifyOffset(Offsets.ST2, "Reading ST2 register");
-                if (this.STCount <= 2)
+
+                if ( this.STCount <= 2 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4793,7 +4820,8 @@
             set
             {
                 var o = VerifyOffset(Offsets.ST2, "Writing ST2 register");
-                if (this.STCount <= 2)
+
+                if ( this.STCount <= 2 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4814,7 +4842,8 @@
             get
             {
                 var o = VerifyOffset(Offsets.ST3, "Reading ST3 register");
-                if (this.STCount <= 3)
+
+                if ( this.STCount <= 3 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4824,7 +4853,8 @@
             set
             {
                 var o = VerifyOffset(Offsets.ST3, "Writing ST3 register");
-                if (this.STCount <= 3)
+
+                if ( this.STCount <= 3 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4845,7 +4875,8 @@
             get
             {
                 var o = VerifyOffset(Offsets.ST4, "Reading ST4 register");
-                if (this.STCount <= 4)
+
+                if ( this.STCount <= 4 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4855,7 +4886,8 @@
             set
             {
                 var o = VerifyOffset(Offsets.ST4, "Writing ST4 register");
-                if (this.STCount <= 4)
+
+                if ( this.STCount <= 4 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4876,7 +4908,8 @@
             get
             {
                 var o = VerifyOffset(Offsets.ST5, "Reading ST5 register");
-                if (this.STCount <= 5)
+
+                if ( this.STCount <= 5 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4886,7 +4919,8 @@
             set
             {
                 var o = VerifyOffset(Offsets.ST5, "Writing ST5 register");
-                if (this.STCount <= 5)
+
+                if ( this.STCount <= 5 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4907,7 +4941,8 @@
             get
             {
                 var o = VerifyOffset(Offsets.ST6, "Reading ST6 register");
-                if (this.STCount <= 6)
+
+                if ( this.STCount <= 6 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4917,7 +4952,8 @@
             set
             {
                 var o = VerifyOffset(Offsets.ST6, "Writing ST6 register");
-                if (this.STCount <= 6)
+
+                if ( this.STCount <= 6 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4938,7 +4974,8 @@
             get
             {
                 var o = VerifyOffset(Offsets.ST7, "Reading ST7 register");
-                if (this.STCount <= 7)
+
+                if ( this.STCount <= 7 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4948,7 +4985,8 @@
             set
             {
                 var o = VerifyOffset(Offsets.ST7, "Writing ST7 register");
-                if (this.STCount <= 7)
+
+                if ( this.STCount <= 7 )
                 {
                     throw new IndexOutOfRangeException("This register is empty and can't be accessed!");
                 }
@@ -4973,9 +5011,9 @@
             }
         }
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         ///     Writes debug info to log.
@@ -4984,19 +5022,20 @@
         {
             Main.Log.AppendLine("--------------------------------------------------------------------------------");
             Main.Log.AppendLine("CPURegisters(0x" + Memory.Convert(this.Address).ToString("X") + "):");
-            Main.Log.AppendLine("AX: 0x" + Memory.Convert(this.AX).ToString("X"));
-            Main.Log.AppendLine("BX: 0x" + Memory.Convert(this.BX).ToString("X"));
-            Main.Log.AppendLine("CX: 0x" + Memory.Convert(this.CX).ToString("X"));
-            Main.Log.AppendLine("DX: 0x" + Memory.Convert(this.DX).ToString("X"));
-            Main.Log.AppendLine("DI: 0x" + Memory.Convert(this.DI).ToString("X"));
-            Main.Log.AppendLine("SI: 0x" + Memory.Convert(this.SI).ToString("X"));
-            Main.Log.AppendLine("BP: 0x" + Memory.Convert(this.BP).ToString("X"));
-            Main.Log.AppendLine("SP: 0x" + Memory.Convert(this.SP).ToString("X"));
-            Main.Log.AppendLine("FLAGS: 0x" + Memory.Convert(this.FLAGS).ToString("X"));
-            Main.Log.AppendLine("IP: 0x" + Memory.Convert(this.IP).ToString("X"));
-            if (this.IsFromHook != null)
+            Main.Log.AppendLine("AX: 0x"          + Memory.Convert(this.AX).ToString("X"));
+            Main.Log.AppendLine("BX: 0x"          + Memory.Convert(this.BX).ToString("X"));
+            Main.Log.AppendLine("CX: 0x"          + Memory.Convert(this.CX).ToString("X"));
+            Main.Log.AppendLine("DX: 0x"          + Memory.Convert(this.DX).ToString("X"));
+            Main.Log.AppendLine("DI: 0x"          + Memory.Convert(this.DI).ToString("X"));
+            Main.Log.AppendLine("SI: 0x"          + Memory.Convert(this.SI).ToString("X"));
+            Main.Log.AppendLine("BP: 0x"          + Memory.Convert(this.BP).ToString("X"));
+            Main.Log.AppendLine("SP: 0x"          + Memory.Convert(this.SP).ToString("X"));
+            Main.Log.AppendLine("FLAGS: 0x"       + Memory.Convert(this.FLAGS).ToString("X"));
+            Main.Log.AppendLine("IP: 0x"          + Memory.Convert(this.IP).ToString("X"));
+
+            if ( this.IsFromHook != null )
             {
-                Main.Log.AppendLine("Hook: 0x" + Memory.Convert(this.Hook).ToString("X"));
+                Main.Log.AppendLine("Hook: 0x"    + Memory.Convert(this.Hook).ToString("X"));
                 Main.Log.AppendLine("Include: 0x" + this.Include.ToString("X"));
             }
 
@@ -5008,18 +5047,19 @@
             Main.Log.AppendLine("XMM5: " + this.XMM5);
             Main.Log.AppendLine("XMM6: " + this.XMM6);
             Main.Log.AppendLine("XMM7: " + this.XMM7);
-            if (Main.Is64Bit)
+
+            if ( Main.Is64Bit )
             {
-                Main.Log.AppendLine("XMM8: " + this.XMM8);
-                Main.Log.AppendLine("XMM9: " + this.XMM9);
+                Main.Log.AppendLine("XMM8: "  + this.XMM8);
+                Main.Log.AppendLine("XMM9: "  + this.XMM9);
                 Main.Log.AppendLine("XMM10: " + this.XMM10);
                 Main.Log.AppendLine("XMM11: " + this.XMM11);
                 Main.Log.AppendLine("XMM12: " + this.XMM12);
                 Main.Log.AppendLine("XMM13: " + this.XMM13);
                 Main.Log.AppendLine("XMM14: " + this.XMM14);
                 Main.Log.AppendLine("XMM15: " + this.XMM15);
-                Main.Log.AppendLine("R8: 0x" + Memory.Convert(this.R8).ToString("X"));
-                Main.Log.AppendLine("R9: 0x" + Memory.Convert(this.R9).ToString("X"));
+                Main.Log.AppendLine("R8: 0x"  + Memory.Convert(this.R8).ToString("X"));
+                Main.Log.AppendLine("R9: 0x"  + Memory.Convert(this.R9).ToString("X"));
                 Main.Log.AppendLine("R10: 0x" + Memory.Convert(this.R10).ToString("X"));
                 Main.Log.AppendLine("R11: 0x" + Memory.Convert(this.R11).ToString("X"));
                 Main.Log.AppendLine("R12: 0x" + Memory.Convert(this.R12).ToString("X"));
@@ -5031,42 +5071,43 @@
             {
                 var stc = this.STCount;
                 Main.Log.AppendLine("STCount: " + stc);
-                if (stc > 0)
+
+                if ( stc > 0 )
                 {
                     Main.Log.AppendLine("ST0: " + this.ST0);
                 }
 
-                if (stc > 1)
+                if ( stc > 1 )
                 {
                     Main.Log.AppendLine("ST1: " + this.ST1);
                 }
 
-                if (stc > 2)
+                if ( stc > 2 )
                 {
                     Main.Log.AppendLine("ST2: " + this.ST2);
                 }
 
-                if (stc > 3)
+                if ( stc > 3 )
                 {
                     Main.Log.AppendLine("ST3: " + this.ST3);
                 }
 
-                if (stc > 4)
+                if ( stc > 4 )
                 {
                     Main.Log.AppendLine("ST4: " + this.ST4);
                 }
 
-                if (stc > 5)
+                if ( stc > 5 )
                 {
                     Main.Log.AppendLine("ST5: " + this.ST5);
                 }
 
-                if (stc > 6)
+                if ( stc > 6 )
                 {
                     Main.Log.AppendLine("ST6: " + this.ST6);
                 }
 
-                if (stc > 7)
+                if ( stc > 7 )
                 {
                     Main.Log.AppendLine("ST7: " + this.ST7);
                 }
@@ -5098,110 +5139,110 @@
         /// </summary>
         internal class CPUOffsets
         {
-            internal int AX = -1;
-            internal int BP = -1;
-            internal int BX = -1;
-            internal int CX = -1;
-            internal int Depth = -1;
-            internal int DI = -1;
-            internal int DX = -1;
-            internal int FLAGS = -1;
-            internal int Hook = -1;
-            internal int Hook_AX = -1;
-            internal int Hook_CX = -1;
+            internal int AX                   = -1;
+            internal int BP                   = -1;
+            internal int BX                   = -1;
+            internal int CX                   = -1;
+            internal int Depth                = -1;
+            internal int DI                   = -1;
+            internal int DX                   = -1;
+            internal int FLAGS                = -1;
+            internal int Hook                 = -1;
+            internal int Hook_AX              = -1;
+            internal int Hook_CX              = -1;
             internal int Hook_OrigReturnAfter = -1;
-            internal int IP = -1;
-            internal int R10 = -1;
-            internal int R11 = -1;
-            internal int R12 = -1;
-            internal int R13 = -1;
-            internal int R14 = -1;
-            internal int R15 = -1;
-            internal int R8 = -1;
-            internal int R9 = -1;
-            internal int ReturnAfter = -1;
-            internal int SI = -1;
-            internal int Size = -1;
-            internal int SP = -1;
-            internal int ST0 = -1;
-            internal int ST1 = -1;
-            internal int ST2 = -1;
-            internal int ST3 = -1;
-            internal int ST4 = -1;
-            internal int ST5 = -1;
-            internal int ST6 = -1;
-            internal int ST7 = -1;
-            internal int STCount = -1;
-            internal int XMM0 = -1;
-            internal int XMM1 = -1;
-            internal int XMM10 = -1;
-            internal int XMM11 = -1;
-            internal int XMM12 = -1;
-            internal int XMM13 = -1;
-            internal int XMM14 = -1;
-            internal int XMM15 = -1;
-            internal int XMM2 = -1;
-            internal int XMM3 = -1;
-            internal int XMM4 = -1;
-            internal int XMM5 = -1;
-            internal int XMM6 = -1;
-            internal int XMM7 = -1;
-            internal int XMM8 = -1;
-            internal int XMM9 = -1;
+            internal int IP                   = -1;
+            internal int R10                  = -1;
+            internal int R11                  = -1;
+            internal int R12                  = -1;
+            internal int R13                  = -1;
+            internal int R14                  = -1;
+            internal int R15                  = -1;
+            internal int R8                   = -1;
+            internal int R9                   = -1;
+            internal int ReturnAfter          = -1;
+            internal int SI                   = -1;
+            internal int Size                 = -1;
+            internal int SP                   = -1;
+            internal int ST0                  = -1;
+            internal int ST1                  = -1;
+            internal int ST2                  = -1;
+            internal int ST3                  = -1;
+            internal int ST4                  = -1;
+            internal int ST5                  = -1;
+            internal int ST6                  = -1;
+            internal int ST7                  = -1;
+            internal int STCount              = -1;
+            internal int XMM0                 = -1;
+            internal int XMM1                 = -1;
+            internal int XMM10                = -1;
+            internal int XMM11                = -1;
+            internal int XMM12                = -1;
+            internal int XMM13                = -1;
+            internal int XMM14                = -1;
+            internal int XMM15                = -1;
+            internal int XMM2                 = -1;
+            internal int XMM3                 = -1;
+            internal int XMM4                 = -1;
+            internal int XMM5                 = -1;
+            internal int XMM6                 = -1;
+            internal int XMM7                 = -1;
+            internal int XMM8                 = -1;
+            internal int XMM9                 = -1;
 
             /// <summary>
             ///     Initializes a new instance of the <see cref="CPUOffsets" /> class.
             /// </summary>
             internal CPUOffsets()
             {
-                this.Size = GetContextOffset(0);
-                this.AX = GetContextOffset(1);
-                this.BX = GetContextOffset(2);
-                this.CX = GetContextOffset(3);
-                this.DX = GetContextOffset(4);
-                this.SI = GetContextOffset(5);
-                this.DI = GetContextOffset(6);
-                this.SP = GetContextOffset(7);
-                this.IP = GetContextOffset(8);
-                this.FLAGS = GetContextOffset(9);
-                this.R8 = GetContextOffset(10);
-                this.R9 = GetContextOffset(11);
-                this.R10 = GetContextOffset(12);
-                this.R11 = GetContextOffset(13);
-                this.R12 = GetContextOffset(14);
-                this.R13 = GetContextOffset(15);
-                this.R14 = GetContextOffset(16);
-                this.R15 = GetContextOffset(17);
-                this.XMM0 = GetContextOffset(18);
-                this.XMM1 = GetContextOffset(19);
-                this.XMM2 = GetContextOffset(20);
-                this.XMM3 = GetContextOffset(21);
-                this.XMM4 = GetContextOffset(22);
-                this.XMM5 = GetContextOffset(23);
-                this.XMM6 = GetContextOffset(24);
-                this.XMM7 = GetContextOffset(25);
-                this.XMM8 = GetContextOffset(26);
-                this.XMM9 = GetContextOffset(27);
-                this.XMM10 = GetContextOffset(28);
-                this.XMM11 = GetContextOffset(29);
-                this.XMM12 = GetContextOffset(30);
-                this.XMM13 = GetContextOffset(31);
-                this.XMM14 = GetContextOffset(32);
-                this.XMM15 = GetContextOffset(33);
-                this.Depth = GetContextOffset(34);
-                this.ReturnAfter = GetContextOffset(35);
-                this.Hook = GetContextOffset(36);
-                this.BP = GetContextOffset(37);
-                this.Hook_CX = GetContextOffset(38);
-                this.Hook_AX = GetContextOffset(39);
+                this.Size                 = GetContextOffset(0);
+                this.AX                   = GetContextOffset(1);
+                this.BX                   = GetContextOffset(2);
+                this.CX                   = GetContextOffset(3);
+                this.DX                   = GetContextOffset(4);
+                this.SI                   = GetContextOffset(5);
+                this.DI                   = GetContextOffset(6);
+                this.SP                   = GetContextOffset(7);
+                this.IP                   = GetContextOffset(8);
+                this.FLAGS                = GetContextOffset(9);
+                this.R8                   = GetContextOffset(10);
+                this.R9                   = GetContextOffset(11);
+                this.R10                  = GetContextOffset(12);
+                this.R11                  = GetContextOffset(13);
+                this.R12                  = GetContextOffset(14);
+                this.R13                  = GetContextOffset(15);
+                this.R14                  = GetContextOffset(16);
+                this.R15                  = GetContextOffset(17);
+                this.XMM0                 = GetContextOffset(18);
+                this.XMM1                 = GetContextOffset(19);
+                this.XMM2                 = GetContextOffset(20);
+                this.XMM3                 = GetContextOffset(21);
+                this.XMM4                 = GetContextOffset(22);
+                this.XMM5                 = GetContextOffset(23);
+                this.XMM6                 = GetContextOffset(24);
+                this.XMM7                 = GetContextOffset(25);
+                this.XMM8                 = GetContextOffset(26);
+                this.XMM9                 = GetContextOffset(27);
+                this.XMM10                = GetContextOffset(28);
+                this.XMM11                = GetContextOffset(29);
+                this.XMM12                = GetContextOffset(30);
+                this.XMM13                = GetContextOffset(31);
+                this.XMM14                = GetContextOffset(32);
+                this.XMM15                = GetContextOffset(33);
+                this.Depth                = GetContextOffset(34);
+                this.ReturnAfter          = GetContextOffset(35);
+                this.Hook                 = GetContextOffset(36);
+                this.BP                   = GetContextOffset(37);
+                this.Hook_CX              = GetContextOffset(38);
+                this.Hook_AX              = GetContextOffset(39);
                 this.Hook_OrigReturnAfter = GetContextOffset(40);
             }
 
-            [DllImport("NetScriptFramework.Runtime.dll")]
+            [ DllImport("NetScriptFramework.Runtime.dll") ]
             private static extern int GetContextOffset(int index);
         }
 
-        #endregion
+    #endregion
     }
 
     /// <summary>
@@ -5214,8 +5255,7 @@
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns></returns>
-        public static string ToHexString(this IntPtr value) =>
-            "0x" + value.ToInt64().ToString("X", CultureInfo.InvariantCulture);
+        public static string ToHexString(this IntPtr value) => "0x" + value.ToInt64().ToString("X", CultureInfo.InvariantCulture);
 
         /// <summary>
         ///     Converts the value of this instance to a boolean.
@@ -5302,7 +5342,7 @@
         /// <exception cref="System.InvalidCastException">Unable to cast a pointer to a 64-bit unsigned integer!</exception>
         public static ulong ToUInt64(this IntPtr value)
         {
-            if (!Main.Is64Bit)
+            if ( !Main.Is64Bit )
             {
                 throw new InvalidCastException("Unable to cast a pointer to a 64-bit unsigned integer!");
             }
@@ -5329,7 +5369,7 @@
         /// <exception cref="System.InvalidCastException">Unable to cast a pointer to a 64-bit floating point value!</exception>
         public static double ToDouble(this IntPtr value)
         {
-            if (!Main.Is64Bit)
+            if ( !Main.Is64Bit )
             {
                 throw new InvalidCastException("Unable to cast a pointer to a 64-bit floating point value!");
             }
@@ -5345,7 +5385,7 @@
         /// <returns></returns>
         private static ulong ToInternal32(IntPtr value)
         {
-            if (Main.Is64Bit)
+            if ( Main.Is64Bit )
             {
                 return value.ToUInt64();
             }
@@ -5361,12 +5401,12 @@
         /// <returns></returns>
         public static int CompareTo(this IntPtr value, IntPtr other)
         {
-            if (value == other)
+            if ( value == other )
             {
                 return 0;
             }
 
-            if (Main.Is64Bit)
+            if ( Main.Is64Bit )
             {
                 var a = value.ToUInt64();
                 var b = other.ToUInt64();
@@ -5399,31 +5439,21 @@
         /// <param name="length">The length.</param>
         /// <param name="protectForRead">The protect for read.</param>
         internal MemoryAccessException(IntPtr address, int length, int protectForRead) : base(
-            "Failed to modify memory protection flags for " + (protectForRead > 0 ? "reading" : "writing") +
-            " at address " + address.ToHexString() + " to " +
-            (address + length).ToHexString() + "!")
-        {
-        }
+            "Failed to modify memory protection flags for " + (protectForRead > 0 ? "reading" : "writing") + " at address " + address.ToHexString() + " to " + (address + length).ToHexString() + "!"
+        ) { }
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="MemoryAccessException" /> class.
         /// </summary>
         /// <param name="address">The address.</param>
-        public MemoryAccessException(IntPtr address) : base(
-            "Trying to access protected or unallocated memory at address " + address.ToHexString() + "!")
-        {
-        }
+        public MemoryAccessException(IntPtr address) : base("Trying to access protected or unallocated memory at address " + address.ToHexString() + "!") { }
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="MemoryAccessException" /> class.
         /// </summary>
         /// <param name="address">The address.</param>
         /// <param name="length">The length.</param>
-        public MemoryAccessException(IntPtr address, int length) : base(
-            "Trying to access protected or unallocated memory at address " + address.ToHexString() + " to " +
-            (address + length).ToHexString() + "!")
-        {
-        }
+        public MemoryAccessException(IntPtr address, int length) : base("Trying to access protected or unallocated memory at address " + address.ToHexString() + " to " + (address + length).ToHexString() + "!") { }
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="MemoryAccessException" /> class.
@@ -5431,22 +5461,15 @@
         /// <param name="address">The address.</param>
         /// <param name="length">The length.</param>
         /// <param name="write">if set to <c>true</c> [write].</param>
-        public MemoryAccessException(IntPtr address, int length, bool write) : base("Trying to " +
-                                                                                    (write ? "write to" : "read from") +
-                                                                                    " protected or unallocated memory at address " + address.ToHexString() + " to " +
-                                                                                    (address + length).ToHexString() + "!")
-        {
-        }
+        public MemoryAccessException(IntPtr address, int length, bool write) : base(
+            "Trying to " + (write ? "write to" : "read from") + " protected or unallocated memory at address " + address.ToHexString() + " to " + (address + length).ToHexString() + "!"
+        ) { }
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="MemoryAccessException" /> class.
         /// </summary>
         /// <param name="address">The address.</param>
         /// <param name="write">if set to <c>true</c> [write].</param>
-        public MemoryAccessException(IntPtr address, bool write) : base(
-            "Trying to " + (write ? "write to" : "read from") + " protected or unallocated memory at address " +
-            address.ToHexString() + "!")
-        {
-        }
+        public MemoryAccessException(IntPtr address, bool write) : base("Trying to " + (write ? "write to" : "read from") + " protected or unallocated memory at address " + address.ToHexString() + "!") { }
     }
 }

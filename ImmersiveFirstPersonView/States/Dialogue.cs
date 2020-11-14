@@ -8,13 +8,14 @@
 
         internal override bool Check(CameraUpdate update)
         {
-            if (!update.CameraMain.IsEnabled)
+            if ( !update.CameraMain.IsEnabled )
             {
                 return false;
             }
 
             var mm = MenuManager.Instance;
-            if (mm == null)
+
+            if ( mm == null )
             {
                 return false;
             }

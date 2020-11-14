@@ -3,29 +3,30 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+
     using NetScriptFramework;
     using NetScriptFramework.SkyrimSE;
 
     internal static class CameraCollision
     {
         private static MemoryAllocation Allocation;
-        private static ulong RaycastMask;
-        private static NiPoint3 TempNormal;
-        private static NiPoint3 TempPoint1;
-        private static NiPoint3 TempPoint2;
-        private static NiPoint3 TempSafety;
-        private static NiTransform TempTransform;
+        private static ulong            RaycastMask;
+        private static NiPoint3         TempNormal;
+        private static NiPoint3         TempPoint1;
+        private static NiPoint3         TempPoint2;
+        private static NiPoint3         TempSafety;
+        private static NiTransform      TempTransform;
 
         internal static bool Apply(CameraUpdate update, NiTransform transform, NiPoint3 result)
         {
             init();
 
-            if (update == null || transform == null || result == null)
+            if ( update == null || transform == null || result == null )
             {
                 return false;
             }
 
-            if (update.Values.CollisionEnabled.CurrentValue < 0.5)
+            if ( update.Values.CollisionEnabled.CurrentValue < 0.5 )
             {
                 return false;
             }
@@ -33,13 +34,15 @@
             var actor = update.Target.Actor;
 
             var cell = actor?.ParentCell;
-            if (cell == null)
+
+            if ( cell == null )
             {
                 return false;
             }
 
             var safety = (float)(update.Values.NearClip.CurrentValue + 1.0);
-            if (safety < 1.0f)
+
+            if ( safety < 1.0f )
             {
                 safety = 1.0f;
             }
@@ -51,7 +54,7 @@
             TempPoint1.CopyFrom(actor.Position);
             TempPoint1.Z = tpos.Z;
 
-            if (safety2 > 0.0f)
+            if ( safety2 > 0.0f )
             {
                 TempSafety.Y = -safety2 * 0.5f;
                 TempTransform.CopyFrom(transform);
@@ -64,7 +67,8 @@
             TempNormal.Z = tpos.Z - TempPoint1.Z;
 
             var len = TempNormal.Length;
-            if (len <= 0.0f)
+
+            if ( len <= 0.0f )
             {
                 return false;
             }
@@ -76,24 +80,21 @@
             TempPoint2.Y = TempPoint1.Y + TempNormal.Y;
             TempPoint2.Z = TempPoint1.Z + TempNormal.Z;
 
-            var ls = TESObjectCELL.RayCast(new RayCastParameters
-            {
-                Cell = cell,
-                Begin = new[] {TempPoint1.X, TempPoint1.Y, TempPoint1.Z},
-                End = new[] {TempPoint2.X, TempPoint2.Y, TempPoint2.Z}
-            });
+            var ls = TESObjectCELL.RayCast(new RayCastParameters { Cell = cell, Begin = new[] { TempPoint1.X, TempPoint1.Y, TempPoint1.Z }, End = new[] { TempPoint2.X, TempPoint2.Y, TempPoint2.Z } });
 
-            if (ls == null || ls.Count == 0)
+            if ( ls == null || ls.Count == 0 )
             {
                 return false;
             }
 
-            RayCastResult best = null;
-            var bestDist = 0.0f;
-            var ignore = new List<NiAVObject>(3);
+            RayCastResult best     = null;
+            var           bestDist = 0.0f;
+            var           ignore   = new List<NiAVObject>(3);
+
             {
                 var sk = actor.GetSkeletonNode(true);
-                if (sk != null)
+
+                if ( sk != null )
                 {
                     ignore.Add(sk);
                 }
@@ -101,50 +102,53 @@
 
             {
                 var sk = actor.GetSkeletonNode(false);
-                if (sk != null)
+
+                if ( sk != null )
                 {
                     ignore.Add(sk);
                 }
             }
 
-            if (update.CachedMounted)
+            if ( update.CachedMounted )
             {
                 var mount = actor.GetMount();
-                var sk = mount?.GetSkeletonNode(false);
-                if (sk != null)
+                var sk    = mount?.GetSkeletonNode(false);
+
+                if ( sk != null )
                 {
                     ignore.Add(sk);
                 }
             }
 
-            foreach (var r in ls)
+            foreach ( var r in ls )
             {
-                if (!IsValid(r, ignore))
+                if ( !IsValid(r, ignore) )
                 {
                     continue;
                 }
 
                 var dist = r.Fraction;
-                if (best == null)
+
+                if ( best == null )
                 {
-                    best = r;
+                    best     = r;
                     bestDist = dist;
                 }
-                else if (dist < bestDist)
+                else if ( dist < bestDist )
                 {
-                    best = r;
+                    best     = r;
                     bestDist = dist;
                 }
             }
 
-            if (best == null)
+            if ( best == null )
             {
                 return false;
             }
 
-            bestDist *= len + safety + safety2;
+            bestDist *= len    + safety + safety2;
             bestDist -= safety + safety2;
-            bestDist /= len + safety + safety2;
+            bestDist /= len    + safety + safety2;
 
             // Negative is ok!
 
@@ -157,49 +161,59 @@
 
         private static void init()
         {
-            if (Allocation != null)
+            if ( Allocation != null )
             {
                 return;
             }
 
-            Allocation = Memory.Allocate(0x90);
-            TempPoint1 = MemoryObject.FromAddress<NiPoint3>(Allocation.Address);
-            TempPoint2 = MemoryObject.FromAddress<NiPoint3>(Allocation.Address + 0x10);
-            TempNormal = MemoryObject.FromAddress<NiPoint3>(Allocation.Address + 0x20);
-            TempSafety = MemoryObject.FromAddress<NiPoint3>(Allocation.Address + 0x30);
-            TempTransform = MemoryObject.FromAddress<NiTransform>(Allocation.Address + 0x40);
+            Allocation          = Memory.Allocate(0x90);
+            TempPoint1          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address);
+            TempPoint2          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address    + 0x10);
+            TempNormal          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address    + 0x20);
+            TempSafety          = MemoryObject.FromAddress<NiPoint3>(Allocation.Address    + 0x30);
+            TempTransform       = MemoryObject.FromAddress<NiTransform>(Allocation.Address + 0x40);
             TempTransform.Scale = 1.0f;
-            TempSafety.X = 0.0f;
-            TempSafety.Y = 0.0f;
-            TempSafety.Z = 0.0f;
+            TempSafety.X        = 0.0f;
+            TempSafety.Y        = 0.0f;
+            TempSafety.Z        = 0.0f;
 
-            SetupRaycastMask(new[]
-            {
-                CollisionLayers.AnimStatic, CollisionLayers.Biped, CollisionLayers.CharController,
+            SetupRaycastMask(
+                new[]
+                {
+                    CollisionLayers.AnimStatic,
+                    CollisionLayers.Biped,
+                    CollisionLayers.CharController,
 
-                //CollisionLayers.Clutter,
-                CollisionLayers.DebrisLarge, CollisionLayers.Ground,
+                    //CollisionLayers.Clutter,
+                    CollisionLayers.DebrisLarge,
+                    CollisionLayers.Ground,
 
-                //CollisionLayers.Props,
-                CollisionLayers.Static, CollisionLayers.Terrain, CollisionLayers.Trap, CollisionLayers.Trees,
-                CollisionLayers.Unidentified
-            });
+                    //CollisionLayers.Props,
+                    CollisionLayers.Static,
+                    CollisionLayers.Terrain,
+                    CollisionLayers.Trap,
+                    CollisionLayers.Trees,
+                    CollisionLayers.Unidentified
+                }
+            );
         }
 
         private static bool IsValid(RayCastResult r, List<NiAVObject> ignore)
         {
             var havokObj = r.HavokObject;
-            if (havokObj != IntPtr.Zero)
+
+            if ( havokObj != IntPtr.Zero )
             {
                 var flags = Memory.ReadUInt32(havokObj + 0x2C) & 0x7F;
-                var mask = (ulong)1 << (int)flags;
-                if ((RaycastMask & mask) == 0)
+                var mask  = (ulong)1 << (int)flags;
+
+                if ( (RaycastMask & mask) == 0 )
                 {
                     return false;
                 }
             }
 
-            if (ignore == null || ignore.Count == 0)
+            if ( ignore == null || ignore.Count == 0 )
             {
                 return true;
             }

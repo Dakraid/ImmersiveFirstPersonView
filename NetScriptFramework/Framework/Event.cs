@@ -1,4 +1,4 @@
-﻿namespace NetScriptFramework
+namespace NetScriptFramework
 {
     using System;
     using System.Collections.Generic;
@@ -54,7 +54,7 @@
     /// <summary>
     ///     Options for an event registration.
     /// </summary>
-    [Flags]
+    [ Flags ]
     public enum EventRegistrationFlags : uint
     {
         /// <summary>
@@ -105,14 +105,14 @@
         /// <param name="delegateType">Type of the delegate.</param>
         protected internal EventBase(string key, Type delegateType)
         {
-#if DEBUG
+        #if DEBUG
             if (string.IsNullOrEmpty(key))
             {
                 throw new ArgumentOutOfRangeException("key");
             }
-#endif
+        #endif
 
-            this.Key = key;
+            this.Key          = key;
             this.DelegateType = delegateType;
         }
 
@@ -131,18 +131,21 @@
         protected internal bool _ReduceCounts(int amount)
         {
             var removed = false;
-            for (var i = this.Registrations.Count - 1; i >= 0; i--)
+
+            for ( var i = this.Registrations.Count - 1; i >= 0; i-- )
             {
                 var reg = this.Registrations[i];
-                if (reg.TotalCount <= 0)
+
+                if ( reg.TotalCount <= 0 )
                 {
                     continue;
                 }
 
                 reg.CurrentCount -= amount;
-                if (reg.CurrentCount <= 0)
+
+                if ( reg.CurrentCount <= 0 )
                 {
-                    if (this._UnregisterByIndex(i))
+                    if ( this._UnregisterByIndex(i) )
                     {
                         removed = true;
                     }
@@ -162,17 +165,19 @@
         /// <param name="fromPluginKey">The plugin.</param>
         /// <param name="fromPluginVersion">The plugin version.</param>
         /// <returns></returns>
-        protected internal long _Register(Delegate handler, int priority, int totalCount, EventRegistrationFlags flags,
-            string fromPluginKey, int fromPluginVersion)
+        protected internal long _Register(Delegate handler, int priority, int totalCount, EventRegistrationFlags flags, string fromPluginKey, int fromPluginVersion)
         {
-            var registration = new EventRegistration();
-            registration.Guid = Main.GenerateGuid();
-            registration.Handler = handler;
-            registration.Priority = priority;
-            registration.TotalCount = totalCount;
-            registration.CurrentCount = totalCount;
-            registration.Flags = flags;
-            if (fromPluginKey != null)
+            var registration = new EventRegistration
+            {
+                Guid         = Main.GenerateGuid(),
+                Handler      = handler,
+                Priority     = priority,
+                TotalCount   = totalCount,
+                CurrentCount = totalCount,
+                Flags        = flags
+            };
+
+            if ( fromPluginKey != null )
             {
                 registration.PluginKey = fromPluginKey;
                 registration.PluginVer = fromPluginVersion;
@@ -195,9 +200,10 @@
         internal void _Register(EventRegistration registration)
         {
             var index = 0;
-            for (; index < this.Registrations.Count; index++)
+
+            for ( ; index < this.Registrations.Count; index++ )
             {
-                if (this.Registrations[index].Priority > registration.Priority)
+                if ( this.Registrations[index].Priority > registration.Priority )
                 {
                     break;
                 }
@@ -213,17 +219,19 @@
         /// <returns></returns>
         protected internal bool _Unregister(long guid)
         {
-            for (var i = 0; i < this.Registrations.Count; i++)
+            for ( var i = 0; i < this.Registrations.Count; i++ )
             {
-                if (this.Registrations[i].Guid == guid)
+                if ( this.Registrations[i].Guid != guid )
                 {
-                    if (this._UnregisterByIndex(i))
-                    {
-                        this._Recalculate();
-                    }
-
-                    return true;
+                    continue;
                 }
+
+                if ( this._UnregisterByIndex(i) )
+                {
+                    this._Recalculate();
+                }
+
+                return true;
             }
 
             return false;
@@ -249,21 +257,20 @@
             var had = this.Handler != null;
             this.Handler = null;
 
-            if (this.Registrations.Count != 0)
+            if ( this.Registrations.Count != 0 )
             {
                 var list = new List<Delegate>();
 
-                for (var i = 0; i < this.Registrations.Count; i++)
+                for ( var i = 0; i < this.Registrations.Count; i++ )
                 {
                     var reg = this.Registrations[i];
 
-                    if (reg.Handler == null)
+                    if ( reg.Handler == null )
                     {
                         continue;
                     }
 
-                    if ((reg.Flags & EventRegistrationFlags.Distinct) != EventRegistrationFlags.None &&
-                        list.Contains(reg.Handler))
+                    if ( (reg.Flags & EventRegistrationFlags.Distinct) != EventRegistrationFlags.None && list.Contains(reg.Handler) )
                     {
                         continue;
                     }
@@ -271,11 +278,11 @@
                     list.Add(reg.Handler);
                 }
 
-                if (list.Count == 0)
+                if ( list.Count == 0 )
                 {
                     this.Handler = null;
                 }
-                else if (list.Count == 1)
+                else if ( list.Count == 1 )
                 {
                     this.Handler = list[0];
                 }
@@ -291,7 +298,7 @@
     ///     Implement event handler.
     /// </summary>
     /// <typeparam name="T">Type of event arguments.</typeparam>
-    public class Event<T> : EventBase where T : EventArgs
+    public class Event <T> : EventBase where T : EventArgs
     {
         /// <summary>
         ///     The event handler delegate.
@@ -315,31 +322,34 @@
         /// </param>
         /// <param name="flags">The flags of registration.</param>
         /// <returns></returns>
-        public long Register(EventHandler handler, int priority = 0, int count = 0,
-            EventRegistrationFlags flags = EventRegistrationFlags.None)
+        public EventHandler Register(EventHandler handler, int priority = 0, int count = 0, EventRegistrationFlags flags = EventRegistrationFlags.None)
         {
             string pluginKey = null;
-            var pluginVer = 0;
-            var assembly = Assembly.GetCallingAssembly();
-            if (assembly != null)
+            var    pluginVer = 0;
+            var    assembly  = Assembly.GetCallingAssembly();
+
+            if ( assembly == Main.FrameworkAssembly )
             {
-                if (assembly == Main.FrameworkAssembly)
+                pluginKey = string.Empty;
+                pluginVer = Main.FrameworkVersion;
+            }
+            else
+            {
+                var plugin = PluginManager.GetPlugin(assembly);
+
+                if ( plugin != null )
                 {
-                    pluginKey = string.Empty;
-                    pluginVer = Main.FrameworkVersion;
-                }
-                else
-                {
-                    var plugin = PluginManager.GetPlugin(assembly);
-                    if (plugin != null)
-                    {
-                        pluginKey = plugin.InternalKey;
-                        pluginVer = plugin.InternalVersion;
-                    }
+                    pluginKey = plugin.InternalKey;
+                    pluginVer = plugin.InternalVersion;
                 }
             }
 
-            lock (this.Locker) { return this._Register(handler, priority, count, flags, pluginKey, pluginVer); }
+            lock ( this.Locker )
+            {
+                this._Register(handler, priority, count, flags, pluginKey, pluginVer);
+
+                return handler;
+            }
         }
 
         /// <summary>
@@ -349,7 +359,7 @@
         /// <returns></returns>
         public bool Unregister(long guid)
         {
-            lock (this.Locker) { return this._Unregister(guid); }
+            lock ( this.Locker ) { return this._Unregister(guid); }
         }
 
         /// <summary>
@@ -361,18 +371,20 @@
         /// <returns></returns>
         public virtual T Raise(Func<T> initArgs)
         {
-            lock (this.Locker)
+            lock ( this.Locker )
             {
                 var handlerBase = this._GetHandler();
-                if (handlerBase == null)
+
+                if ( handlerBase == null )
                 {
                     return null;
                 }
 
                 var handler = (EventHandler)handlerBase;
-                var args = initArgs();
+                var args    = initArgs();
                 handler(args);
-                if (this._ReduceCounts(1))
+
+                if ( this._ReduceCounts(1) )
                 {
                     this._Recalculate();
                 }
@@ -401,7 +413,7 @@
     ///     One hooked event registration parameters.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public sealed class EventHookParameters<T> where T : HookedEventArgs
+    public sealed class EventHookParameters <T> where T : HookedEventArgs
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="EventHookParameters{T}" /> class.
@@ -412,15 +424,14 @@
         /// <param name="pattern">The expected pattern at location.</param>
         /// <param name="argFunc">The argument function.</param>
         /// <param name="afterFunc">The after function.</param>
-        public EventHookParameters(IntPtr address, int replaceLength, int includeLength, string pattern,
-            Func<CPURegisters, T> argFunc, Action<CPURegisters, T> afterFunc)
+        public EventHookParameters(IntPtr address, int replaceLength, int includeLength, string pattern, Func<CPURegisters, T> argFunc, Action<CPURegisters, T> afterFunc)
         {
-            this.Address = address;
+            this.Address       = address;
             this.ReplaceLength = replaceLength;
             this.IncludeLength = includeLength;
-            this.Pattern = pattern;
-            this.ArgFunc = argFunc;
-            this.AfterFunc = afterFunc;
+            this.Pattern       = pattern;
+            this.ArgFunc       = argFunc;
+            this.AfterFunc     = afterFunc;
         }
 
         /// <summary>
@@ -475,7 +486,7 @@
     /// <summary>
     ///     Options for event hook.
     /// </summary>
-    [Flags]
+    [ Flags ]
     public enum EventHookFlags : uint
     {
         None = 0,
@@ -487,7 +498,7 @@
     ///     Implement event handler that is also a code hook.
     /// </summary>
     /// <typeparam name="T">Type of event arguments.</typeparam>
-    public sealed class EventHook<T> : Event<T> where T : HookedEventArgs
+    public sealed class EventHook <T> : Event<T> where T : HookedEventArgs
     {
         /// <summary>
         ///     The arguments.
@@ -508,12 +519,12 @@
         /// <exception cref="System.ArgumentNullException">argFunc</exception>
         public EventHook(EventHookFlags flags, string key, params EventHookParameters<T>[] args) : base(key)
         {
-            if (args == null)
+            if ( args == null )
             {
                 throw new ArgumentNullException(nameof(args));
             }
 
-            if (args.Any(q => q.ArgFunc == null))
+            if ( args.Any(q => q.ArgFunc == null) )
             {
                 throw new ArgumentNullException("args[].ArgFunc");
             }
@@ -521,14 +532,16 @@
             this.HookFlags = flags;
 
             this.Arguments = args.ToArray();
-            for (var i = 0; i < this.Arguments.Length; i++)
+
+            for ( var i = 0; i < this.Arguments.Length; i++ )
             {
                 var a = this.Arguments[i];
 
-                var p = new HookParameters {Address = a.Address};
-                var ix = i;
+                var p    = new HookParameters { Address = a.Address };
+                var ix   = i;
                 var incl = a.IncludeLength;
-                if (incl >= 0)
+
+                if ( incl >= 0 )
                 {
                     p.Before = cpu => this.EventHook_Action(cpu, ix);
                 }
@@ -537,7 +550,7 @@
                     p.After = cpu => this.EventHook_Action(cpu, ix);
                 }
 
-                p.Pattern = a.Pattern;
+                p.Pattern       = a.Pattern;
                 p.IncludeLength = Math.Abs(a.IncludeLength);
                 p.ReplaceLength = a.ReplaceLength;
 
@@ -553,13 +566,15 @@
         private void EventHook_Action(CPURegisters ctx, int index)
         {
             var a = this.Arguments[index];
-            lock (this.Locker)
+
+            lock ( this.Locker )
             {
-                var valid = true;
+                var valid       = true;
                 var handlerBase = this._GetHandler();
-                if (handlerBase == null)
+
+                if ( handlerBase == null )
                 {
-                    if ((this.HookFlags & EventHookFlags.AlwaysRun) == EventHookFlags.None)
+                    if ( (this.HookFlags & EventHookFlags.AlwaysRun) == EventHookFlags.None )
                     {
                         return;
                     }
@@ -568,21 +583,23 @@
                 }
 
                 var handler = valid ? (EventHandler)handlerBase : null;
-                var args = a.ArgFunc(ctx);
-                if (args != null)
+                var args    = a.ArgFunc(ctx);
+
+                if ( args != null )
                 {
                     args.Context = ctx;
-                    if (valid)
+
+                    if ( valid )
                     {
                         handler(args);
                     }
 
-                    if (a.AfterFunc != null)
+                    if ( a.AfterFunc != null )
                     {
                         a.AfterFunc(ctx, args);
                     }
 
-                    if (valid && this._ReduceCounts(1))
+                    if ( valid && this._ReduceCounts(1) )
                     {
                         this._Recalculate();
                     }
@@ -598,7 +615,6 @@
         /// <param name="initArgs">The initialize arguments function.</param>
         /// <returns></returns>
         /// <exception cref="System.InvalidOperationException">Manually invoking hooked event is not allowed!</exception>
-        public override T Raise(Func<T> initArgs) =>
-            throw new InvalidOperationException("Manually invoking hooked event is not allowed!");
+        public override T Raise(Func<T> initArgs) => throw new InvalidOperationException("Manually invoking hooked event is not allowed!");
     }
 }

@@ -42,7 +42,7 @@
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <seealso cref="NetScriptFramework.MemoryArrayBase" />
     /// <seealso cref="System.Collections.Generic.IEnumerable{TValue}" />
-    public abstract class MemoryArray<TValue> : MemoryArrayBase, IEnumerable<TValue>
+    public abstract class MemoryArray <TValue> : MemoryArrayBase, IEnumerable<TValue>
     {
         /// <summary>
         ///     Gets the array handler.
@@ -73,12 +73,12 @@
         {
             get
             {
-                if (index < 0)
+                if ( index < 0 )
                 {
                     throw new IndexOutOfRangeException("Index must not be negative!");
                 }
 
-                if (index >= this.Length)
+                if ( index >= this.Length )
                 {
                     throw new IndexOutOfRangeException("Index must not exceed the length of array!");
                 }
@@ -87,12 +87,12 @@
             }
             set
             {
-                if (index < 0)
+                if ( index < 0 )
                 {
                     throw new IndexOutOfRangeException("Index must not be negative!");
                 }
 
-                if (index >= this.Length)
+                if ( index >= this.Length )
                 {
                     throw new IndexOutOfRangeException("Index must not exceed the length of array!");
                 }
@@ -134,7 +134,7 @@
         /// </returns>
         public override string ToString(int maxEntries)
         {
-            if (this.Address == IntPtr.Zero)
+            if ( this.Address == IntPtr.Zero )
             {
                 return "null";
             }
@@ -145,28 +145,30 @@
             str.Append(len.ToString());
             str.Append(']');
 
-            if (len > 0)
+            if ( len > 0 )
             {
                 str.Append(" {");
-                if (maxEntries == 0)
+
+                if ( maxEntries == 0 )
                 {
                     str.Append(" ...");
                 }
                 else
                 {
-                    for (var i = 0; i < len; i++)
+                    for ( var i = 0; i < len; i++ )
                     {
-                        if (i > 0)
+                        if ( i > 0 )
                         {
                             str.Append(", ");
                         }
 
-                        if (i >= maxEntries)
+                        if ( i >= maxEntries )
                         {
                             str.Append("... ");
                             str.Append((len - maxEntries).ToString());
                             str.Append(" more entr");
-                            if (len - maxEntries == 1)
+
+                            if ( len - maxEntries == 1 )
                             {
                                 str.Append("y");
                             }
@@ -179,8 +181,9 @@
                         }
 
                         var value = this[i];
-                        var sx = this.Handler.GetText(value);
-                        if (!string.IsNullOrEmpty(sx))
+                        var sx    = this.Handler.GetText(value);
+
+                        if ( !string.IsNullOrEmpty(sx) )
                         {
                             str.Append(sx);
                         }
@@ -252,7 +255,7 @@
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <seealso cref="NetScriptFramework.MemoryArray{TValue}" />
-    public sealed class FixedMemoryArray<TValue> : MemoryArray<TValue>
+    public sealed class FixedMemoryArray <TValue> : MemoryArray<TValue>
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="FixedMemoryArray{TValue}" /> class.
@@ -263,14 +266,14 @@
         /// <exception cref="System.ArgumentNullException">handler</exception>
         public FixedMemoryArray(MemoryArrayTypeHandler<TValue> handler, IntPtr address, int length)
         {
-            if (handler == null)
+            if ( handler == null )
             {
                 throw new ArgumentNullException("handler");
             }
 
             this.Address = address;
             this.Handler = handler;
-            this.Length = length;
+            this.Length  = length;
         }
 
         /// <summary>
@@ -309,7 +312,7 @@
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <seealso cref="NetScriptFramework.MemoryArrayTypeHandlerBase" />
-    public abstract class MemoryArrayTypeHandler<TValue> : MemoryArrayTypeHandlerBase
+    public abstract class MemoryArrayTypeHandler <TValue> : MemoryArrayTypeHandlerBase
     {
         /// <summary>
         ///     Reads the specified entry from array.
@@ -345,11 +348,9 @@ namespace NetScriptFramework.ArrayHandlers
     {
         public override int Stride => 1;
 
-        public override bool Read(IntPtr arrayBase, int index) =>
-            Memory.ReadUInt8(arrayBase + (index * this.Stride)) != 0;
+        public override bool Read(IntPtr arrayBase, int index) => Memory.ReadUInt8(arrayBase + (index * this.Stride)) != 0;
 
-        public override void Write(IntPtr arrayBase, int index, bool value) =>
-            Memory.WriteUInt8(arrayBase + (index * this.Stride), value ? (byte)1 : (byte)0);
+        public override void Write(IntPtr arrayBase, int index, bool value) => Memory.WriteUInt8(arrayBase + (index * this.Stride), value ? (byte)1 : (byte)0);
 
         public override string GetText(bool value) => value.ToString(CultureInfo.InvariantCulture);
     }
@@ -360,8 +361,7 @@ namespace NetScriptFramework.ArrayHandlers
 
         public override byte Read(IntPtr arrayBase, int index) => Memory.ReadUInt8(arrayBase + (index * this.Stride));
 
-        public override void Write(IntPtr arrayBase, int index, byte value) =>
-            Memory.WriteUInt8(arrayBase + (index * this.Stride), value);
+        public override void Write(IntPtr arrayBase, int index, byte value) => Memory.WriteUInt8(arrayBase + (index * this.Stride), value);
 
         public override string GetText(byte value) => value.ToString(CultureInfo.InvariantCulture);
     }
@@ -372,8 +372,7 @@ namespace NetScriptFramework.ArrayHandlers
 
         public override sbyte Read(IntPtr arrayBase, int index) => Memory.ReadInt8(arrayBase + (index * this.Stride));
 
-        public override void Write(IntPtr arrayBase, int index, sbyte value) =>
-            Memory.WriteInt8(arrayBase + (index * this.Stride), value);
+        public override void Write(IntPtr arrayBase, int index, sbyte value) => Memory.WriteInt8(arrayBase + (index * this.Stride), value);
 
         public override string GetText(sbyte value) => value.ToString(CultureInfo.InvariantCulture);
     }
@@ -382,11 +381,9 @@ namespace NetScriptFramework.ArrayHandlers
     {
         public override int Stride => 2;
 
-        public override ushort Read(IntPtr arrayBase, int index) =>
-            Memory.ReadUInt16(arrayBase + (index * this.Stride));
+        public override ushort Read(IntPtr arrayBase, int index) => Memory.ReadUInt16(arrayBase + (index * this.Stride));
 
-        public override void Write(IntPtr arrayBase, int index, ushort value) =>
-            Memory.WriteUInt16(arrayBase + (index * this.Stride), value);
+        public override void Write(IntPtr arrayBase, int index, ushort value) => Memory.WriteUInt16(arrayBase + (index * this.Stride), value);
 
         public override string GetText(ushort value) => value.ToString(CultureInfo.InvariantCulture);
     }
@@ -397,8 +394,7 @@ namespace NetScriptFramework.ArrayHandlers
 
         public override short Read(IntPtr arrayBase, int index) => Memory.ReadInt16(arrayBase + (index * this.Stride));
 
-        public override void Write(IntPtr arrayBase, int index, short value) =>
-            Memory.WriteInt16(arrayBase + (index * this.Stride), value);
+        public override void Write(IntPtr arrayBase, int index, short value) => Memory.WriteInt16(arrayBase + (index * this.Stride), value);
 
         public override string GetText(short value) => value.ToString(CultureInfo.InvariantCulture);
     }
@@ -409,8 +405,7 @@ namespace NetScriptFramework.ArrayHandlers
 
         public override uint Read(IntPtr arrayBase, int index) => Memory.ReadUInt32(arrayBase + (index * this.Stride));
 
-        public override void Write(IntPtr arrayBase, int index, uint value) =>
-            Memory.WriteUInt32(arrayBase + (index * this.Stride), value);
+        public override void Write(IntPtr arrayBase, int index, uint value) => Memory.WriteUInt32(arrayBase + (index * this.Stride), value);
 
         public override string GetText(uint value) => value.ToString(CultureInfo.InvariantCulture);
     }
@@ -421,8 +416,7 @@ namespace NetScriptFramework.ArrayHandlers
 
         public override int Read(IntPtr arrayBase, int index) => Memory.ReadInt32(arrayBase + (index * this.Stride));
 
-        public override void Write(IntPtr arrayBase, int index, int value) =>
-            Memory.WriteInt32(arrayBase + (index * this.Stride), value);
+        public override void Write(IntPtr arrayBase, int index, int value) => Memory.WriteInt32(arrayBase + (index * this.Stride), value);
 
         public override string GetText(int value) => value.ToString(CultureInfo.InvariantCulture);
     }
@@ -433,8 +427,7 @@ namespace NetScriptFramework.ArrayHandlers
 
         public override ulong Read(IntPtr arrayBase, int index) => Memory.ReadUInt64(arrayBase + (index * this.Stride));
 
-        public override void Write(IntPtr arrayBase, int index, ulong value) =>
-            Memory.WriteUInt64(arrayBase + (index * this.Stride), value);
+        public override void Write(IntPtr arrayBase, int index, ulong value) => Memory.WriteUInt64(arrayBase + (index * this.Stride), value);
 
         public override string GetText(ulong value) => value.ToString(CultureInfo.InvariantCulture);
     }
@@ -445,8 +438,7 @@ namespace NetScriptFramework.ArrayHandlers
 
         public override long Read(IntPtr arrayBase, int index) => Memory.ReadInt64(arrayBase + (index * this.Stride));
 
-        public override void Write(IntPtr arrayBase, int index, long value) =>
-            Memory.WriteInt64(arrayBase + (index * this.Stride), value);
+        public override void Write(IntPtr arrayBase, int index, long value) => Memory.WriteInt64(arrayBase + (index * this.Stride), value);
 
         public override string GetText(long value) => value.ToString(CultureInfo.InvariantCulture);
     }
@@ -457,8 +449,7 @@ namespace NetScriptFramework.ArrayHandlers
 
         public override float Read(IntPtr arrayBase, int index) => Memory.ReadFloat(arrayBase + (index * this.Stride));
 
-        public override void Write(IntPtr arrayBase, int index, float value) =>
-            Memory.WriteFloat(arrayBase + (index * this.Stride), value);
+        public override void Write(IntPtr arrayBase, int index, float value) => Memory.WriteFloat(arrayBase + (index * this.Stride), value);
 
         public override string GetText(float value) => value.ToString(CultureInfo.InvariantCulture);
     }
@@ -467,11 +458,9 @@ namespace NetScriptFramework.ArrayHandlers
     {
         public override int Stride => 8;
 
-        public override double Read(IntPtr arrayBase, int index) =>
-            Memory.ReadDouble(arrayBase + (index * this.Stride));
+        public override double Read(IntPtr arrayBase, int index) => Memory.ReadDouble(arrayBase + (index * this.Stride));
 
-        public override void Write(IntPtr arrayBase, int index, double value) =>
-            Memory.WriteDouble(arrayBase + (index * this.Stride), value);
+        public override void Write(IntPtr arrayBase, int index, double value) => Memory.WriteDouble(arrayBase + (index * this.Stride), value);
 
         public override string GetText(double value) => value.ToString(CultureInfo.InvariantCulture);
     }
@@ -480,11 +469,9 @@ namespace NetScriptFramework.ArrayHandlers
     {
         public override int Stride => Main.Is64Bit ? 8 : 4;
 
-        public override IntPtr Read(IntPtr arrayBase, int index) =>
-            Memory.ReadPointer(arrayBase + (index * this.Stride));
+        public override IntPtr Read(IntPtr arrayBase, int index) => Memory.ReadPointer(arrayBase + (index * this.Stride));
 
-        public override void Write(IntPtr arrayBase, int index, IntPtr value) =>
-            Memory.WritePointer(arrayBase + (index * this.Stride), value);
+        public override void Write(IntPtr arrayBase, int index, IntPtr value) => Memory.WritePointer(arrayBase + (index * this.Stride), value);
 
         public override string GetText(IntPtr value) => value.ToHexString();
     }
@@ -496,7 +483,8 @@ namespace NetScriptFramework.ArrayHandlers
         public override string Read(IntPtr arrayBase, int index)
         {
             var ptr = Memory.ReadPointer(arrayBase + (index * this.Stride));
-            if (ptr == IntPtr.Zero)
+
+            if ( ptr == IntPtr.Zero )
             {
                 return null;
             }
@@ -504,12 +492,11 @@ namespace NetScriptFramework.ArrayHandlers
             return Memory.ReadString(ptr, false);
         }
 
-        public override void Write(IntPtr arrayBase, int index, string value) =>
-            throw new InvalidOperationException("Writing string is not allowed!");
+        public override void Write(IntPtr arrayBase, int index, string value) => throw new InvalidOperationException("Writing string is not allowed!");
 
         public override string GetText(string value)
         {
-            if (value == null)
+            if ( value == null )
             {
                 return "null";
             }
@@ -525,7 +512,8 @@ namespace NetScriptFramework.ArrayHandlers
         public override string Read(IntPtr arrayBase, int index)
         {
             var ptr = Memory.ReadPointer(arrayBase + (index * this.Stride));
-            if (ptr == IntPtr.Zero)
+
+            if ( ptr == IntPtr.Zero )
             {
                 return null;
             }
@@ -533,12 +521,11 @@ namespace NetScriptFramework.ArrayHandlers
             return Memory.ReadString(ptr, true);
         }
 
-        public override void Write(IntPtr arrayBase, int index, string value) =>
-            throw new InvalidOperationException("Writing string is not allowed!");
+        public override void Write(IntPtr arrayBase, int index, string value) => throw new InvalidOperationException("Writing string is not allowed!");
 
         public override string GetText(string value)
         {
-            if (value == null)
+            if ( value == null )
             {
                 return "null";
             }
@@ -547,12 +534,11 @@ namespace NetScriptFramework.ArrayHandlers
         }
     }
 
-    public sealed class MemoryArrayTypeHandler_Struct<TValue> : MemoryArrayTypeHandler<TValue>
-        where TValue : IMemoryObject
+    public sealed class MemoryArrayTypeHandler_Struct <TValue> : MemoryArrayTypeHandler<TValue> where TValue : IMemoryObject
     {
         public MemoryArrayTypeHandler_Struct(int stride)
         {
-            if (stride < 0)
+            if ( stride < 0 )
             {
                 throw new ArgumentOutOfRangeException("Unknown stride for type `" + typeof(TValue).Name + "`!");
             }
@@ -562,8 +548,7 @@ namespace NetScriptFramework.ArrayHandlers
 
         public override int Stride { get; }
 
-        public override TValue Read(IntPtr arrayBase, int index) =>
-            MemoryObject.FromAddress<TValue>(arrayBase + (index * this.Stride));
+        public override TValue Read(IntPtr arrayBase, int index) => MemoryObject.FromAddress<TValue>(arrayBase + (index * this.Stride));
 
         public override void Write(IntPtr arrayBase, int index, TValue value)
         {
@@ -574,20 +559,17 @@ namespace NetScriptFramework.ArrayHandlers
         public override string GetText(TValue value) => value.ToString();
     }
 
-    public sealed class MemoryArrayTypeHandler_Reference<TValue> : MemoryArrayTypeHandler<TValue>
-        where TValue : IMemoryObject
+    public sealed class MemoryArrayTypeHandler_Reference <TValue> : MemoryArrayTypeHandler<TValue> where TValue : IMemoryObject
     {
         public override int Stride => Main.Is64Bit ? 8 : 4;
 
-        public override TValue Read(IntPtr arrayBase, int index) =>
-            MemoryObject.FromAddress<TValue>(Memory.ReadPointer(arrayBase + (index * this.Stride)));
+        public override TValue Read(IntPtr arrayBase, int index) => MemoryObject.FromAddress<TValue>(Memory.ReadPointer(arrayBase + (index * this.Stride)));
 
-        public override void Write(IntPtr arrayBase, int index, TValue value) =>
-            Memory.WritePointer(arrayBase + (index * this.Stride), value == null ? IntPtr.Zero : value.Cast<TValue>());
+        public override void Write(IntPtr arrayBase, int index, TValue value) => Memory.WritePointer(arrayBase + (index * this.Stride), value == null ? IntPtr.Zero : value.Cast<TValue>());
 
         public override string GetText(TValue value)
         {
-            if (value == null)
+            if ( value == null )
             {
                 return "null";
             }

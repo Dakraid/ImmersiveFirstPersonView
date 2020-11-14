@@ -4,14 +4,14 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    #region Randomizer class
+#region Randomizer class
 
     /// <summary>
     ///     Random number generator. Thread safe.
     /// </summary>
     public static class Randomizer
     {
-        #region Randomizer members
+    #region Randomizer members
 
         /// <summary>
         ///     Generate a double between 0 and 1.
@@ -42,12 +42,12 @@
         /// <returns></returns>
         public static bool Roll(double chance)
         {
-            if (chance <= 0.0)
+            if ( chance <= 0.0 )
             {
                 return false;
             }
 
-            if (chance >= 1.0)
+            if ( chance >= 1.0 )
             {
                 return true;
             }
@@ -64,26 +64,28 @@
         /// <returns></returns>
         /// <exception cref="System.ArgumentNullException">list</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">list</exception>
-        public static T NextEntry<T>(IList<T> list, bool remove = true)
+        public static T NextEntry <T>(IList<T> list, bool remove = true)
         {
-            if (list == null)
+            if ( list == null )
             {
                 throw new ArgumentNullException("list");
             }
 
-            if (list.Count == 0)
+            if ( list.Count == 0 )
             {
                 throw new ArgumentOutOfRangeException("list");
             }
 
             var chosen = 0;
-            if (list.Count != 1)
+
+            if ( list.Count != 1 )
             {
                 chosen = NextInt(0, list.Count);
             }
 
             var obj = list[chosen];
-            if (remove)
+
+            if ( remove )
             {
                 list.RemoveAt(chosen);
             }
@@ -101,14 +103,14 @@
         /// <returns></returns>
         /// <exception cref="System.ArgumentNullException">list</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">list</exception>
-        public static T NextEntry<T>(IList<KeyValuePair<T, double>> list, bool remove = true)
+        public static T NextEntry <T>(IList<KeyValuePair<T, double>> list, bool remove = true)
         {
-            if (list == null)
+            if ( list == null )
             {
                 throw new ArgumentNullException("list");
             }
 
-            if (list.Count == 0)
+            if ( list.Count == 0 )
             {
                 throw new ArgumentOutOfRangeException("list");
             }
@@ -128,14 +130,14 @@
         /// <returns></returns>
         /// <exception cref="System.ArgumentNullException">list</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">list</exception>
-        public static T NextEntry<T>(IList<KeyValuePair<T, double>> list, ref double max, bool remove = true)
+        public static T NextEntry <T>(IList<KeyValuePair<T, double>> list, ref double max, bool remove = true)
         {
-            if (list == null)
+            if ( list == null )
             {
                 throw new ArgumentNullException("list");
             }
 
-            if (list.Count == 0)
+            if ( list.Count == 0 )
             {
                 throw new ArgumentOutOfRangeException("list");
             }
@@ -143,29 +145,32 @@
             var chooseValue = max * NextDouble();
 
             var chosen = -1;
-            for (var i = 0; i < list.Count; i++)
+
+            for ( var i = 0; i < list.Count; i++ )
             {
-                if (list[i].Value <= 0.0)
+                if ( list[i].Value <= 0.0 )
                 {
                     continue;
                 }
 
-                chosen = i;
+                chosen      =  i;
                 chooseValue -= list[i].Value;
-                if (chooseValue < 0.0)
+
+                if ( chooseValue < 0.0 )
                 {
                     max -= list[i].Value;
                     break;
                 }
             }
 
-            if (chosen == -1)
+            if ( chosen == -1 )
             {
                 chosen = 0;
             }
 
             var obj = list[chosen].Key;
-            if (remove)
+
+            if ( remove )
             {
                 list.RemoveAt(chosen);
             }
@@ -185,14 +190,14 @@
         /// <returns></returns>
         /// <exception cref="System.ArgumentNullException">list</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">list</exception>
-        public static T NextEntry<T>(IList<T> list, Func<T, double> weightSelector, ref double max, bool remove = true)
+        public static T NextEntry <T>(IList<T> list, Func<T, double> weightSelector, ref double max, bool remove = true)
         {
-            if (list == null)
+            if ( list == null )
             {
                 throw new ArgumentNullException("list");
             }
 
-            if (list.Count == 0)
+            if ( list.Count == 0 )
             {
                 throw new ArgumentOutOfRangeException("list");
             }
@@ -200,30 +205,34 @@
             var chooseValue = max * NextDouble();
 
             var chosen = -1;
-            for (var i = 0; i < list.Count; i++)
+
+            for ( var i = 0; i < list.Count; i++ )
             {
                 var w = weightSelector(list[i]);
-                if (w <= 0.0)
+
+                if ( w <= 0.0 )
                 {
                     continue;
                 }
 
-                chosen = i;
+                chosen      =  i;
                 chooseValue -= w;
-                if (chooseValue < 0.0)
+
+                if ( chooseValue < 0.0 )
                 {
                     max -= w;
                     break;
                 }
             }
 
-            if (chosen == -1)
+            if ( chosen == -1 )
             {
                 chosen = 0;
             }
 
             var obj = list[chosen];
-            if (remove)
+
+            if ( remove )
             {
                 list.RemoveAt(chosen);
             }
@@ -231,27 +240,27 @@
             return obj;
         }
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         ///     Make sure generator is initialize for current thread.
         /// </summary>
         private static void Init()
         {
-            if (RNG != null)
+            if ( RNG != null )
             {
                 return;
             }
 
-            lock (Locker) { RNG = new Random(Generator.Next(0, int.MaxValue)); }
+            lock ( Locker ) { RNG = new Random(Generator.Next(0, int.MaxValue)); }
         }
 
         /// <summary>
         ///     RNG for current thread.
         /// </summary>
-        [ThreadStatic] private static Random RNG;
+        [ ThreadStatic ] private static Random RNG;
 
         /// <summary>
         ///     Locker for generating a generator.
@@ -263,8 +272,8 @@
         /// </summary>
         private static readonly Random Generator = new Random();
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 }

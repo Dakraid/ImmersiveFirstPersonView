@@ -23,19 +23,21 @@
         /// </summary>
         internal UIDGenerator()
         {
-            var now = DateTime.UtcNow;
-            var min = new DateTime(1990, 1, 1);
+            var   now  = DateTime.UtcNow;
+            var   min  = new DateTime(1990, 1, 1);
             ulong high = 0;
-            if (now >= min)
+
+            if ( now >= min )
             {
                 high = unchecked((ulong)(now - min).TotalSeconds);
-                if (high > int.MaxValue)
+
+                if ( high > int.MaxValue )
                 {
                     high = 0;
                 }
             }
 
-            if (high == 0)
+            if ( high == 0 )
             {
                 high = (ulong)Randomizer.NextInt(1, int.MaxValue);
             }
@@ -50,8 +52,9 @@
         internal long Generate()
         {
             var result = this.HighPart;
-            var low = Interlocked.Increment(ref this.LowPart);
-            if (low == 0)
+            var low    = Interlocked.Increment(ref this.LowPart);
+
+            if ( low == 0 )
             {
                 Main.CriticalException("UIDGenerator encountered an overflow! Too many IDs were generated.", true);
                 return 0;

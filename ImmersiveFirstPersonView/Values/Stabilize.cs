@@ -32,14 +32,12 @@
 
     internal sealed class StabilizeIgnoreOffsetX : CameraValueSimple
     {
-        internal StabilizeIgnoreOffsetX(double value) : base(null, value, 720.0) =>
-            this.Formula = TValue.TweenTypes.Decelerating;
+        internal StabilizeIgnoreOffsetX(double value) : base(null, value, 720.0) => this.Formula = TValue.TweenTypes.Decelerating;
     }
 
     internal sealed class StabilizeIgnoreOffsetY : CameraValueSimple
     {
-        internal StabilizeIgnoreOffsetY(double value) : base(null, value, 720.0) =>
-            this.Formula = TValue.TweenTypes.Decelerating;
+        internal StabilizeIgnoreOffsetY(double value) : base(null, value, 720.0) => this.Formula = TValue.TweenTypes.Decelerating;
     }
 }
 
@@ -49,28 +47,20 @@ namespace IFPV
 
     internal partial class CameraValueMap
     {
-        internal readonly StabilizeHistoryDuration StabilizeHistoryDuration =
-            new StabilizeHistoryDuration(Settings.Instance.StabilizeHistoryDuration * 1000.0f);
+        internal readonly StabilizeHistoryDuration StabilizeHistoryDuration = new StabilizeHistoryDuration(Settings.Instance.StabilizeHistoryDuration * 1000.0f);
 
-        internal readonly StabilizeIgnoreOffsetX StabilizeIgnoreOffsetX =
-            new StabilizeIgnoreOffsetX(Settings.Instance.StabilizeIgnoreOffsetX);
+        internal readonly StabilizeIgnoreOffsetX StabilizeIgnoreOffsetX = new StabilizeIgnoreOffsetX(Settings.Instance.StabilizeIgnoreOffsetX);
 
-        internal readonly StabilizeIgnoreOffsetY StabilizeIgnoreOffsetY =
-            new StabilizeIgnoreOffsetY(Settings.Instance.StabilizeIgnoreOffsetY);
+        internal readonly StabilizeIgnoreOffsetY StabilizeIgnoreOffsetY = new StabilizeIgnoreOffsetY(Settings.Instance.StabilizeIgnoreOffsetY);
 
-        internal readonly StabilizeIgnorePositionX StabilizeIgnorePositionX =
-            new StabilizeIgnorePositionX(Settings.Instance.StabilizeIgnorePositionX);
+        internal readonly StabilizeIgnorePositionX StabilizeIgnorePositionX = new StabilizeIgnorePositionX(Settings.Instance.StabilizeIgnorePositionX);
 
-        internal readonly StabilizeIgnorePositionY StabilizeIgnorePositionY =
-            new StabilizeIgnorePositionY(Settings.Instance.StabilizeIgnorePositionY);
+        internal readonly StabilizeIgnorePositionY StabilizeIgnorePositionY = new StabilizeIgnorePositionY(Settings.Instance.StabilizeIgnorePositionY);
 
-        internal readonly StabilizeIgnorePositionZ StabilizeIgnorePositionZ =
-            new StabilizeIgnorePositionZ(Settings.Instance.StabilizeIgnorePositionZ);
+        internal readonly StabilizeIgnorePositionZ StabilizeIgnorePositionZ = new StabilizeIgnorePositionZ(Settings.Instance.StabilizeIgnorePositionZ);
 
-        internal readonly StabilizeIgnoreRotationX StabilizeIgnoreRotationX =
-            new StabilizeIgnoreRotationX(Settings.Instance.StabilizeIgnoreRotationX);
+        internal readonly StabilizeIgnoreRotationX StabilizeIgnoreRotationX = new StabilizeIgnoreRotationX(Settings.Instance.StabilizeIgnoreRotationX);
 
-        internal readonly StabilizeIgnoreRotationY StabilizeIgnoreRotationY =
-            new StabilizeIgnoreRotationY(Settings.Instance.StabilizeIgnoreRotationY);
+        internal readonly StabilizeIgnoreRotationY StabilizeIgnoreRotationY = new StabilizeIgnoreRotationY(Settings.Instance.StabilizeIgnoreRotationY);
     }
 }

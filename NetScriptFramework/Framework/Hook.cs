@@ -22,14 +22,7 @@
         /// <param name="target">The target.</param>
         /// <param name="include1">The include1.</param>
         /// <param name="include2">The include2.</param>
-        internal abstract void BuildHook(IntPtr hookSourceBase,
-            int hookReplaceLength,
-            IntPtr hookIncludeBase,
-            int hookIncludeLength,
-            bool isLongJump,
-            ref IntPtr target,
-            ref IntPtr include1,
-            ref IntPtr include2);
+        internal abstract void BuildHook(IntPtr hookSourceBase, int hookReplaceLength, IntPtr hookIncludeBase, int hookIncludeLength, bool isLongJump, ref IntPtr target, ref IntPtr include1, ref IntPtr include2);
 
         /// <summary>
         ///     Contains information about a near jump setup.
@@ -64,9 +57,9 @@
             /// <param name="endAddress">The end address.</param>
             internal ModuleNearJumpHook(IntPtr moduleBase, IntPtr beginAddress, IntPtr endAddress)
             {
-                this.ModuleBase = moduleBase;
+                this.ModuleBase   = moduleBase;
                 this.BeginAddress = beginAddress;
-                this.EndAddress = endAddress;
+                this.EndAddress   = endAddress;
             }
 
             /// <summary>
@@ -77,7 +70,7 @@
             /// <exception cref="System.InvalidOperationException"></exception>
             internal bool Contains(IntPtr address)
             {
-                if (Main.Is64Bit)
+                if ( Main.Is64Bit )
                 {
                     var b = this.BeginAddress.ToUInt64();
                     var e = this.EndAddress.ToUInt64();
@@ -89,7 +82,7 @@
             }
         }
 
-        #region Included code
+    #region Included code
 
         /// <summary>
         ///     Writes the converted byte code to stream.
@@ -100,37 +93,37 @@
         /// <param name="offset">The offset.</param>
         /// <param name="tempBack">The temporary back.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        protected internal void WriteConvertedCode(byte[] code, BinaryWriter ms, IntPtr hookSourceAddr, int offset,
-            List<KeyValuePair<long, long>> tempBack)
+        protected internal void WriteConvertedCode(byte[] code, BinaryWriter ms, IntPtr hookSourceAddr, int offset, List<KeyValuePair<long, long>> tempBack)
         {
-            if (!Main.Is64Bit)
+            if ( !Main.Is64Bit )
             {
                 throw new NotImplementedException();
             }
 
             // Rel-call
-            if (code.Length >= 5 && code[0] == 0xE8)
+            if ( code.Length >= 5 && code[0] == 0xE8 )
             {
                 // Convert to absolute function call since the offset is changed.
                 var realOffset = unchecked((int)(BitConverter.ToUInt32(code, 1) + 5 + (uint)offset));
-                var goAddr = realOffset >= 0 ? hookSourceAddr + realOffset : hookSourceAddr - Math.Abs(realOffset);
+                var goAddr     = realOffset >= 0 ? hookSourceAddr + realOffset : hookSourceAddr - Math.Abs(realOffset);
 
-                ms.Write(new byte[] {0x50}); // push rax
-                ms.Write(new byte[] {0x50}); // push rax
-                ms.Write(new byte[] {0x50}); // push rax
-                ms.Write(new byte[] {0x48, 0xB8});
-                ms.Write(goAddr.ToInt64()); // mov rax, funcAddr
-                ms.Write(new byte[] {0x48, 0x89, 0x44, 0x24, 0x08}); // mov [rsp+8], rax
-                ms.Write(new byte[] {0x48, 0xB8});
+                ms.Write(new byte[] { 0x50 }); // push rax
+                ms.Write(new byte[] { 0x50 }); // push rax
+                ms.Write(new byte[] { 0x50 }); // push rax
+                ms.Write(new byte[] { 0x48, 0xB8 });
+                ms.Write(goAddr.ToInt64());                            // mov rax, funcAddr
+                ms.Write(new byte[] { 0x48, 0x89, 0x44, 0x24, 0x08 }); // mov [rsp+8], rax
+                ms.Write(new byte[] { 0x48, 0xB8 });
                 var tempBackPos = ms.BaseStream.Position;
-                ms.Write((long)0); // mov rax, retAddr
-                ms.Write(new byte[] {0x48, 0x89, 0x44, 0x24, 0x10}); // mov [rsp+0x10], rax
-                ms.Write(new byte[] {0x58}); // pop rax
-                ms.Write(new byte[] {0xC3}); // ret
+                ms.Write((long)0);                                     // mov rax, retAddr
+                ms.Write(new byte[] { 0x48, 0x89, 0x44, 0x24, 0x10 }); // mov [rsp+0x10], rax
+                ms.Write(new byte[] { 0x58 });                         // pop rax
+                ms.Write(new byte[] { 0xC3 });                         // ret
 
                 tempBack.Add(new KeyValuePair<long, long>(tempBackPos, ms.BaseStream.Position));
                 code = code.Skip(5).ToArray();
-                if (code.Length > 0)
+
+                if ( code.Length > 0 )
                 {
                     this.WriteConvertedCode(code, ms, hookSourceAddr, offset + 5, tempBack);
                 }
@@ -151,13 +144,14 @@
         /// <returns></returns>
         protected internal IntPtr Include(byte[] code, IntPtr hookSourceAddr, IntPtr target)
         {
-            if (target == IntPtr.Zero)
+            if ( target == IntPtr.Zero )
             {
                 throw new ArgumentOutOfRangeException("target");
             }
 
             var empty = code == null || code.Length == 0;
-            if (empty && this.EmptyInclude != IntPtr.Zero)
+
+            if ( empty && this.EmptyInclude != IntPtr.Zero )
             {
                 return this.EmptyInclude;
             }
@@ -165,22 +159,22 @@
             // Used for temporary offsets.
             var tempBack = new List<KeyValuePair<long, long>>();
 
-            using (var stream = new MemoryStream(128))
+            using ( var stream = new MemoryStream(128) )
             {
-                using (var ms = new BinaryWriter(stream))
+                using ( var ms = new BinaryWriter(stream) )
                 {
                     // Original code.
-                    if (code != null && code.Length > 0)
+                    if ( code != null && code.Length > 0 )
                     {
                         this.WriteConvertedCode(code, ms, hookSourceAddr, 0, tempBack);
                     }
 
-                    if (Main.Is64Bit)
+                    if ( Main.Is64Bit )
                     {
-                        ms.Write(new byte[] {0x51}); // push rcx
-                        ms.Write(new byte[] {0x48, 0xB9});
-                        ms.Write(target.ToInt64()); // mov rcx, includeReturn
-                        ms.Write(new byte[] {0xFF, 0xE1}); // jmp rcx
+                        ms.Write(new byte[] { 0x51 }); // push rcx
+                        ms.Write(new byte[] { 0x48, 0xB9 });
+                        ms.Write(target.ToInt64());          // mov rcx, includeReturn
+                        ms.Write(new byte[] { 0xFF, 0xE1 }); // jmp rcx
                     }
                     else { throw new NotImplementedException(); }
                 }
@@ -193,11 +187,11 @@
 
             Memory.WriteBytes(alloc.Address, code);
 
-            foreach (var x in tempBack)
+            foreach ( var x in tempBack )
             {
-                if (Main.Is64Bit)
+                if ( Main.Is64Bit )
                 {
-                    var afterAddr = alloc.Address + (int)x.Value;
+                    var afterAddr  = alloc.Address + (int)x.Value;
                     var afterBytes = BitConverter.GetBytes(afterAddr.ToInt64());
                     Memory.WriteBytes(alloc.Address + (int)x.Key, afterBytes);
                 }
@@ -212,39 +206,38 @@
         /// </summary>
         internal IntPtr EmptyInclude { get; set; } = IntPtr.Zero;
 
-        #endregion
+    #endregion
 
-        #region Imports
+    #region Imports
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         protected internal static extern int GetTLSIndex();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         protected internal static extern int GetHookMaxCalls();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         protected internal static extern int GetHookContextSize();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         protected internal static extern IntPtr GetHookIntegrityFailed();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         protected internal static extern IntPtr GetHookAllocateFail();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         protected internal static extern IntPtr GetDoActionAddress();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         protected internal static extern IntPtr GetRtlCaptureContextAddress();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
         protected internal static extern IntPtr GetRtlRestoreContextAddress();
 
-        [DllImport("NetScriptFramework.Runtime.dll")]
-        protected internal static extern int GetMemoryInfo(IntPtr address, IntPtr resultBegin, IntPtr resultEnd,
-            IntPtr moduleBase);
+        [ DllImport("NetScriptFramework.Runtime.dll") ]
+        protected internal static extern int GetMemoryInfo(IntPtr address, IntPtr resultBegin, IntPtr resultEnd, IntPtr moduleBase);
 
-        #endregion
+    #endregion
     }
 
     /// <summary>
@@ -264,11 +257,6 @@
         private readonly IntPtr _Address_EnterHook = IntPtr.Zero;
 
         /// <summary>
-        ///     The address for when we land from a far-jump.
-        /// </summary>
-        private IntPtr _Address_FarJumpSetup = IntPtr.Zero;
-
-        /// <summary>
         ///     The addresses for near jump setups.
         /// </summary>
         private readonly List<ModuleNearJumpHook> _Address_NearJumpSetup = new List<ModuleNearJumpHook>();
@@ -277,6 +265,11 @@
         ///     The address for what comes after included code has run.
         /// </summary>
         private readonly IntPtr _Address_PostInclude = IntPtr.Zero;
+
+        /// <summary>
+        ///     The address for when we land from a far-jump.
+        /// </summary>
+        private IntPtr _Address_FarJumpSetup = IntPtr.Zero;
 
         /// <summary>
         ///     Prevents a default instance of the <see cref="HookBefore" /> class from being created.
@@ -289,102 +282,91 @@
 
                 // [stack+0x08] = hook_source + (5/13)
                 // [stack+0x00] = rcx
-                if (Main.Is64Bit)
+                if ( Main.Is64Bit )
                 {
-                    using (var stream = new MemoryStream())
+                    using ( var stream = new MemoryStream() )
                     {
-                        using (var ms = new BinaryWriter(stream))
+                        using ( var ms = new BinaryWriter(stream) )
                         {
                             var psize = 8;
 
-                            ms.Write(new byte[] {0x50}); // push rax
-                            ms.Write(new byte[] {0x52}); // push rdx
+                            ms.Write(new byte[] { 0x50 }); // push rax
+                            ms.Write(new byte[] { 0x52 }); // push rdx
 
                             var tls = GetTLSIndex();
-                            ms.Write(new byte[] {0x48, 0xB9});
+                            ms.Write(new byte[] { 0x48, 0xB9 });
                             ms.Write((long)tls); // mov rcx, TlsIndex
-                            if (tls < 0x40)
+
+                            if ( tls < 0x40 )
                             {
-                                ms.Write(new byte[]
-                                {
-                                    0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00
-                                }); // mov rax, gs:[rcx*8 + 0x1480]
+                                ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00 }); // mov rax, gs:[rcx*8 + 0x1480]
                             }
                             else
                             {
-                                ms.Write(new byte[]
-                                {
-                                    0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00
-                                }); // mov rax, gs:0x1780
-                                ms.Write(new byte[]
-                                {
-                                    0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF
-                                }); // mov rax, [rax+rcx*8-0x200]
+                                ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00 }); // mov rax, gs:0x1780
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF });       // mov rax, [rax+rcx*8-0x200]
                             }
 
-                            ms.Write(new byte[] {0x9C}); // pushfq
+                            ms.Write(new byte[] { 0x9C }); // pushfq
+
                             {
-                                ms.Write(new byte[] {0x48, 0x89, 0xC1}); // mov rcx, rax
-                                ms.Write(new byte[] {0x48, 0x8B, 0x01}); // mov rax, [rcx]
-                                ms.Write(new byte[] {0x48, 0x3D});
-                                ms.Write(GetHookMaxCalls()); // cmp rax, HOOK_MAX_CALLS
-                                ms.Write(new byte[] {0x7C, 0x14}); // jl +14 (AllocateOk)
-                                ms.Write(new byte[] {0x48, 0x83, 0xE4, 0xF0}); // and rsp, 0xFFFFFFFFFFFFFFF0
-                                ms.Write(new byte[] {0x48, 0x83, 0xEC, 0x20}); // sub rsp, 0x20
-                                ms.Write(new byte[] {0x48, 0xB8});
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC1 }); // mov rcx, rax
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x01 }); // mov rax, [rcx]
+                                ms.Write(new byte[] { 0x48, 0x3D });
+                                ms.Write(GetHookMaxCalls());                     // cmp rax, HOOK_MAX_CALLS
+                                ms.Write(new byte[] { 0x7C, 0x14 });             // jl +14 (AllocateOk)
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE4, 0xF0 }); // and rsp, 0xFFFFFFFFFFFFFFF0
+                                ms.Write(new byte[] { 0x48, 0x83, 0xEC, 0x20 }); // sub rsp, 0x20
+                                ms.Write(new byte[] { 0x48, 0xB8 });
                                 ms.Write(GetHookAllocateFail().ToInt64()); // mov rax, HookContextAllocateFail
-                                ms.Write(new byte[] {0xFF, 0xD0}); // call rax
+                                ms.Write(new byte[] { 0xFF, 0xD0 });       // call rax
                                 // AllocateOk:
-                                ms.Write(new byte[] {0x48, 0xFF, 0x01}); // inc qword ptr [rcx]
-                                ms.Write(new byte[] {0x48, 0x69, 0xC0});
-                                ms.Write(GetHookContextSize()); // imul rax, HOOK_CONTEXT_SIZE
-                                ms.Write(new byte[] {0x48, 0x8B, 0x49, 0x08}); // mov rcx, [rcx+8]
-                                ms.Write(new byte[] {0x48, 0x01, 0xC1}); // add rcx, rax
+                                ms.Write(new byte[] { 0x48, 0xFF, 0x01 }); // inc qword ptr [rcx]
+                                ms.Write(new byte[] { 0x48, 0x69, 0xC0 });
+                                ms.Write(GetHookContextSize());                  // imul rax, HOOK_CONTEXT_SIZE
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x49, 0x08 }); // mov rcx, [rcx+8]
+                                ms.Write(new byte[] { 0x48, 0x01, 0xC1 });       // add rcx, rax
                             }
+
                             {
-                                ms.Write(new byte[] {0x48, 0x89, 0xC8}); // mov rax, rcx
-                                ms.Write(new byte[] {0x48, 0x05});
-                                ms.Write(GetHookContextSize()); // add rax, HOOK_CONTEXT_SIZE
-                                ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 2)}); // sub rax, p*2
-                                ms.Write(new byte[]
-                                {
-                                    0x48, 0x8B, 0x54, 0x24, 0x20
-                                }); // mov rdx, [rsp+0x20] (hook_source + x)
-                                ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
-                                ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 2)}); // sub rax, p*2
-                                ms.Write(new byte[] {0x48, 0x8B, 0x54, 0x24, 0x18}); // mov rdx, [rsp+0x18] (rcx)
-                                ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
-                                ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 1)}); // sub rax, p*1
-                                ms.Write(new byte[] {0x48, 0x8B, 0x54, 0x24, 0x10}); // mov rdx, [rsp+0x10] (rax)
-                                ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
-                                ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 1)}); // sub rax, p*1
-                                ms.Write(new byte[]
-                                {
-                                    0x48, 0x8B, 0x54, 0x24, 0x20
-                                }); // mov rdx, [rsp+0x20] (hook_source + x)
-                                ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC8 }); // mov rax, rcx
+                                ms.Write(new byte[] { 0x48, 0x05 });
+                                ms.Write(GetHookContextSize());                               // add rax, HOOK_CONTEXT_SIZE
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 2) }); // sub rax, p*2
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x20 });        // mov rdx, [rsp+0x20] (hook_source + x)
+                                ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 2) }); // sub rax, p*2
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x18 });        // mov rdx, [rsp+0x18] (rcx)
+                                ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 1) }); // sub rax, p*1
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x10 });        // mov rdx, [rsp+0x10] (rax)
+                                ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 1) }); // sub rax, p*1
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x20 });        // mov rdx, [rsp+0x20] (hook_source + x)
+                                ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
                             }
-                            ms.Write(new byte[] {0x9D}); // popfq
 
-                            ms.Write(new byte[] {0x5A}); // pop rdx
-                            ms.Write(new byte[] {0x58}); // pop rax
-                            ms.Write(new byte[] {0x58}); // pop rax
-                            ms.Write(new byte[] {0x58}); // pop rax
+                            ms.Write(new byte[] { 0x9D }); // popfq
 
-                            ms.Write(new byte[] {0x48, 0xB8});
+                            ms.Write(new byte[] { 0x5A }); // pop rdx
+                            ms.Write(new byte[] { 0x58 }); // pop rax
+                            ms.Write(new byte[] { 0x58 }); // pop rax
+                            ms.Write(new byte[] { 0x58 }); // pop rax
+
+                            ms.Write(new byte[] { 0x48, 0xB8 });
                             ms.Write(GetRtlCaptureContextAddress().ToInt64()); // mov rax, RtlCaptureContext
-                            ms.Write(new byte[] {0xFF, 0xD0}); // call rax
-                            ms.Write(new byte[] {0x48, 0x83, 0xE4, 0xF0}); // and rsp, 0xFFFFFFFFFFFFFFF0
-                            ms.Write(new byte[] {0x48, 0x83, 0xEC, 0x20}); // sub rsp, 0x20
-                            ms.Write(new byte[] {0x48, 0xB8});
-                            ms.Write(GetDoActionAddress().ToInt64()); // mov rax, NetHook
-                            ms.Write(new byte[] {0xB2, 0}); // mov dl, pass
-                            ms.Write(new byte[] {0xFF, 0xD0}); // call rax
-                            ms.Write(new byte[] {0x48, 0x89, 0xC1}); // mov rcx, rax
-                            ms.Write(new byte[] {0x48, 0x31, 0xD2}); // xor rdx, rdx
-                            ms.Write(new byte[] {0x48, 0xB8});
+                            ms.Write(new byte[] { 0xFF, 0xD0 });               // call rax
+                            ms.Write(new byte[] { 0x48, 0x83, 0xE4, 0xF0 });   // and rsp, 0xFFFFFFFFFFFFFFF0
+                            ms.Write(new byte[] { 0x48, 0x83, 0xEC, 0x20 });   // sub rsp, 0x20
+                            ms.Write(new byte[] { 0x48, 0xB8 });
+                            ms.Write(GetDoActionAddress().ToInt64());  // mov rax, NetHook
+                            ms.Write(new byte[] { 0xB2, 0 });          // mov dl, pass
+                            ms.Write(new byte[] { 0xFF, 0xD0 });       // call rax
+                            ms.Write(new byte[] { 0x48, 0x89, 0xC1 }); // mov rcx, rax
+                            ms.Write(new byte[] { 0x48, 0x31, 0xD2 }); // xor rdx, rdx
+                            ms.Write(new byte[] { 0x48, 0xB8 });
                             ms.Write(GetRtlRestoreContextAddress().ToInt64()); // mov rax, RtlRestoreContext
-                            ms.Write(new byte[] {0xFF, 0xD0}); // call rax
+                            ms.Write(new byte[] { 0xFF, 0xD0 });               // call rax
 
                             data = stream.ToArray();
                         }
@@ -406,72 +388,66 @@
                 byte[] data = null;
 
                 // [stack+0x00] = rcx
-                if (Main.Is64Bit)
+                if ( Main.Is64Bit )
                 {
-                    using (var stream = new MemoryStream())
+                    using ( var stream = new MemoryStream() )
                     {
-                        using (var ms = new BinaryWriter(stream))
+                        using ( var ms = new BinaryWriter(stream) )
                         {
                             var psize = 8;
 
-                            ms.Write(new byte[] {0x50}); // push rax
-                            ms.Write(new byte[] {0x52}); // push rdx
+                            ms.Write(new byte[] { 0x50 }); // push rax
+                            ms.Write(new byte[] { 0x52 }); // push rdx
 
-                            ms.Write(new byte[] {0x9C}); // pushfq
+                            ms.Write(new byte[] { 0x9C }); // pushfq
+
                             {
                                 var tls = GetTLSIndex();
-                                ms.Write(new byte[] {0x48, 0xB9});
+                                ms.Write(new byte[] { 0x48, 0xB9 });
                                 ms.Write((long)tls); // mov rcx, TlsIndex
-                                if (tls < 0x40)
+
+                                if ( tls < 0x40 )
                                 {
-                                    ms.Write(new byte[]
-                                    {
-                                        0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00
-                                    }); // mov rax, gs:[rcx*8 + 0x1480]
+                                    ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00 }); // mov rax, gs:[rcx*8 + 0x1480]
                                 }
                                 else
                                 {
-                                    ms.Write(new byte[]
-                                    {
-                                        0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00
-                                    }); // mov rax, gs:0x1780
-                                    ms.Write(new byte[]
-                                    {
-                                        0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF
-                                    }); // mov rax, [rax+rcx*8-0x200]
+                                    ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00 }); // mov rax, gs:0x1780
+                                    ms.Write(new byte[] { 0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF });       // mov rax, [rax+rcx*8-0x200]
                                 }
 
-                                ms.Write(new byte[] {0x48, 0x89, 0xC1}); // mov rcx, rax
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC1 }); // mov rcx, rax
 
-                                ms.Write(new byte[] {0x48, 0x8B, 0x01}); // mov rax, [rcx]
-                                ms.Write(new byte[] {0x48, 0xFF, 0xC8}); // dec rax
-                                ms.Write(new byte[] {0x48, 0x89, 0x01}); // mov [rcx], rax
-                                ms.Write(new byte[] {0x48, 0x89, 0xC2}); // mov rdx, rax
-                                ms.Write(new byte[] {0x48, 0x69, 0xD2});
-                                ms.Write(GetHookContextSize()); // imul rdx, HOOK_CONTEXT_SIZE
-                                ms.Write(new byte[] {0x48, 0x8B, 0x49, 0x08}); // mov rcx, [rcx+8]
-                                ms.Write(new byte[] {0x48, 0x01, 0xD1}); // add rcx, rdx
-                                ms.Write(new byte[] {0x48, 0x81, 0xC1});
-                                ms.Write(GetHookContextSize() - (psize * 1)); // add rcx, HOOK_CONTEXT_SIZE - p*1
-                                ms.Write(new byte[] {0x48, 0x8B, 0x11}); // mov rdx, [rcx]
-                                ms.Write(new byte[] {0x48, 0x39, 0xC2}); // cmp rdx, rax
-                                ms.Write(new byte[] {0x74, 0x14}); // je +14 (PostHookVerifyPass)
-                                ms.Write(new byte[] {0x48, 0x83, 0xE4, 0xF0}); // and rsp, 0xFFFFFFFFFFFFFFF0
-                                ms.Write(new byte[] {0x48, 0x83, 0xEC, 0x20}); // sub rsp, 0x20
-                                ms.Write(new byte[] {0x48, 0xB8});
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x01 }); // mov rax, [rcx]
+                                ms.Write(new byte[] { 0x48, 0xFF, 0xC8 }); // dec rax
+                                ms.Write(new byte[] { 0x48, 0x89, 0x01 }); // mov [rcx], rax
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC2 }); // mov rdx, rax
+                                ms.Write(new byte[] { 0x48, 0x69, 0xD2 });
+                                ms.Write(GetHookContextSize());                  // imul rdx, HOOK_CONTEXT_SIZE
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x49, 0x08 }); // mov rcx, [rcx+8]
+                                ms.Write(new byte[] { 0x48, 0x01, 0xD1 });       // add rcx, rdx
+                                ms.Write(new byte[] { 0x48, 0x81, 0xC1 });
+                                ms.Write(GetHookContextSize() - (psize * 1));    // add rcx, HOOK_CONTEXT_SIZE - p*1
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x11 });       // mov rdx, [rcx]
+                                ms.Write(new byte[] { 0x48, 0x39, 0xC2 });       // cmp rdx, rax
+                                ms.Write(new byte[] { 0x74, 0x14 });             // je +14 (PostHookVerifyPass)
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE4, 0xF0 }); // and rsp, 0xFFFFFFFFFFFFFFF0
+                                ms.Write(new byte[] { 0x48, 0x83, 0xEC, 0x20 }); // sub rsp, 0x20
+                                ms.Write(new byte[] { 0x48, 0xB8 });
                                 ms.Write(GetHookIntegrityFailed().ToInt64()); // mov rax, PostHookVerifyFail
-                                ms.Write(new byte[] {0xFF, 0xD0}); // call rax
+                                ms.Write(new byte[] { 0xFF, 0xD0 });          // call rax
                                 // PostHookVerifyPass:
-                                ms.Write(new byte[] {0x48, 0x83, 0xE9, (byte)(psize * 1)}); // sub rcx, 8
-                                ms.Write(new byte[] {0x48, 0x8B, 0x09}); // mov rcx, [rcx]
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE9, (byte)(psize * 1) }); // sub rcx, 8
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x09 });                    // mov rcx, [rcx]
                             }
-                            ms.Write(new byte[] {0x9D}); // popfq
 
-                            ms.Write(new byte[] {0x5A}); // pop rdx
-                            ms.Write(new byte[] {0x58}); // pop rax
+                            ms.Write(new byte[] { 0x9D }); // popfq
 
-                            ms.Write(new byte[] {0x48, 0x87, 0x0C, 0x24}); // xchg [rsp], rcx
-                            ms.Write(new byte[] {0xC3}); // ret
+                            ms.Write(new byte[] { 0x5A }); // pop rdx
+                            ms.Write(new byte[] { 0x58 }); // pop rax
+
+                            ms.Write(new byte[] { 0x48, 0x87, 0x0C, 0x24 }); // xchg [rsp], rcx
+                            ms.Write(new byte[] { 0xC3 });                   // ret
 
                             data = stream.ToArray();
                         }
@@ -502,16 +478,9 @@
         /// <param name="target">The target.</param>
         /// <param name="include1">The include1.</param>
         /// <param name="include2">The include2.</param>
-        internal override void BuildHook(IntPtr hookSourceBase,
-            int hookReplaceLength,
-            IntPtr hookIncludeBase,
-            int hookIncludeLength,
-            bool isLongJump,
-            ref IntPtr target,
-            ref IntPtr include1,
-            ref IntPtr include2)
+        internal override void BuildHook(IntPtr hookSourceBase, int hookReplaceLength, IntPtr hookIncludeBase, int hookIncludeLength, bool isLongJump, ref IntPtr target, ref IntPtr include1, ref IntPtr include2)
         {
-            if (isLongJump)
+            if ( isLongJump )
             {
                 target = this.GetFarHookAddress(hookSourceBase);
             }
@@ -520,8 +489,7 @@
                 target = this.GetNearHookAddress(hookSourceBase);
             }
 
-            include1 = this.Include(hookIncludeLength > 0 ? Memory.ReadBytes(hookIncludeBase, hookIncludeLength) : null,
-                hookIncludeBase, this._Address_PostInclude);
+            include1 = this.Include(hookIncludeLength > 0 ? Memory.ReadBytes(hookIncludeBase, hookIncludeLength) : null, hookIncludeBase, this._Address_PostInclude);
         }
 
         /// <summary>
@@ -533,9 +501,9 @@
         /// <returns></returns>
         private static bool CompareBytes(byte[] data, byte[] pattern, int index)
         {
-            for (var i = 0; i < pattern.Length; i++, index++)
+            for ( var i = 0; i < pattern.Length; i++, index++ )
             {
-                if (pattern[i] != data[index])
+                if ( pattern[i] != data[index] )
                 {
                     return false;
                 }
@@ -563,67 +531,71 @@
         /// </exception>
         private IntPtr GetNearHookAddress(IntPtr hookAddress)
         {
-            if (!Main.Is64Bit)
+            if ( !Main.Is64Bit )
             {
                 return this.GetFarHookAddress(hookAddress);
             }
 
             var ls = this._Address_NearJumpSetup;
-            for (var i = 0; i < ls.Count; i++)
+
+            for ( var i = 0; i < ls.Count; i++ )
             {
                 var section = ls[i];
-                if (section.Contains(hookAddress))
+
+                if ( section.Contains(hookAddress) )
                 {
                     return section.Target;
                 }
             }
 
             ModuleNearJumpHook info = null;
-            using (var alloc = Memory.Allocate(0x30))
+
+            using ( var alloc = Memory.Allocate(0x30) )
             {
                 var result = GetMemoryInfo(hookAddress, alloc.Address, alloc.Address + 0x10, alloc.Address + 0x20);
-                if (result == 1)
+
+                if ( result == 1 )
                 {
                     throw new MemoryAccessException(hookAddress);
                 }
 
-                if (result == 2)
+                if ( result == 2 )
                 {
                     throw new InvalidOperationException("Not a valid code page!");
                 }
 
-                if (result == 3)
+                if ( result == 3 )
                 {
                     throw new InvalidOperationException("Not a valid module!");
                 }
 
-                if (result == -1)
+                if ( result == -1 )
                 {
                     throw new InvalidOperationException("Code section was not found!");
                 }
 
-                if (result != 0)
+                if ( result != 0 )
                 {
                     throw new InvalidOperationException("Unhandled error occurred (" + result + ")!");
                 }
 
-                info = new ModuleNearJumpHook(Memory.ReadPointer(alloc.Address + 0x20),
-                    Memory.ReadPointer(alloc.Address), Memory.ReadPointer(alloc.Address + 0x10));
+                info = new ModuleNearJumpHook(Memory.ReadPointer(alloc.Address + 0x20), Memory.ReadPointer(alloc.Address), Memory.ReadPointer(alloc.Address + 0x10));
             }
 
-            var begin = info.BeginAddress.ToUInt64();
-            var end = info.EndAddress.ToUInt64();
-            var ptr = begin;
-            var pattern = new byte[13] {0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC};
-            var plen = pattern.Length + 1;
-            var found = IntPtr.Zero;
-            var stop = false;
+            var begin   = info.BeginAddress.ToUInt64();
+            var end     = info.EndAddress.ToUInt64();
+            var ptr     = begin;
+            var pattern = new byte[13] { 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC };
+            var plen    = pattern.Length + 1;
+            var found   = IntPtr.Zero;
+            var stop    = false;
 
-            while (ptr < end && !stop)
+            while ( ptr < end && !stop )
             {
-                var size = end - ptr;
+                var size    = end  - ptr;
                 var maxSize = 4000 + (ulong)plen;
-                if (size > maxSize)
+
+                if ( size > maxSize )
                 {
                     size = maxSize;
                 }
@@ -632,33 +604,35 @@
                     stop = true;
                 }
 
-                var addr = new IntPtr(unchecked((long)ptr));
+                var addr  = new IntPtr(unchecked((long)ptr));
                 var chunk = Memory.ReadBytes(addr, (int)size);
 
                 var highIndex = chunk.Length - plen;
-                for (var i = 0; i < highIndex; i++)
+
+                for ( var i = 0; i < highIndex; i++ )
                 {
                     var b = chunk[i];
-                    if (b != 0xC3 && b != 0xCC)
+
+                    if ( b != 0xC3 && b != 0xCC )
                     {
                         continue;
                     }
 
-                    if (CompareBytes(chunk, pattern, i + 1))
+                    if ( CompareBytes(chunk, pattern, i + 1) )
                     {
                         found = addr + i;
-                        stop = true;
+                        stop  = true;
                         break;
                     }
                 }
 
-                if (!stop)
+                if ( !stop )
                 {
                     ptr += maxSize - (ulong)plen;
                 }
             }
 
-            if (found == IntPtr.Zero)
+            if ( found == IntPtr.Zero )
             {
                 throw new InvalidOperationException("Didn't find a code cave for near jump setup!");
             }
@@ -667,32 +641,31 @@
             found = found + 1;
 
             // Bad.
-            if (this._Address_EnterHook == IntPtr.Zero)
+            if ( this._Address_EnterHook == IntPtr.Zero )
             {
-                throw new InvalidOperationException(
-                    "Trying to get hook target without setting up the hook entry point!");
+                throw new InvalidOperationException("Trying to get hook target without setting up the hook entry point!");
             }
 
             // Set up preparation code.
             {
                 byte[] data = null;
-                using (var stream = new MemoryStream())
+
+                using ( var stream = new MemoryStream() )
                 {
-                    using (var ms = new BinaryWriter(stream))
+                    using ( var ms = new BinaryWriter(stream) )
                     {
-                        ms.Write(new byte[] {0x51}); // push rcx
-                        ms.Write(new byte[] {0x48, 0xB9});
+                        ms.Write(new byte[] { 0x51 }); // push rcx
+                        ms.Write(new byte[] { 0x48, 0xB9 });
                         ms.Write(this._Address_EnterHook.ToInt64()); // mov rcx, EnterHook
-                        ms.Write(new byte[] {0xFF, 0xE1}); // jmp rcx
+                        ms.Write(new byte[] { 0xFF, 0xE1 });         // jmp rcx
 
                         data = stream.ToArray();
                     }
                 }
 
-                if (data.Length > plen - 1)
+                if ( data.Length > plen - 1 )
                 {
-                    throw new InvalidOperationException(
-                        "Failed to write near jump code! Not enough memory in specified code cave.");
+                    throw new InvalidOperationException("Failed to write near jump code! Not enough memory in specified code cave.");
                 }
 
                 Memory.WriteBytes(found, data, true);
@@ -711,29 +684,28 @@
         private IntPtr GetFarHookAddress(IntPtr hookAddress)
         {
             // Bad.
-            if (this._Address_EnterHook == IntPtr.Zero)
+            if ( this._Address_EnterHook == IntPtr.Zero )
             {
-                throw new InvalidOperationException(
-                    "Trying to get hook target without setting up the hook entry point!");
+                throw new InvalidOperationException("Trying to get hook target without setting up the hook entry point!");
             }
 
             // Must setup.
-            if (this._Address_FarJumpSetup == IntPtr.Zero)
+            if ( this._Address_FarJumpSetup == IntPtr.Zero )
             {
                 byte[] data = null;
 
-                if (Main.Is64Bit)
+                if ( Main.Is64Bit )
                 {
-                    using (var stream = new MemoryStream())
+                    using ( var stream = new MemoryStream() )
                     {
-                        using (var ms = new BinaryWriter(stream))
+                        using ( var ms = new BinaryWriter(stream) )
                         {
-                            ms.Write(new byte[] {0x59}); // pop rcx
-                            ms.Write(new byte[] {0x48, 0x87, 0x0C, 0x24}); // xchg [rsp], rcx
-                            ms.Write(new byte[] {0x51}); // push rcx
-                            ms.Write(new byte[] {0x48, 0xB9});
+                            ms.Write(new byte[] { 0x59 });                   // pop rcx
+                            ms.Write(new byte[] { 0x48, 0x87, 0x0C, 0x24 }); // xchg [rsp], rcx
+                            ms.Write(new byte[] { 0x51 });                   // push rcx
+                            ms.Write(new byte[] { 0x48, 0xB9 });
                             ms.Write(this._Address_EnterHook.ToInt64()); // mov rcx, EnterHook
-                            ms.Write(new byte[] {0xFF, 0xE1}); // jmp rcx
+                            ms.Write(new byte[] { 0xFF, 0xE1 });         // jmp rcx
 
                             data = stream.ToArray();
                         }
@@ -780,74 +752,68 @@
                 byte[] data = null;
 
                 // nothing on stack
-                if (Main.Is64Bit)
+                if ( Main.Is64Bit )
                 {
-                    using (var stream = new MemoryStream())
+                    using ( var stream = new MemoryStream() )
                     {
-                        using (var ms = new BinaryWriter(stream))
+                        using ( var ms = new BinaryWriter(stream) )
                         {
                             var psize = 8;
 
-                            ms.Write(new byte[] {0x51}); // push rcx
+                            ms.Write(new byte[] { 0x51 }); // push rcx
 
-                            ms.Write(new byte[] {0x50}); // push rax
-                            ms.Write(new byte[] {0x52}); // push rdx
+                            ms.Write(new byte[] { 0x50 }); // push rax
+                            ms.Write(new byte[] { 0x52 }); // push rdx
 
-                            ms.Write(new byte[] {0x9C}); // pushfq
+                            ms.Write(new byte[] { 0x9C }); // pushfq
+
                             {
                                 var tls = GetTLSIndex();
-                                ms.Write(new byte[] {0x48, 0xB9});
+                                ms.Write(new byte[] { 0x48, 0xB9 });
                                 ms.Write((long)tls); // mov rcx, TlsIndex
-                                if (tls < 0x40)
+
+                                if ( tls < 0x40 )
                                 {
-                                    ms.Write(new byte[]
-                                    {
-                                        0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00
-                                    }); // mov rax, gs:[rcx*8 + 0x1480]
+                                    ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00 }); // mov rax, gs:[rcx*8 + 0x1480]
                                 }
                                 else
                                 {
-                                    ms.Write(new byte[]
-                                    {
-                                        0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00
-                                    }); // mov rax, gs:0x1780
-                                    ms.Write(new byte[]
-                                    {
-                                        0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF
-                                    }); // mov rax, [rax+rcx*8-0x200]
+                                    ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00 }); // mov rax, gs:0x1780
+                                    ms.Write(new byte[] { 0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF });       // mov rax, [rax+rcx*8-0x200]
                                 }
 
-                                ms.Write(new byte[] {0x48, 0x89, 0xC1}); // mov rcx, rax
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC1 }); // mov rcx, rax
 
-                                ms.Write(new byte[] {0x48, 0x8B, 0x01}); // mov rax, [rcx]
-                                ms.Write(new byte[] {0x48, 0xFF, 0xC8}); // dec rax
-                                ms.Write(new byte[] {0x48, 0x89, 0x01}); // mov [rcx], rax
-                                ms.Write(new byte[] {0x48, 0x89, 0xC2}); // mov rdx, rax
-                                ms.Write(new byte[] {0x48, 0x69, 0xD2});
-                                ms.Write(GetHookContextSize()); // imul rdx, HOOK_CONTEXT_SIZE
-                                ms.Write(new byte[] {0x48, 0x8B, 0x49, 0x08}); // mov rcx, [rcx+8]
-                                ms.Write(new byte[] {0x48, 0x01, 0xD1}); // add rcx, rdx
-                                ms.Write(new byte[] {0x48, 0x81, 0xC1});
-                                ms.Write(GetHookContextSize() - (psize * 1)); // add rcx, HOOK_CONTEXT_SIZE - p*1
-                                ms.Write(new byte[] {0x48, 0x8B, 0x11}); // mov rdx, [rcx]
-                                ms.Write(new byte[] {0x48, 0x39, 0xC2}); // cmp rdx, rax
-                                ms.Write(new byte[] {0x74, 0x14}); // je +14 (PostHookVerifyPass)
-                                ms.Write(new byte[] {0x48, 0x83, 0xE4, 0xF0}); // and rsp, 0xFFFFFFFFFFFFFFF0
-                                ms.Write(new byte[] {0x48, 0x83, 0xEC, 0x20}); // sub rsp, 0x20
-                                ms.Write(new byte[] {0x48, 0xB8});
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x01 }); // mov rax, [rcx]
+                                ms.Write(new byte[] { 0x48, 0xFF, 0xC8 }); // dec rax
+                                ms.Write(new byte[] { 0x48, 0x89, 0x01 }); // mov [rcx], rax
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC2 }); // mov rdx, rax
+                                ms.Write(new byte[] { 0x48, 0x69, 0xD2 });
+                                ms.Write(GetHookContextSize());                  // imul rdx, HOOK_CONTEXT_SIZE
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x49, 0x08 }); // mov rcx, [rcx+8]
+                                ms.Write(new byte[] { 0x48, 0x01, 0xD1 });       // add rcx, rdx
+                                ms.Write(new byte[] { 0x48, 0x81, 0xC1 });
+                                ms.Write(GetHookContextSize() - (psize * 1));    // add rcx, HOOK_CONTEXT_SIZE - p*1
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x11 });       // mov rdx, [rcx]
+                                ms.Write(new byte[] { 0x48, 0x39, 0xC2 });       // cmp rdx, rax
+                                ms.Write(new byte[] { 0x74, 0x14 });             // je +14 (PostHookVerifyPass)
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE4, 0xF0 }); // and rsp, 0xFFFFFFFFFFFFFFF0
+                                ms.Write(new byte[] { 0x48, 0x83, 0xEC, 0x20 }); // sub rsp, 0x20
+                                ms.Write(new byte[] { 0x48, 0xB8 });
                                 ms.Write(GetHookIntegrityFailed().ToInt64()); // mov rax, PostHookVerifyFail
-                                ms.Write(new byte[] {0xFF, 0xD0}); // call rax
+                                ms.Write(new byte[] { 0xFF, 0xD0 });          // call rax
                                 // PostHookVerifyPass:
-                                ms.Write(new byte[] {0x48, 0x83, 0xE9, (byte)(psize * 1)}); // sub rcx, p*1
-                                ms.Write(new byte[] {0x48, 0x8B, 0x09}); // mov rcx, [rcx]
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE9, (byte)(psize * 1) }); // sub rcx, p*1
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x09 });                    // mov rcx, [rcx]
                             }
-                            ms.Write(new byte[] {0x9D}); // popfq
 
-                            ms.Write(new byte[] {0x5A}); // pop rdx
-                            ms.Write(new byte[] {0x58}); // pop rax
+                            ms.Write(new byte[] { 0x9D }); // popfq
 
-                            ms.Write(new byte[] {0x48, 0x87, 0x0C, 0x24}); // xchg [rsp], rcx
-                            ms.Write(new byte[] {0xC3}); // ret
+                            ms.Write(new byte[] { 0x5A }); // pop rdx
+                            ms.Write(new byte[] { 0x58 }); // pop rax
+
+                            ms.Write(new byte[] { 0x48, 0x87, 0x0C, 0x24 }); // xchg [rsp], rcx
+                            ms.Write(new byte[] { 0xC3 });                   // ret
 
                             data = stream.ToArray();
                         }
@@ -877,14 +843,7 @@
         /// <param name="include1">The include1.</param>
         /// <param name="include2">The include2.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        internal override void BuildHook(IntPtr hookSourceBase,
-            int hookReplaceLength,
-            IntPtr hookIncludeBase,
-            int hookIncludeLength,
-            bool isLongJump,
-            ref IntPtr target,
-            ref IntPtr include1,
-            ref IntPtr include2)
+        internal override void BuildHook(IntPtr hookSourceBase, int hookReplaceLength, IntPtr hookIncludeBase, int hookIncludeLength, bool isLongJump, ref IntPtr target, ref IntPtr include1, ref IntPtr include2)
         {
             byte[] data = null;
 
@@ -893,155 +852,143 @@
 
             // [stack+0x08] = hook_source + (5/13)
             // [stack+0x00] = rcx
-            if (Main.Is64Bit)
+            if ( Main.Is64Bit )
             {
-                using (var stream = new MemoryStream())
+                using ( var stream = new MemoryStream() )
                 {
-                    using (var ms = new BinaryWriter(stream))
+                    using ( var ms = new BinaryWriter(stream) )
                     {
                         var psize = 8;
 
-                        ms.Write(new byte[] {0x50}); // push rax
-                        ms.Write(new byte[] {0x52}); // push rdx
+                        ms.Write(new byte[] { 0x50 }); // push rax
+                        ms.Write(new byte[] { 0x52 }); // push rdx
 
                         var tls = GetTLSIndex();
-                        ms.Write(new byte[] {0x48, 0xB9});
+                        ms.Write(new byte[] { 0x48, 0xB9 });
                         ms.Write((long)tls); // mov rcx, TlsIndex
-                        if (tls < 0x40)
+
+                        if ( tls < 0x40 )
                         {
-                            ms.Write(new byte[]
-                            {
-                                0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00
-                            }); // mov rax, gs:[rcx*8 + 0x1480]
+                            ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00 }); // mov rax, gs:[rcx*8 + 0x1480]
                         }
                         else
                         {
-                            ms.Write(new byte[]
-                            {
-                                0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00
-                            }); // mov rax, gs:0x1780
-                            ms.Write(new byte[]
-                            {
-                                0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF
-                            }); // mov rax, [rax+rcx*8-0x200]
+                            ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00 }); // mov rax, gs:0x1780
+                            ms.Write(new byte[] { 0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF });       // mov rax, [rax+rcx*8-0x200]
                         }
 
-                        ms.Write(new byte[] {0x9C}); // pushfq
+                        ms.Write(new byte[] { 0x9C }); // pushfq
+
                         {
-                            ms.Write(new byte[] {0x48, 0x89, 0xC1}); // mov rcx, rax
-                            ms.Write(new byte[] {0x48, 0x8B, 0x01}); // mov rax, [rcx]
-                            ms.Write(new byte[] {0x48, 0x3D});
-                            ms.Write(GetHookMaxCalls()); // cmp rax, HOOK_MAX_CALLS
-                            ms.Write(new byte[] {0x7C, 0x14}); // jl +14 (AllocateOk)
-                            ms.Write(new byte[] {0x48, 0x83, 0xE4, 0xF0}); // and rsp, 0xFFFFFFFFFFFFFFF0
-                            ms.Write(new byte[] {0x48, 0x83, 0xEC, 0x20}); // sub rsp, 0x20
-                            ms.Write(new byte[] {0x48, 0xB8});
+                            ms.Write(new byte[] { 0x48, 0x89, 0xC1 }); // mov rcx, rax
+                            ms.Write(new byte[] { 0x48, 0x8B, 0x01 }); // mov rax, [rcx]
+                            ms.Write(new byte[] { 0x48, 0x3D });
+                            ms.Write(GetHookMaxCalls());                     // cmp rax, HOOK_MAX_CALLS
+                            ms.Write(new byte[] { 0x7C, 0x14 });             // jl +14 (AllocateOk)
+                            ms.Write(new byte[] { 0x48, 0x83, 0xE4, 0xF0 }); // and rsp, 0xFFFFFFFFFFFFFFF0
+                            ms.Write(new byte[] { 0x48, 0x83, 0xEC, 0x20 }); // sub rsp, 0x20
+                            ms.Write(new byte[] { 0x48, 0xB8 });
                             ms.Write(GetHookAllocateFail().ToInt64()); // mov rax, HookContextAllocateFail
-                            ms.Write(new byte[] {0xFF, 0xD0}); // call rax
+                            ms.Write(new byte[] { 0xFF, 0xD0 });       // call rax
                             // AllocateOk:
-                            ms.Write(new byte[] {0x48, 0xFF, 0x01}); // inc qword ptr [rcx]
-                            ms.Write(new byte[] {0x48, 0x69, 0xC0});
-                            ms.Write(GetHookContextSize()); // imul rax, HOOK_CONTEXT_SIZE
-                            ms.Write(new byte[] {0x48, 0x8B, 0x49, 0x08}); // mov rcx, [rcx+8]
-                            ms.Write(new byte[] {0x48, 0x01, 0xC1}); // add rcx, rax
+                            ms.Write(new byte[] { 0x48, 0xFF, 0x01 }); // inc qword ptr [rcx]
+                            ms.Write(new byte[] { 0x48, 0x69, 0xC0 });
+                            ms.Write(GetHookContextSize());                  // imul rax, HOOK_CONTEXT_SIZE
+                            ms.Write(new byte[] { 0x48, 0x8B, 0x49, 0x08 }); // mov rcx, [rcx+8]
+                            ms.Write(new byte[] { 0x48, 0x01, 0xC1 });       // add rcx, rax
                         }
-                        {
-                            ms.Write(new byte[] {0x48, 0x89, 0xC8}); // mov rax, rcx
-                            ms.Write(new byte[] {0x48, 0x05});
-                            ms.Write(GetHookContextSize()); // add rax, HOOK_CONTEXT_SIZE
-                            ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 2)}); // sub rax, p*2
-                            ms.Write(new byte[]
-                            {
-                                0x48, 0x8B, 0x54, 0x24, 0x20
-                            }); // mov rdx, [rsp+0x20] (hook_source + x)
-                            ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
-                            ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 4)}); // sub rax, p*4
-                            ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
-                        }
-                        ms.Write(new byte[] {0x9D}); // popfq
 
-                        ms.Write(new byte[] {0x5A}); // pop rdx
-                        ms.Write(new byte[] {0x58}); // pop rax
-                        ms.Write(new byte[] {0x59}); // pop rcx
-                        ms.Write(new byte[] {0x48, 0x87, 0x0C, 0x24}); // xchg [rsp], rcx
-                        ms.Write(new byte[] {0x59}); // pop rcx
+                        {
+                            ms.Write(new byte[] { 0x48, 0x89, 0xC8 }); // mov rax, rcx
+                            ms.Write(new byte[] { 0x48, 0x05 });
+                            ms.Write(GetHookContextSize());                               // add rax, HOOK_CONTEXT_SIZE
+                            ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 2) }); // sub rax, p*2
+                            ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x20 });        // mov rdx, [rsp+0x20] (hook_source + x)
+                            ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
+                            ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 4) }); // sub rax, p*4
+                            ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
+                        }
+
+                        ms.Write(new byte[] { 0x9D }); // popfq
+
+                        ms.Write(new byte[] { 0x5A });                   // pop rdx
+                        ms.Write(new byte[] { 0x58 });                   // pop rax
+                        ms.Write(new byte[] { 0x59 });                   // pop rcx
+                        ms.Write(new byte[] { 0x48, 0x87, 0x0C, 0x24 }); // xchg [rsp], rcx
+                        ms.Write(new byte[] { 0x59 });                   // pop rcx
 
                         // Include
                         var code = hookIncludeLength > 0 ? Memory.ReadBytes(hookIncludeBase, hookIncludeLength) : null;
-                        if (code != null && code.Length != 0)
+
+                        if ( code != null && code.Length != 0 )
                         {
                             this.WriteConvertedCode(code, ms, hookIncludeBase, 0, tempBack);
                         }
 
-                        ms.Write(new byte[] {0x51}); // push rcx
-                        ms.Write(new byte[] {0x51}); // push rcx
-                        ms.Write(new byte[] {0x50}); // push rax
-                        ms.Write(new byte[] {0x52}); // push rdx
+                        ms.Write(new byte[] { 0x51 }); // push rcx
+                        ms.Write(new byte[] { 0x51 }); // push rcx
+                        ms.Write(new byte[] { 0x50 }); // push rax
+                        ms.Write(new byte[] { 0x52 }); // push rdx
 
                         tls = GetTLSIndex();
-                        ms.Write(new byte[] {0x48, 0xB9});
+                        ms.Write(new byte[] { 0x48, 0xB9 });
                         ms.Write((long)tls); // mov rcx, TlsIndex
-                        if (tls < 0x40)
+
+                        if ( tls < 0x40 )
                         {
-                            ms.Write(new byte[]
-                            {
-                                0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00
-                            }); // mov rax, gs:[rcx*8 + 0x1480]
+                            ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00 }); // mov rax, gs:[rcx*8 + 0x1480]
                         }
                         else
                         {
-                            ms.Write(new byte[]
-                            {
-                                0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00
-                            }); // mov rax, gs:0x1780
-                            ms.Write(new byte[]
-                            {
-                                0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF
-                            }); // mov rax, [rax+rcx*8-0x200]
+                            ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00 }); // mov rax, gs:0x1780
+                            ms.Write(new byte[] { 0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF });       // mov rax, [rax+rcx*8-0x200]
                         }
 
-                        ms.Write(new byte[] {0x9C}); // pushfq
+                        ms.Write(new byte[] { 0x9C }); // pushfq
+
                         {
-                            ms.Write(new byte[] {0x48, 0x89, 0xC1}); // mov rcx, rax
-                            ms.Write(new byte[] {0x48, 0x8B, 0x01}); // mov rax, [rcx]
-                            ms.Write(new byte[] {0x48, 0xFF, 0xC8}); // dec rax
-                            ms.Write(new byte[] {0x48, 0x69, 0xC0});
-                            ms.Write(GetHookContextSize()); // imul rax, HOOK_CONTEXT_SIZE
-                            ms.Write(new byte[] {0x48, 0x8B, 0x49, 0x08}); // mov rcx, [rcx+8]
-                            ms.Write(new byte[] {0x48, 0x01, 0xC1}); // add rcx, rax
+                            ms.Write(new byte[] { 0x48, 0x89, 0xC1 }); // mov rcx, rax
+                            ms.Write(new byte[] { 0x48, 0x8B, 0x01 }); // mov rax, [rcx]
+                            ms.Write(new byte[] { 0x48, 0xFF, 0xC8 }); // dec rax
+                            ms.Write(new byte[] { 0x48, 0x69, 0xC0 });
+                            ms.Write(GetHookContextSize());                  // imul rax, HOOK_CONTEXT_SIZE
+                            ms.Write(new byte[] { 0x48, 0x8B, 0x49, 0x08 }); // mov rcx, [rcx+8]
+                            ms.Write(new byte[] { 0x48, 0x01, 0xC1 });       // add rcx, rax
                         }
+
                         {
-                            ms.Write(new byte[] {0x48, 0x89, 0xC8}); // mov rax, rcx
-                            ms.Write(new byte[] {0x48, 0x05});
-                            ms.Write(GetHookContextSize()); // add rax, HOOK_CONTEXT_SIZE
-                            ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 4)}); // sub rax, p*4
-                            ms.Write(new byte[] {0x48, 0x8B, 0x54, 0x24, 0x18}); // mov rdx, [rsp+0x18] (rcx)
-                            ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
-                            ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 1)}); // sub rax, p*1
-                            ms.Write(new byte[] {0x48, 0x8B, 0x54, 0x24, 0x10}); // mov rdx, [rsp+0x10] (rax)
-                            ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
+                            ms.Write(new byte[] { 0x48, 0x89, 0xC8 }); // mov rax, rcx
+                            ms.Write(new byte[] { 0x48, 0x05 });
+                            ms.Write(GetHookContextSize());                               // add rax, HOOK_CONTEXT_SIZE
+                            ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 4) }); // sub rax, p*4
+                            ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x18 });        // mov rdx, [rsp+0x18] (rcx)
+                            ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
+                            ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 1) }); // sub rax, p*1
+                            ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x10 });        // mov rdx, [rsp+0x10] (rax)
+                            ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
                         }
-                        ms.Write(new byte[] {0x9D}); // popfq
 
-                        ms.Write(new byte[] {0x5A}); // pop rdx
-                        ms.Write(new byte[] {0x58}); // pop rax
-                        ms.Write(new byte[] {0x58}); // pop rax
-                        ms.Write(new byte[] {0x58}); // pop rax
+                        ms.Write(new byte[] { 0x9D }); // popfq
 
-                        ms.Write(new byte[] {0x48, 0xB8});
+                        ms.Write(new byte[] { 0x5A }); // pop rdx
+                        ms.Write(new byte[] { 0x58 }); // pop rax
+                        ms.Write(new byte[] { 0x58 }); // pop rax
+                        ms.Write(new byte[] { 0x58 }); // pop rax
+
+                        ms.Write(new byte[] { 0x48, 0xB8 });
                         ms.Write(GetRtlCaptureContextAddress().ToInt64()); // mov rax, RtlCaptureContext
-                        ms.Write(new byte[] {0xFF, 0xD0}); // call rax
-                        ms.Write(new byte[] {0x48, 0x83, 0xE4, 0xF0}); // and rsp, 0xFFFFFFFFFFFFFFF0
-                        ms.Write(new byte[] {0x48, 0x83, 0xEC, 0x20}); // sub rsp, 0x20
-                        ms.Write(new byte[] {0x48, 0xB8});
-                        ms.Write(GetDoActionAddress().ToInt64()); // mov rax, NetHook
-                        ms.Write(new byte[] {0xB2, 1}); // mov dl, pass
-                        ms.Write(new byte[] {0xFF, 0xD0}); // call rax
-                        ms.Write(new byte[] {0x48, 0x89, 0xC1}); // mov rcx, rax
-                        ms.Write(new byte[] {0x48, 0x31, 0xD2}); // xor rdx, rdx
-                        ms.Write(new byte[] {0x48, 0xB8});
+                        ms.Write(new byte[] { 0xFF, 0xD0 });               // call rax
+                        ms.Write(new byte[] { 0x48, 0x83, 0xE4, 0xF0 });   // and rsp, 0xFFFFFFFFFFFFFFF0
+                        ms.Write(new byte[] { 0x48, 0x83, 0xEC, 0x20 });   // sub rsp, 0x20
+                        ms.Write(new byte[] { 0x48, 0xB8 });
+                        ms.Write(GetDoActionAddress().ToInt64());  // mov rax, NetHook
+                        ms.Write(new byte[] { 0xB2, 1 });          // mov dl, pass
+                        ms.Write(new byte[] { 0xFF, 0xD0 });       // call rax
+                        ms.Write(new byte[] { 0x48, 0x89, 0xC1 }); // mov rcx, rax
+                        ms.Write(new byte[] { 0x48, 0x31, 0xD2 }); // xor rdx, rdx
+                        ms.Write(new byte[] { 0x48, 0xB8 });
                         ms.Write(GetRtlRestoreContextAddress().ToInt64()); // mov rax, RtlRestoreContext
-                        ms.Write(new byte[] {0xFF, 0xD0}); // call rax
+                        ms.Write(new byte[] { 0xFF, 0xD0 });               // call rax
 
                         data = stream.ToArray();
                     }
@@ -1056,18 +1003,18 @@
             alloc_do.Pin();
             Memory.WriteBytes(alloc_do.Address, data);
 
-            foreach (var x in tempBack)
+            foreach ( var x in tempBack )
             {
-                if (Main.Is64Bit)
+                if ( Main.Is64Bit )
                 {
-                    var afterAddr = alloc_do.Address + (int)x.Value;
+                    var afterAddr  = alloc_do.Address + (int)x.Value;
                     var afterBytes = BitConverter.GetBytes(afterAddr.ToInt64());
                     Memory.WriteBytes(alloc_do.Address + (int)x.Key, afterBytes);
                 }
                 else { throw new NotImplementedException(); }
             }
 
-            if (isLongJump)
+            if ( isLongJump )
             {
                 target = this.GetFarHookAddress(hookSourceBase, alloc_do.Address);
             }
@@ -1088,9 +1035,9 @@
         /// <returns></returns>
         private static bool CompareBytes(byte[] data, byte[] pattern, int index)
         {
-            for (var i = 0; i < pattern.Length; i++, index++)
+            for ( var i = 0; i < pattern.Length; i++, index++ )
             {
-                if (pattern[i] != data[index])
+                if ( pattern[i] != data[index] )
                 {
                     return false;
                 }
@@ -1121,59 +1068,58 @@
         /// <exception cref="NetScriptFramework.MemoryAccessException"></exception>
         private IntPtr GetNearHookAddress(IntPtr hookAddress, IntPtr targetAddress)
         {
-            if (!Main.Is64Bit)
+            if ( !Main.Is64Bit )
             {
                 return this.GetFarHookAddress(hookAddress, targetAddress);
             }
 
             ModuleNearJumpHook info = null;
-            using (var alloc = Memory.Allocate(0x30))
+
+            using ( var alloc = Memory.Allocate(0x30) )
             {
                 var result = GetMemoryInfo(hookAddress, alloc.Address, alloc.Address + 0x10, alloc.Address + 0x20);
-                if (result == 1)
+
+                if ( result == 1 )
                 {
                     throw new MemoryAccessException(hookAddress);
                 }
 
-                if (result == 2)
+                if ( result == 2 )
                 {
                     throw new InvalidOperationException("Not a valid code page!");
                 }
 
-                if (result == 3)
+                if ( result == 3 )
                 {
                     throw new InvalidOperationException("Not a valid module!");
                 }
 
-                if (result == -1)
+                if ( result == -1 )
                 {
                     throw new InvalidOperationException("Code section was not found!");
                 }
 
-                if (result != 0)
+                if ( result != 0 )
                 {
                     throw new InvalidOperationException("Unhandled error occurred (" + result + ")!");
                 }
 
-                info = new ModuleNearJumpHook(Memory.ReadPointer(alloc.Address + 0x20),
-                    Memory.ReadPointer(alloc.Address), Memory.ReadPointer(alloc.Address + 0x10));
+                info = new ModuleNearJumpHook(Memory.ReadPointer(alloc.Address + 0x20), Memory.ReadPointer(alloc.Address), Memory.ReadPointer(alloc.Address + 0x10));
             }
 
-            var begin = info.BeginAddress.ToUInt64();
-            var end = info.EndAddress.ToUInt64();
-            var ptr = begin;
-            var pattern = new byte[14]
-            {
-                0xC3, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC
-            };
-            var found = IntPtr.Zero;
-            var stop = false;
+            var begin   = info.BeginAddress.ToUInt64();
+            var end     = info.EndAddress.ToUInt64();
+            var ptr     = begin;
+            var pattern = new byte[14] { 0xC3, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC };
+            var found   = IntPtr.Zero;
+            var stop    = false;
 
-            while (ptr < end && !stop)
+            while ( ptr < end && !stop )
             {
-                var size = end - ptr;
+                var size    = end  - ptr;
                 var maxSize = 4000 + (ulong)pattern.Length;
-                if (size > maxSize)
+
+                if ( size > maxSize )
                 {
                     size = maxSize;
                 }
@@ -1182,27 +1128,28 @@
                     stop = true;
                 }
 
-                var addr = new IntPtr(unchecked((long)ptr));
+                var addr  = new IntPtr(unchecked((long)ptr));
                 var chunk = Memory.ReadBytes(addr, (int)size);
 
                 var highIndex = chunk.Length - pattern.Length;
-                for (var i = 0; i < highIndex; i++)
+
+                for ( var i = 0; i < highIndex; i++ )
                 {
-                    if (CompareBytes(chunk, pattern, i))
+                    if ( CompareBytes(chunk, pattern, i) )
                     {
                         found = addr + i;
-                        stop = true;
+                        stop  = true;
                         break;
                     }
                 }
 
-                if (!stop)
+                if ( !stop )
                 {
                     ptr += maxSize - (ulong)pattern.Length;
                 }
             }
 
-            if (found == IntPtr.Zero)
+            if ( found == IntPtr.Zero )
             {
                 throw new InvalidOperationException("Didn't find a code cave for near jump setup!");
             }
@@ -1211,7 +1158,7 @@
             found = found + 1;
 
             // Bad.
-            if (targetAddress == IntPtr.Zero)
+            if ( targetAddress == IntPtr.Zero )
             {
                 throw new ArgumentOutOfRangeException();
             }
@@ -1219,23 +1166,23 @@
             // Set up preparation code.
             {
                 byte[] data = null;
-                using (var stream = new MemoryStream())
+
+                using ( var stream = new MemoryStream() )
                 {
-                    using (var ms = new BinaryWriter(stream))
+                    using ( var ms = new BinaryWriter(stream) )
                     {
-                        ms.Write(new byte[] {0x51}); // push rcx
-                        ms.Write(new byte[] {0x48, 0xB9});
-                        ms.Write(targetAddress.ToInt64()); // mov rcx, target
-                        ms.Write(new byte[] {0xFF, 0xE1}); // jmp rcx
+                        ms.Write(new byte[] { 0x51 }); // push rcx
+                        ms.Write(new byte[] { 0x48, 0xB9 });
+                        ms.Write(targetAddress.ToInt64());   // mov rcx, target
+                        ms.Write(new byte[] { 0xFF, 0xE1 }); // jmp rcx
 
                         data = stream.ToArray();
                     }
                 }
 
-                if (data.Length > pattern.Length - 1)
+                if ( data.Length > pattern.Length - 1 )
                 {
-                    throw new InvalidOperationException(
-                        "Failed to write near jump code! Not enough memory in specified code cave.");
+                    throw new InvalidOperationException("Failed to write near jump code! Not enough memory in specified code cave.");
                 }
 
                 Memory.WriteBytes(found, data, true);
@@ -1254,7 +1201,7 @@
         private IntPtr GetFarHookAddress(IntPtr hookAddress, IntPtr targetAddress)
         {
             // Bad.
-            if (targetAddress == IntPtr.Zero)
+            if ( targetAddress == IntPtr.Zero )
             {
                 throw new ArgumentOutOfRangeException();
             }
@@ -1262,18 +1209,18 @@
             // Must setup.
             byte[] data = null;
 
-            if (Main.Is64Bit)
+            if ( Main.Is64Bit )
             {
-                using (var stream = new MemoryStream())
+                using ( var stream = new MemoryStream() )
                 {
-                    using (var ms = new BinaryWriter(stream))
+                    using ( var ms = new BinaryWriter(stream) )
                     {
-                        ms.Write(new byte[] {0x59}); // pop rcx
-                        ms.Write(new byte[] {0x48, 0x87, 0x0C, 0x24}); // xchg [rsp], rcx
-                        ms.Write(new byte[] {0x51}); // push rcx
-                        ms.Write(new byte[] {0x48, 0xB9});
-                        ms.Write(targetAddress.ToInt64()); // mov rcx, target
-                        ms.Write(new byte[] {0xFF, 0xE1}); // jmp rcx
+                        ms.Write(new byte[] { 0x59 });                   // pop rcx
+                        ms.Write(new byte[] { 0x48, 0x87, 0x0C, 0x24 }); // xchg [rsp], rcx
+                        ms.Write(new byte[] { 0x51 });                   // push rcx
+                        ms.Write(new byte[] { 0x48, 0xB9 });
+                        ms.Write(targetAddress.ToInt64());   // mov rcx, target
+                        ms.Write(new byte[] { 0xFF, 0xE1 }); // jmp rcx
 
                         data = stream.ToArray();
                     }
@@ -1308,11 +1255,6 @@
         private readonly IntPtr _Address_EnterHook = IntPtr.Zero;
 
         /// <summary>
-        ///     The address for when we land from a far-jump.
-        /// </summary>
-        private IntPtr _Address_FarJumpSetup = IntPtr.Zero;
-
-        /// <summary>
         ///     The addresses for near jump setups.
         /// </summary>
         private readonly List<ModuleNearJumpHook> _Address_NearJumpSetup = new List<ModuleNearJumpHook>();
@@ -1328,6 +1270,11 @@
         private readonly IntPtr _Address_PostInclude2 = IntPtr.Zero;
 
         /// <summary>
+        ///     The address for when we land from a far-jump.
+        /// </summary>
+        private IntPtr _Address_FarJumpSetup = IntPtr.Zero;
+
+        /// <summary>
         ///     Prevents a default instance of the <see cref="HookBoth" /> class from being created.
         /// </summary>
         private HookBoth()
@@ -1338,102 +1285,91 @@
 
                 // [stack+0x08] = hook_source + (5/13)
                 // [stack+0x00] = rcx
-                if (Main.Is64Bit)
+                if ( Main.Is64Bit )
                 {
-                    using (var stream = new MemoryStream())
+                    using ( var stream = new MemoryStream() )
                     {
-                        using (var ms = new BinaryWriter(stream))
+                        using ( var ms = new BinaryWriter(stream) )
                         {
                             var psize = 8;
 
-                            ms.Write(new byte[] {0x50}); // push rax
-                            ms.Write(new byte[] {0x52}); // push rdx
+                            ms.Write(new byte[] { 0x50 }); // push rax
+                            ms.Write(new byte[] { 0x52 }); // push rdx
 
                             var tls = GetTLSIndex();
-                            ms.Write(new byte[] {0x48, 0xB9});
+                            ms.Write(new byte[] { 0x48, 0xB9 });
                             ms.Write((long)tls); // mov rcx, TlsIndex
-                            if (tls < 0x40)
+
+                            if ( tls < 0x40 )
                             {
-                                ms.Write(new byte[]
-                                {
-                                    0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00
-                                }); // mov rax, gs:[rcx*8 + 0x1480]
+                                ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00 }); // mov rax, gs:[rcx*8 + 0x1480]
                             }
                             else
                             {
-                                ms.Write(new byte[]
-                                {
-                                    0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00
-                                }); // mov rax, gs:0x1780
-                                ms.Write(new byte[]
-                                {
-                                    0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF
-                                }); // mov rax, [rax+rcx*8-0x200]
+                                ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00 }); // mov rax, gs:0x1780
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF });       // mov rax, [rax+rcx*8-0x200]
                             }
 
-                            ms.Write(new byte[] {0x9C}); // pushfq
+                            ms.Write(new byte[] { 0x9C }); // pushfq
+
                             {
-                                ms.Write(new byte[] {0x48, 0x89, 0xC1}); // mov rcx, rax
-                                ms.Write(new byte[] {0x48, 0x8B, 0x01}); // mov rax, [rcx]
-                                ms.Write(new byte[] {0x48, 0x3D});
-                                ms.Write(GetHookMaxCalls()); // cmp rax, HOOK_MAX_CALLS
-                                ms.Write(new byte[] {0x7C, 0x14}); // jl +14 (AllocateOk)
-                                ms.Write(new byte[] {0x48, 0x83, 0xE4, 0xF0}); // and rsp, 0xFFFFFFFFFFFFFFF0
-                                ms.Write(new byte[] {0x48, 0x83, 0xEC, 0x20}); // sub rsp, 0x20
-                                ms.Write(new byte[] {0x48, 0xB8});
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC1 }); // mov rcx, rax
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x01 }); // mov rax, [rcx]
+                                ms.Write(new byte[] { 0x48, 0x3D });
+                                ms.Write(GetHookMaxCalls());                     // cmp rax, HOOK_MAX_CALLS
+                                ms.Write(new byte[] { 0x7C, 0x14 });             // jl +14 (AllocateOk)
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE4, 0xF0 }); // and rsp, 0xFFFFFFFFFFFFFFF0
+                                ms.Write(new byte[] { 0x48, 0x83, 0xEC, 0x20 }); // sub rsp, 0x20
+                                ms.Write(new byte[] { 0x48, 0xB8 });
                                 ms.Write(GetHookAllocateFail().ToInt64()); // mov rax, HookContextAllocateFail
-                                ms.Write(new byte[] {0xFF, 0xD0}); // call rax
+                                ms.Write(new byte[] { 0xFF, 0xD0 });       // call rax
                                 // AllocateOk:
-                                ms.Write(new byte[] {0x48, 0xFF, 0x01}); // inc qword ptr [rcx]
-                                ms.Write(new byte[] {0x48, 0x69, 0xC0});
-                                ms.Write(GetHookContextSize()); // imul rax, HOOK_CONTEXT_SIZE
-                                ms.Write(new byte[] {0x48, 0x8B, 0x49, 0x08}); // mov rcx, [rcx+8]
-                                ms.Write(new byte[] {0x48, 0x01, 0xC1}); // add rcx, rax
+                                ms.Write(new byte[] { 0x48, 0xFF, 0x01 }); // inc qword ptr [rcx]
+                                ms.Write(new byte[] { 0x48, 0x69, 0xC0 });
+                                ms.Write(GetHookContextSize());                  // imul rax, HOOK_CONTEXT_SIZE
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x49, 0x08 }); // mov rcx, [rcx+8]
+                                ms.Write(new byte[] { 0x48, 0x01, 0xC1 });       // add rcx, rax
                             }
+
                             {
-                                ms.Write(new byte[] {0x48, 0x89, 0xC8}); // mov rax, rcx
-                                ms.Write(new byte[] {0x48, 0x05});
-                                ms.Write(GetHookContextSize()); // add rax, HOOK_CONTEXT_SIZE
-                                ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 2)}); // sub rax, p*2
-                                ms.Write(new byte[]
-                                {
-                                    0x48, 0x8B, 0x54, 0x24, 0x20
-                                }); // mov rdx, [rsp+0x20] (hook_source + x)
-                                ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
-                                ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 2)}); // sub rax, p*2
-                                ms.Write(new byte[] {0x48, 0x8B, 0x54, 0x24, 0x18}); // mov rdx, [rsp+0x18] (rcx)
-                                ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
-                                ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 1)}); // sub rax, p*1
-                                ms.Write(new byte[] {0x48, 0x8B, 0x54, 0x24, 0x10}); // mov rdx, [rsp+0x10] (rax)
-                                ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
-                                ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 1)}); // sub rax, p*1
-                                ms.Write(new byte[]
-                                {
-                                    0x48, 0x8B, 0x54, 0x24, 0x20
-                                }); // mov rdx, [rsp+0x20] (hook_source + x)
-                                ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC8 }); // mov rax, rcx
+                                ms.Write(new byte[] { 0x48, 0x05 });
+                                ms.Write(GetHookContextSize());                               // add rax, HOOK_CONTEXT_SIZE
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 2) }); // sub rax, p*2
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x20 });        // mov rdx, [rsp+0x20] (hook_source + x)
+                                ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 2) }); // sub rax, p*2
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x18 });        // mov rdx, [rsp+0x18] (rcx)
+                                ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 1) }); // sub rax, p*1
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x10 });        // mov rdx, [rsp+0x10] (rax)
+                                ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 1) }); // sub rax, p*1
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x20 });        // mov rdx, [rsp+0x20] (hook_source + x)
+                                ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
                             }
-                            ms.Write(new byte[] {0x9D}); // popfq
 
-                            ms.Write(new byte[] {0x5A}); // pop rdx
-                            ms.Write(new byte[] {0x58}); // pop rax
-                            ms.Write(new byte[] {0x58}); // pop rax
-                            ms.Write(new byte[] {0x58}); // pop rax
+                            ms.Write(new byte[] { 0x9D }); // popfq
 
-                            ms.Write(new byte[] {0x48, 0xB8});
+                            ms.Write(new byte[] { 0x5A }); // pop rdx
+                            ms.Write(new byte[] { 0x58 }); // pop rax
+                            ms.Write(new byte[] { 0x58 }); // pop rax
+                            ms.Write(new byte[] { 0x58 }); // pop rax
+
+                            ms.Write(new byte[] { 0x48, 0xB8 });
                             ms.Write(GetRtlCaptureContextAddress().ToInt64()); // mov rax, RtlCaptureContext
-                            ms.Write(new byte[] {0xFF, 0xD0}); // call rax
-                            ms.Write(new byte[] {0x48, 0x83, 0xE4, 0xF0}); // and rsp, 0xFFFFFFFFFFFFFFF0
-                            ms.Write(new byte[] {0x48, 0x83, 0xEC, 0x20}); // sub rsp, 0x20
-                            ms.Write(new byte[] {0x48, 0xB8});
-                            ms.Write(GetDoActionAddress().ToInt64()); // mov rax, NetHook
-                            ms.Write(new byte[] {0xB2, 0}); // mov dl, pass
-                            ms.Write(new byte[] {0xFF, 0xD0}); // call rax
-                            ms.Write(new byte[] {0x48, 0x89, 0xC1}); // mov rcx, rax
-                            ms.Write(new byte[] {0x48, 0x31, 0xD2}); // xor rdx, rdx
-                            ms.Write(new byte[] {0x48, 0xB8});
+                            ms.Write(new byte[] { 0xFF, 0xD0 });               // call rax
+                            ms.Write(new byte[] { 0x48, 0x83, 0xE4, 0xF0 });   // and rsp, 0xFFFFFFFFFFFFFFF0
+                            ms.Write(new byte[] { 0x48, 0x83, 0xEC, 0x20 });   // sub rsp, 0x20
+                            ms.Write(new byte[] { 0x48, 0xB8 });
+                            ms.Write(GetDoActionAddress().ToInt64());  // mov rax, NetHook
+                            ms.Write(new byte[] { 0xB2, 0 });          // mov dl, pass
+                            ms.Write(new byte[] { 0xFF, 0xD0 });       // call rax
+                            ms.Write(new byte[] { 0x48, 0x89, 0xC1 }); // mov rcx, rax
+                            ms.Write(new byte[] { 0x48, 0x31, 0xD2 }); // xor rdx, rdx
+                            ms.Write(new byte[] { 0x48, 0xB8 });
                             ms.Write(GetRtlRestoreContextAddress().ToInt64()); // mov rax, RtlRestoreContext
-                            ms.Write(new byte[] {0xFF, 0xD0}); // call rax
+                            ms.Write(new byte[] { 0xFF, 0xD0 });               // call rax
 
                             data = stream.ToArray();
                         }
@@ -1455,84 +1391,78 @@
                 byte[] data = null;
 
                 // [stack+0x00] = rcx
-                if (Main.Is64Bit)
+                if ( Main.Is64Bit )
                 {
-                    using (var stream = new MemoryStream())
+                    using ( var stream = new MemoryStream() )
                     {
-                        using (var ms = new BinaryWriter(stream))
+                        using ( var ms = new BinaryWriter(stream) )
                         {
                             var psize = 8;
 
-                            ms.Write(new byte[] {0x48, 0x8B, 0x0C, 0x24}); // mov rcx, [rsp]
-                            ms.Write(new byte[] {0x51}); // push rcx
-                            ms.Write(new byte[] {0x50}); // push rax
-                            ms.Write(new byte[] {0x52}); // push rdx
+                            ms.Write(new byte[] { 0x48, 0x8B, 0x0C, 0x24 }); // mov rcx, [rsp]
+                            ms.Write(new byte[] { 0x51 });                   // push rcx
+                            ms.Write(new byte[] { 0x50 });                   // push rax
+                            ms.Write(new byte[] { 0x52 });                   // push rdx
 
-                            ms.Write(new byte[] {0x9C}); // pushfq
+                            ms.Write(new byte[] { 0x9C }); // pushfq
+
                             {
                                 var tls = GetTLSIndex();
-                                ms.Write(new byte[] {0x48, 0xB9});
+                                ms.Write(new byte[] { 0x48, 0xB9 });
                                 ms.Write((long)tls); // mov rcx, TlsIndex
-                                if (tls < 0x40)
+
+                                if ( tls < 0x40 )
                                 {
-                                    ms.Write(new byte[]
-                                    {
-                                        0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00
-                                    }); // mov rax, gs:[rcx*8 + 0x1480]
+                                    ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00 }); // mov rax, gs:[rcx*8 + 0x1480]
                                 }
                                 else
                                 {
-                                    ms.Write(new byte[]
-                                    {
-                                        0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00
-                                    }); // mov rax, gs:0x1780
-                                    ms.Write(new byte[]
-                                    {
-                                        0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF
-                                    }); // mov rax, [rax+rcx*8-0x200]
+                                    ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00 }); // mov rax, gs:0x1780
+                                    ms.Write(new byte[] { 0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF });       // mov rax, [rax+rcx*8-0x200]
                                 }
 
-                                ms.Write(new byte[] {0x48, 0x89, 0xC1}); // mov rcx, rax
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC1 }); // mov rcx, rax
 
-                                ms.Write(new byte[] {0x48, 0x8B, 0x01}); // mov rax, [rcx]
-                                ms.Write(new byte[] {0x48, 0xFF, 0xC8}); // dec rax
-                                ms.Write(new byte[] {0x48, 0x89, 0xC2}); // mov rdx, rax
-                                ms.Write(new byte[] {0x48, 0x69, 0xD2});
-                                ms.Write(GetHookContextSize()); // imul rdx, HOOK_CONTEXT_SIZE
-                                ms.Write(new byte[] {0x48, 0x8B, 0x49, 0x08}); // mov rcx, [rcx+8]
-                                ms.Write(new byte[] {0x48, 0x01, 0xD1}); // add rcx, rdx
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x01 }); // mov rax, [rcx]
+                                ms.Write(new byte[] { 0x48, 0xFF, 0xC8 }); // dec rax
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC2 }); // mov rdx, rax
+                                ms.Write(new byte[] { 0x48, 0x69, 0xD2 });
+                                ms.Write(GetHookContextSize());                  // imul rdx, HOOK_CONTEXT_SIZE
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x49, 0x08 }); // mov rcx, [rcx+8]
+                                ms.Write(new byte[] { 0x48, 0x01, 0xD1 });       // add rcx, rdx
 
-                                ms.Write(new byte[] {0x48, 0x89, 0xC8}); // mov rax, rcx
-                                ms.Write(new byte[] {0x48, 0x05});
-                                ms.Write(GetHookContextSize()); // add rax, HOOK_CONTEXT_SIZE
-                                ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 4)}); // sub rax, p*4
-                                ms.Write(new byte[] {0x48, 0x8B, 0x54, 0x24, 0x18}); // mov rdx, [rsp+0x18] (rcx)
-                                ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
-                                ms.Write(new byte[] {0x48, 0x83, 0xE8, (byte)(psize * 1)}); // sub rax, p*1
-                                ms.Write(new byte[] {0x48, 0x8B, 0x54, 0x24, 0x10}); // mov rdx, [rsp+0x10] (rax)
-                                ms.Write(new byte[] {0x48, 0x89, 0x10}); // mov [rax], rdx
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC8 }); // mov rax, rcx
+                                ms.Write(new byte[] { 0x48, 0x05 });
+                                ms.Write(GetHookContextSize());                               // add rax, HOOK_CONTEXT_SIZE
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 4) }); // sub rax, p*4
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x18 });        // mov rdx, [rsp+0x18] (rcx)
+                                ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE8, (byte)(psize * 1) }); // sub rax, p*1
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x54, 0x24, 0x10 });        // mov rdx, [rsp+0x10] (rax)
+                                ms.Write(new byte[] { 0x48, 0x89, 0x10 });                    // mov [rax], rdx
                             }
-                            ms.Write(new byte[] {0x9D}); // popfq
 
-                            ms.Write(new byte[] {0x5A}); // pop rdx
-                            ms.Write(new byte[] {0x58}); // pop rax
-                            ms.Write(new byte[] {0x58}); // pop rax
-                            ms.Write(new byte[] {0x58}); // pop rax
+                            ms.Write(new byte[] { 0x9D }); // popfq
 
-                            ms.Write(new byte[] {0x48, 0xB8});
+                            ms.Write(new byte[] { 0x5A }); // pop rdx
+                            ms.Write(new byte[] { 0x58 }); // pop rax
+                            ms.Write(new byte[] { 0x58 }); // pop rax
+                            ms.Write(new byte[] { 0x58 }); // pop rax
+
+                            ms.Write(new byte[] { 0x48, 0xB8 });
                             ms.Write(GetRtlCaptureContextAddress().ToInt64()); // mov rax, RtlCaptureContext
-                            ms.Write(new byte[] {0xFF, 0xD0}); // call rax
-                            ms.Write(new byte[] {0x48, 0x83, 0xE4, 0xF0}); // and rsp, 0xFFFFFFFFFFFFFFF0
-                            ms.Write(new byte[] {0x48, 0x83, 0xEC, 0x20}); // sub rsp, 0x20
-                            ms.Write(new byte[] {0x48, 0xB8});
-                            ms.Write(GetDoActionAddress().ToInt64()); // mov rax, NetHook
-                            ms.Write(new byte[] {0xB2, 1}); // mov dl, pass
-                            ms.Write(new byte[] {0xFF, 0xD0}); // call rax
-                            ms.Write(new byte[] {0x48, 0x89, 0xC1}); // mov rcx, rax
-                            ms.Write(new byte[] {0x48, 0x31, 0xD2}); // xor rdx, rdx
-                            ms.Write(new byte[] {0x48, 0xB8});
+                            ms.Write(new byte[] { 0xFF, 0xD0 });               // call rax
+                            ms.Write(new byte[] { 0x48, 0x83, 0xE4, 0xF0 });   // and rsp, 0xFFFFFFFFFFFFFFF0
+                            ms.Write(new byte[] { 0x48, 0x83, 0xEC, 0x20 });   // sub rsp, 0x20
+                            ms.Write(new byte[] { 0x48, 0xB8 });
+                            ms.Write(GetDoActionAddress().ToInt64());  // mov rax, NetHook
+                            ms.Write(new byte[] { 0xB2, 1 });          // mov dl, pass
+                            ms.Write(new byte[] { 0xFF, 0xD0 });       // call rax
+                            ms.Write(new byte[] { 0x48, 0x89, 0xC1 }); // mov rcx, rax
+                            ms.Write(new byte[] { 0x48, 0x31, 0xD2 }); // xor rdx, rdx
+                            ms.Write(new byte[] { 0x48, 0xB8 });
                             ms.Write(GetRtlRestoreContextAddress().ToInt64()); // mov rax, RtlRestoreContext
-                            ms.Write(new byte[] {0xFF, 0xD0}); // call rax
+                            ms.Write(new byte[] { 0xFF, 0xD0 });               // call rax
 
                             data = stream.ToArray();
                         }
@@ -1554,73 +1484,67 @@
                 byte[] data = null;
 
                 // nothing on stack
-                if (Main.Is64Bit)
+                if ( Main.Is64Bit )
                 {
-                    using (var stream = new MemoryStream())
+                    using ( var stream = new MemoryStream() )
                     {
-                        using (var ms = new BinaryWriter(stream))
+                        using ( var ms = new BinaryWriter(stream) )
                         {
                             var psize = 8;
 
-                            ms.Write(new byte[] {0x51}); // push rcx
-                            ms.Write(new byte[] {0x50}); // push rax
-                            ms.Write(new byte[] {0x52}); // push rdx
+                            ms.Write(new byte[] { 0x51 }); // push rcx
+                            ms.Write(new byte[] { 0x50 }); // push rax
+                            ms.Write(new byte[] { 0x52 }); // push rdx
 
-                            ms.Write(new byte[] {0x9C}); // pushfq
+                            ms.Write(new byte[] { 0x9C }); // pushfq
+
                             {
                                 var tls = GetTLSIndex();
-                                ms.Write(new byte[] {0x48, 0xB9});
+                                ms.Write(new byte[] { 0x48, 0xB9 });
                                 ms.Write((long)tls); // mov rcx, TlsIndex
-                                if (tls < 0x40)
+
+                                if ( tls < 0x40 )
                                 {
-                                    ms.Write(new byte[]
-                                    {
-                                        0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00
-                                    }); // mov rax, gs:[rcx*8 + 0x1480]
+                                    ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0xCD, 0x80, 0x14, 0x00, 0x00 }); // mov rax, gs:[rcx*8 + 0x1480]
                                 }
                                 else
                                 {
-                                    ms.Write(new byte[]
-                                    {
-                                        0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00
-                                    }); // mov rax, gs:0x1780
-                                    ms.Write(new byte[]
-                                    {
-                                        0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF
-                                    }); // mov rax, [rax+rcx*8-0x200]
+                                    ms.Write(new byte[] { 0x65, 0x48, 0x8B, 0x04, 0x25, 0x80, 0x17, 0x00, 0x00 }); // mov rax, gs:0x1780
+                                    ms.Write(new byte[] { 0x48, 0x8B, 0x84, 0xC8, 0x00, 0xFE, 0xFF, 0xFF });       // mov rax, [rax+rcx*8-0x200]
                                 }
 
-                                ms.Write(new byte[] {0x48, 0x89, 0xC1}); // mov rcx, rax
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC1 }); // mov rcx, rax
 
-                                ms.Write(new byte[] {0x48, 0x8B, 0x01}); // mov rax, [rcx]
-                                ms.Write(new byte[] {0x48, 0xFF, 0xC8}); // dec rax
-                                ms.Write(new byte[] {0x48, 0x89, 0x01}); // mov [rcx], rax
-                                ms.Write(new byte[] {0x48, 0x89, 0xC2}); // mov rdx, rax
-                                ms.Write(new byte[] {0x48, 0x69, 0xD2});
-                                ms.Write(GetHookContextSize()); // imul rdx, HOOK_CONTEXT_SIZE
-                                ms.Write(new byte[] {0x48, 0x8B, 0x49, 0x08}); // mov rcx, [rcx+8]
-                                ms.Write(new byte[] {0x48, 0x01, 0xD1}); // add rcx, rdx
-                                ms.Write(new byte[] {0x48, 0x81, 0xC1});
-                                ms.Write(GetHookContextSize() - (psize * 1)); // add rcx, HOOK_CONTEXT_SIZE - p*1
-                                ms.Write(new byte[] {0x48, 0x8B, 0x11}); // mov rdx, [rcx]
-                                ms.Write(new byte[] {0x48, 0x39, 0xC2}); // cmp rdx, rax
-                                ms.Write(new byte[] {0x74, 0x14}); // je +14 (PostHookVerifyPass)
-                                ms.Write(new byte[] {0x48, 0x83, 0xE4, 0xF0}); // and rsp, 0xFFFFFFFFFFFFFFF0
-                                ms.Write(new byte[] {0x48, 0x83, 0xEC, 0x20}); // sub rsp, 0x20
-                                ms.Write(new byte[] {0x48, 0xB8});
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x01 }); // mov rax, [rcx]
+                                ms.Write(new byte[] { 0x48, 0xFF, 0xC8 }); // dec rax
+                                ms.Write(new byte[] { 0x48, 0x89, 0x01 }); // mov [rcx], rax
+                                ms.Write(new byte[] { 0x48, 0x89, 0xC2 }); // mov rdx, rax
+                                ms.Write(new byte[] { 0x48, 0x69, 0xD2 });
+                                ms.Write(GetHookContextSize());                  // imul rdx, HOOK_CONTEXT_SIZE
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x49, 0x08 }); // mov rcx, [rcx+8]
+                                ms.Write(new byte[] { 0x48, 0x01, 0xD1 });       // add rcx, rdx
+                                ms.Write(new byte[] { 0x48, 0x81, 0xC1 });
+                                ms.Write(GetHookContextSize() - (psize * 1));    // add rcx, HOOK_CONTEXT_SIZE - p*1
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x11 });       // mov rdx, [rcx]
+                                ms.Write(new byte[] { 0x48, 0x39, 0xC2 });       // cmp rdx, rax
+                                ms.Write(new byte[] { 0x74, 0x14 });             // je +14 (PostHookVerifyPass)
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE4, 0xF0 }); // and rsp, 0xFFFFFFFFFFFFFFF0
+                                ms.Write(new byte[] { 0x48, 0x83, 0xEC, 0x20 }); // sub rsp, 0x20
+                                ms.Write(new byte[] { 0x48, 0xB8 });
                                 ms.Write(GetHookIntegrityFailed().ToInt64()); // mov rax, PostHookVerifyFail
-                                ms.Write(new byte[] {0xFF, 0xD0}); // call rax
+                                ms.Write(new byte[] { 0xFF, 0xD0 });          // call rax
                                 // PostHookVerifyPass:
-                                ms.Write(new byte[] {0x48, 0x83, 0xE9, (byte)(psize * 1)}); // sub rcx, 8
-                                ms.Write(new byte[] {0x48, 0x8B, 0x09}); // mov rcx, [rcx]
+                                ms.Write(new byte[] { 0x48, 0x83, 0xE9, (byte)(psize * 1) }); // sub rcx, 8
+                                ms.Write(new byte[] { 0x48, 0x8B, 0x09 });                    // mov rcx, [rcx]
                             }
-                            ms.Write(new byte[] {0x9D}); // popfq
 
-                            ms.Write(new byte[] {0x5A}); // pop rdx
-                            ms.Write(new byte[] {0x58}); // pop rax
+                            ms.Write(new byte[] { 0x9D }); // popfq
 
-                            ms.Write(new byte[] {0x48, 0x87, 0x0C, 0x24}); // xchg [rsp], rcx
-                            ms.Write(new byte[] {0xC3}); // ret
+                            ms.Write(new byte[] { 0x5A }); // pop rdx
+                            ms.Write(new byte[] { 0x58 }); // pop rax
+
+                            ms.Write(new byte[] { 0x48, 0x87, 0x0C, 0x24 }); // xchg [rsp], rcx
+                            ms.Write(new byte[] { 0xC3 });                   // ret
 
                             data = stream.ToArray();
                         }
@@ -1651,16 +1575,9 @@
         /// <param name="target">The target.</param>
         /// <param name="include1">The include1.</param>
         /// <param name="include2">The include2.</param>
-        internal override void BuildHook(IntPtr hookSourceBase,
-            int hookReplaceLength,
-            IntPtr hookIncludeBase,
-            int hookIncludeLength,
-            bool isLongJump,
-            ref IntPtr target,
-            ref IntPtr include1,
-            ref IntPtr include2)
+        internal override void BuildHook(IntPtr hookSourceBase, int hookReplaceLength, IntPtr hookIncludeBase, int hookIncludeLength, bool isLongJump, ref IntPtr target, ref IntPtr include1, ref IntPtr include2)
         {
-            if (isLongJump)
+            if ( isLongJump )
             {
                 target = this.GetFarHookAddress(hookSourceBase);
             }
@@ -1669,8 +1586,7 @@
                 target = this.GetNearHookAddress(hookSourceBase);
             }
 
-            include1 = this.Include(hookIncludeLength > 0 ? Memory.ReadBytes(hookIncludeBase, hookIncludeLength) : null,
-                hookIncludeBase, this._Address_PostInclude);
+            include1 = this.Include(hookIncludeLength > 0 ? Memory.ReadBytes(hookIncludeBase, hookIncludeLength) : null, hookIncludeBase, this._Address_PostInclude);
             include2 = this._Address_PostInclude2;
         }
 
@@ -1683,9 +1599,9 @@
         /// <returns></returns>
         private static bool CompareBytes(byte[] data, byte[] pattern, int index)
         {
-            for (var i = 0; i < pattern.Length; i++, index++)
+            for ( var i = 0; i < pattern.Length; i++, index++ )
             {
-                if (pattern[i] != data[index])
+                if ( pattern[i] != data[index] )
                 {
                     return false;
                 }
@@ -1713,69 +1629,70 @@
         /// </exception>
         private IntPtr GetNearHookAddress(IntPtr hookAddress)
         {
-            if (!Main.Is64Bit)
+            if ( !Main.Is64Bit )
             {
                 return this.GetFarHookAddress(hookAddress);
             }
 
             var ls = this._Address_NearJumpSetup;
-            for (var i = 0; i < ls.Count; i++)
+
+            for ( var i = 0; i < ls.Count; i++ )
             {
                 var section = ls[i];
-                if (section.Contains(hookAddress))
+
+                if ( section.Contains(hookAddress) )
                 {
                     return section.Target;
                 }
             }
 
             ModuleNearJumpHook info = null;
-            using (var alloc = Memory.Allocate(0x30))
+
+            using ( var alloc = Memory.Allocate(0x30) )
             {
                 var result = GetMemoryInfo(hookAddress, alloc.Address, alloc.Address + 0x10, alloc.Address + 0x20);
-                if (result == 1)
+
+                if ( result == 1 )
                 {
                     throw new MemoryAccessException(hookAddress);
                 }
 
-                if (result == 2)
+                if ( result == 2 )
                 {
                     throw new InvalidOperationException("Not a valid code page!");
                 }
 
-                if (result == 3)
+                if ( result == 3 )
                 {
                     throw new InvalidOperationException("Not a valid module!");
                 }
 
-                if (result == -1)
+                if ( result == -1 )
                 {
                     throw new InvalidOperationException("Code section was not found!");
                 }
 
-                if (result != 0)
+                if ( result != 0 )
                 {
                     throw new InvalidOperationException("Unhandled error occurred (" + result + ")!");
                 }
 
-                info = new ModuleNearJumpHook(Memory.ReadPointer(alloc.Address + 0x20),
-                    Memory.ReadPointer(alloc.Address), Memory.ReadPointer(alloc.Address + 0x10));
+                info = new ModuleNearJumpHook(Memory.ReadPointer(alloc.Address + 0x20), Memory.ReadPointer(alloc.Address), Memory.ReadPointer(alloc.Address + 0x10));
             }
 
-            var begin = info.BeginAddress.ToUInt64();
-            var end = info.EndAddress.ToUInt64();
-            var ptr = begin;
-            var pattern = new byte[14]
-            {
-                0xC3, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC
-            };
-            var found = IntPtr.Zero;
-            var stop = false;
+            var begin   = info.BeginAddress.ToUInt64();
+            var end     = info.EndAddress.ToUInt64();
+            var ptr     = begin;
+            var pattern = new byte[14] { 0xC3, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC };
+            var found   = IntPtr.Zero;
+            var stop    = false;
 
-            while (ptr < end && !stop)
+            while ( ptr < end && !stop )
             {
-                var size = end - ptr;
+                var size    = end  - ptr;
                 var maxSize = 4000 + (ulong)pattern.Length;
-                if (size > maxSize)
+
+                if ( size > maxSize )
                 {
                     size = maxSize;
                 }
@@ -1784,27 +1701,28 @@
                     stop = true;
                 }
 
-                var addr = new IntPtr(unchecked((long)ptr));
+                var addr  = new IntPtr(unchecked((long)ptr));
                 var chunk = Memory.ReadBytes(addr, (int)size);
 
                 var highIndex = chunk.Length - pattern.Length;
-                for (var i = 0; i < highIndex; i++)
+
+                for ( var i = 0; i < highIndex; i++ )
                 {
-                    if (CompareBytes(chunk, pattern, i))
+                    if ( CompareBytes(chunk, pattern, i) )
                     {
                         found = addr + i;
-                        stop = true;
+                        stop  = true;
                         break;
                     }
                 }
 
-                if (!stop)
+                if ( !stop )
                 {
                     ptr += maxSize - (ulong)pattern.Length;
                 }
             }
 
-            if (found == IntPtr.Zero)
+            if ( found == IntPtr.Zero )
             {
                 throw new InvalidOperationException("Didn't find a code cave for near jump setup!");
             }
@@ -1813,32 +1731,31 @@
             found = found + 1;
 
             // Bad.
-            if (this._Address_EnterHook == IntPtr.Zero)
+            if ( this._Address_EnterHook == IntPtr.Zero )
             {
-                throw new InvalidOperationException(
-                    "Trying to get hook target without setting up the hook entry point!");
+                throw new InvalidOperationException("Trying to get hook target without setting up the hook entry point!");
             }
 
             // Set up preparation code.
             {
                 byte[] data = null;
-                using (var stream = new MemoryStream())
+
+                using ( var stream = new MemoryStream() )
                 {
-                    using (var ms = new BinaryWriter(stream))
+                    using ( var ms = new BinaryWriter(stream) )
                     {
-                        ms.Write(new byte[] {0x51}); // push rcx
-                        ms.Write(new byte[] {0x48, 0xB9});
+                        ms.Write(new byte[] { 0x51 }); // push rcx
+                        ms.Write(new byte[] { 0x48, 0xB9 });
                         ms.Write(this._Address_EnterHook.ToInt64()); // mov rcx, EnterHook
-                        ms.Write(new byte[] {0xFF, 0xE1}); // jmp rcx
+                        ms.Write(new byte[] { 0xFF, 0xE1 });         // jmp rcx
 
                         data = stream.ToArray();
                     }
                 }
 
-                if (data.Length > pattern.Length - 1)
+                if ( data.Length > pattern.Length - 1 )
                 {
-                    throw new InvalidOperationException(
-                        "Failed to write near jump code! Not enough memory in specified code cave.");
+                    throw new InvalidOperationException("Failed to write near jump code! Not enough memory in specified code cave.");
                 }
 
                 Memory.WriteBytes(found, data, true);
@@ -1857,29 +1774,28 @@
         private IntPtr GetFarHookAddress(IntPtr hookAddress)
         {
             // Bad.
-            if (this._Address_EnterHook == IntPtr.Zero)
+            if ( this._Address_EnterHook == IntPtr.Zero )
             {
-                throw new InvalidOperationException(
-                    "Trying to get hook target without setting up the hook entry point!");
+                throw new InvalidOperationException("Trying to get hook target without setting up the hook entry point!");
             }
 
             // Must setup.
-            if (this._Address_FarJumpSetup == IntPtr.Zero)
+            if ( this._Address_FarJumpSetup == IntPtr.Zero )
             {
                 byte[] data = null;
 
-                if (Main.Is64Bit)
+                if ( Main.Is64Bit )
                 {
-                    using (var stream = new MemoryStream())
+                    using ( var stream = new MemoryStream() )
                     {
-                        using (var ms = new BinaryWriter(stream))
+                        using ( var ms = new BinaryWriter(stream) )
                         {
-                            ms.Write(new byte[] {0x59}); // pop rcx
-                            ms.Write(new byte[] {0x48, 0x87, 0x0C, 0x24}); // xchg [rsp], rcx
-                            ms.Write(new byte[] {0x51}); // push rcx
-                            ms.Write(new byte[] {0x48, 0xB9});
+                            ms.Write(new byte[] { 0x59 });                   // pop rcx
+                            ms.Write(new byte[] { 0x48, 0x87, 0x0C, 0x24 }); // xchg [rsp], rcx
+                            ms.Write(new byte[] { 0x51 });                   // push rcx
+                            ms.Write(new byte[] { 0x48, 0xB9 });
                             ms.Write(this._Address_EnterHook.ToInt64()); // mov rcx, EnterHook
-                            ms.Write(new byte[] {0xFF, 0xE1}); // jmp rcx
+                            ms.Write(new byte[] { 0xFF, 0xE1 });         // jmp rcx
 
                             data = stream.ToArray();
                         }

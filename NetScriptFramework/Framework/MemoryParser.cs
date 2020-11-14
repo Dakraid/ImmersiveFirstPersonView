@@ -34,16 +34,18 @@
         /// <exception cref="System.ArgumentNullException">formula</exception>
         public MemoryParser(string formula)
         {
-            if (formula == null)
+            if ( formula == null )
             {
                 throw new ArgumentNullException("formula");
             }
 
             var modules = Process.GetCurrentProcess().Modules;
-            foreach (ProcessModule m in modules)
+
+            foreach ( ProcessModule m in modules )
             {
                 var n = m.ModuleName;
-                if (!string.IsNullOrEmpty(n))
+
+                if ( !string.IsNullOrEmpty(n) )
                 {
                     this.Modules.Add(new KeyValuePair<string, IntPtr>(n, m.BaseAddress));
                 }
@@ -60,21 +62,19 @@
         /// </summary>
         private void Build()
         {
-            var b = this.Root;
+            var b     = this.Root;
             var input = this.Formula;
 
             input = input.Replace(" ", "").ToLowerInvariant();
 
-            while (this.Parse(ref b, ref input))
-            {
-            }
+            while ( this.Parse(ref b, ref input) ) { }
 
-            if (!string.IsNullOrEmpty(input))
+            if ( !string.IsNullOrEmpty(input) )
             {
                 throw new InvalidOperationException();
             }
 
-            if (b != this.Root)
+            if ( b != this.Root )
             {
                 throw new FormatException("Expected ']' or ')'!");
             }
@@ -91,12 +91,13 @@
         public IntPtr? Evaluate(CPURegisters cpu)
         {
             var stack = new List<IntPtr>(4);
-            if (!this.Root.Process(cpu, null, stack))
+
+            if ( !this.Root.Process(cpu, null, stack) )
             {
                 return null;
             }
 
-            if (stack.Count != 1)
+            if ( stack.Count != 1 )
             {
                 throw new ArgumentException("this.Formula");
             }
@@ -119,12 +120,12 @@
         /// </exception>
         private bool Parse(ref StatementBlock parent, ref string input)
         {
-            if (string.IsNullOrEmpty(input))
+            if ( string.IsNullOrEmpty(input) )
             {
                 return false;
             }
 
-            if (input[0] == '[')
+            if ( input[0] == '[' )
             {
                 var sb = new StatementRead();
                 sb.Parent = parent;
@@ -135,9 +136,9 @@
                 return true;
             }
 
-            if (input[0] == ']')
+            if ( input[0] == ']' )
             {
-                if (parent == this.Root || !(parent is StatementRead))
+                if ( parent == this.Root || !(parent is StatementRead) )
                 {
                     throw new FormatException("Unexpected ']'!");
                 }
@@ -149,7 +150,7 @@
                 return true;
             }
 
-            if (input[0] == '(')
+            if ( input[0] == '(' )
             {
                 var sb = new StatementGroup();
                 sb.Parent = parent;
@@ -160,9 +161,9 @@
                 return true;
             }
 
-            if (input[0] == ')')
+            if ( input[0] == ')' )
             {
-                if (parent == this.Root || !(parent is StatementGroup))
+                if ( parent == this.Root || !(parent is StatementGroup) )
                 {
                     throw new FormatException("Unexpected ')'!");
                 }
@@ -174,9 +175,10 @@
                 return true;
             }
 
-            var len = 0;
+            var       len     = 0;
             Statement created = StatementOperator.Create(input, ref len);
-            if (created != null)
+
+            if ( created != null )
             {
                 input = input.Substring(len);
                 parent.Statements.Add(created);
@@ -184,7 +186,8 @@
             }
 
             created = StatementRegister.Create(input, ref len);
-            if (created != null)
+
+            if ( created != null )
             {
                 input = input.Substring(len);
                 parent.Statements.Add(created);
@@ -192,7 +195,8 @@
             }
 
             created = StatementModule.Create(this.Modules, input, ref len);
-            if (created != null)
+
+            if ( created != null )
             {
                 input = input.Substring(len);
                 parent.Statements.Add(created);
@@ -200,7 +204,8 @@
             }
 
             created = StatementConstant.Create(input, ref len);
-            if (created != null)
+
+            if ( created != null )
             {
                 input = input.Substring(len);
                 parent.Statements.Add(created);
@@ -219,12 +224,13 @@
         private static IntPtr Op(IntPtr ptr, Func<ulong, ulong> func)
         {
             var u = Main.Is64Bit ? ptr.ToUInt64() : ptr.ToUInt32();
-            if (func != null)
+
+            if ( func != null )
             {
                 u = func(u);
             }
 
-            if (!Main.Is64Bit)
+            if ( !Main.Is64Bit )
             {
                 var ux = (uint)(u & 0xFFFFFFFF);
                 return new IntPtr(unchecked((int)ux));
@@ -278,39 +284,39 @@
             {
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rax", q => q.AX),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("eax", q => Op(q.AX, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("ax", q => Op(q.AX, u => u & 0xFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("al", q => Op(q.AX, u => u & 0xFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("ax", q => Op(q.AX, u => u  & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("al", q => Op(q.AX, u => u  & 0xFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rbx", q => q.BX),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("ebx", q => Op(q.BX, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("bx", q => Op(q.BX, u => u & 0xFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("bl", q => Op(q.BX, u => u & 0xFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("bx", q => Op(q.BX, u => u  & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("bl", q => Op(q.BX, u => u  & 0xFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rcx", q => q.CX),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("ecx", q => Op(q.CX, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("cx", q => Op(q.CX, u => u & 0xFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("cl", q => Op(q.CX, u => u & 0xFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("cx", q => Op(q.CX, u => u  & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("cl", q => Op(q.CX, u => u  & 0xFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rdx", q => q.DX),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("edx", q => Op(q.DX, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("dx", q => Op(q.DX, u => u & 0xFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("dl", q => Op(q.DX, u => u & 0xFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("dx", q => Op(q.DX, u => u  & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("dl", q => Op(q.DX, u => u  & 0xFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rbp", q => q.BP),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("ebp", q => Op(q.BP, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("bp", q => Op(q.BP, u => u & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("bp", q => Op(q.BP, u => u  & 0xFFFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("bpl", q => Op(q.BP, u => u & 0xFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rsp", q => q.SP),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("esp", q => Op(q.SP, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("sp", q => Op(q.SP, u => u & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("sp", q => Op(q.SP, u => u  & 0xFFFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("spl", q => Op(q.SP, u => u & 0xFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rsi", q => q.SI),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("esi", q => Op(q.SI, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("si", q => Op(q.SI, u => u & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("si", q => Op(q.SI, u => u  & 0xFFFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("sil", q => Op(q.SI, u => u & 0xFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rdi", q => q.DI),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("edi", q => Op(q.DI, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("di", q => Op(q.DI, u => u & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("di", q => Op(q.DI, u => u  & 0xFFFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("dil", q => Op(q.DI, u => u & 0xFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("rip", q => q.IP),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("eip", q => Op(q.IP, u => u & 0xFFFFFFFF)),
-                new Tuple<string, Func<CPURegisters, IntPtr>>("ip", q => Op(q.IP, u => u & 0xFFFF)),
+                new Tuple<string, Func<CPURegisters, IntPtr>>("ip", q => Op(q.IP, u => u  & 0xFFFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("ipl", q => Op(q.IP, u => u & 0xFF)),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("r8", q => q.R8),
                 new Tuple<string, Func<CPURegisters, IntPtr>>("r8d", q => Op(q.R8, u => u & 0xFFFFFFFF)),
@@ -390,13 +396,14 @@
             /// <returns></returns>
             internal static StatementRegister Create(string input, ref int length)
             {
-                for (var i = 0; i < Registers.Length; i++)
+                for ( var i = 0; i < Registers.Length; i++ )
                 {
                     var t = Registers[i];
-                    if (input.StartsWith(t.Item1))
+
+                    if ( input.StartsWith(t.Item1) )
                     {
                         length = t.Item1.Length;
-                        return new StatementRegister {Func = t.Item2};
+                        return new StatementRegister { Func = t.Item2 };
                     }
                 }
 
@@ -464,10 +471,12 @@
                 this.ImplementOperators();
 
                 var stackAmount = this.Consumes;
-                for (var i = 0; i < this.Statements.Count; i++)
+
+                for ( var i = 0; i < this.Statements.Count; i++ )
                 {
                     var s = this.Statements[i];
-                    if (s.Consumes > stackAmount)
+
+                    if ( s.Consumes > stackAmount )
                     {
                         throw new FormatException("Trying to consume value that is not present!");
                     }
@@ -476,17 +485,17 @@
                     stackAmount += s.Produces;
                 }
 
-                if (stackAmount != this.Produces)
+                if ( stackAmount != this.Produces )
                 {
                     throw new FormatException("Producing too many values to parse!");
                 }
 
-                if (this.Statements.Count != 1)
+                if ( this.Statements.Count != 1 )
                 {
                     throw new InvalidOperationException();
                 }
 
-                this.One = this.Statements[0];
+                this.One        = this.Statements[0];
                 this.Statements = null;
             }
 
@@ -495,36 +504,38 @@
             /// </summary>
             private void ImplementOperators()
             {
-                while (true)
+                while ( true )
                 {
-                    var bestPriority = int.MinValue;
-                    var bestIndex = -1;
-                    StatementOperator best = null;
+                    var               bestPriority = int.MinValue;
+                    var               bestIndex    = -1;
+                    StatementOperator best         = null;
 
-                    for (var i = 0; i < this.Statements.Count; i++)
+                    for ( var i = 0; i < this.Statements.Count; i++ )
                     {
                         var s = this.Statements[i];
-                        if (!(s is StatementOperator))
+
+                        if ( !(s is StatementOperator) )
                         {
                             continue;
                         }
 
                         var ops = (StatementOperator)s;
-                        var p = ops.Priority;
-                        if (p > bestPriority)
+                        var p   = ops.Priority;
+
+                        if ( p > bestPriority )
                         {
                             bestPriority = p;
-                            bestIndex = i;
-                            best = ops;
+                            bestIndex    = i;
+                            best         = ops;
                         }
                     }
 
-                    if (best == null)
+                    if ( best == null )
                     {
                         break;
                     }
 
-                    if (bestIndex == 0 || bestIndex == this.Statements.Count - 1)
+                    if ( bestIndex == 0 || bestIndex == this.Statements.Count - 1 )
                     {
                         throw new FormatException("Found operator without an operand!");
                     }
@@ -533,7 +544,7 @@
                     var operand2 = this.Statements[bestIndex + 1];
                     this.Statements.RemoveRange(bestIndex - 1, 3);
 
-                    var impl = new StatementOperatorImpl {Operand1 = operand1, Operand2 = operand2, Operator = best};
+                    var impl = new StatementOperatorImpl { Operand1 = operand1, Operand2 = operand2, Operator = best };
                     this.Statements.Insert(bestIndex - 1, impl);
                 }
             }
@@ -546,17 +557,14 @@
             /// <param name="parent">The parent.</param>
             /// <param name="stack">The stack.</param>
             /// <returns></returns>
-            internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack) =>
-                this.One.Process(cpu, this, stack);
+            internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack) => this.One.Process(cpu, this, stack);
         }
 
         /// <summary>
         ///     Statement group (parenthesis).
         /// </summary>
         /// <seealso cref="NetScriptFramework.MemoryParser.StatementBlock" />
-        private sealed class StatementGroup : StatementBlock
-        {
-        }
+        private sealed class StatementGroup : StatementBlock { }
 
         /// <summary>
         ///     Tries to read the value at statement.
@@ -574,13 +582,14 @@
             /// <returns></returns>
             internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack)
             {
-                if (!base.Process(cpu, parent, stack))
+                if ( !base.Process(cpu, parent, stack) )
                 {
                     return false;
                 }
 
                 var ch = stack[stack.Count - 1];
-                if (!Memory.TryReadPointer(ch, ref ch))
+
+                if ( !Memory.TryReadPointer(ch, ref ch) )
                 {
                     return false;
                 }
@@ -601,18 +610,16 @@
             /// </summary>
             private static readonly Tuple<string, int, Func<IntPtr, ulong, IntPtr>>[] Operators =
             {
-                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("+", 1, (op1, op2) => Op(op1, u => u + op2)),
-                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("-", 1, (op1, op2) => Op(op1, u => u - op2)),
-                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("*", 5, (op1, op2) => Op(op1, u => u * op2)),
-                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("/", 5, (op1, op2) => Op(op1, u => u / op2)),
-                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>(">>", 10,
-                    (op1, op2) => Op(op1, u => u >> (int)op2)),
-                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("<<", 10,
-                    (op1, op2) => Op(op1, u => u << (int)op2))
+                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("+", 1, (op1,   op2) => Op(op1, u => u + op2)),
+                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("-", 1, (op1,   op2) => Op(op1, u => u - op2)),
+                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("*", 5, (op1,   op2) => Op(op1, u => u * op2)),
+                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("/", 5, (op1,   op2) => Op(op1, u => u / op2)),
+                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>(">>", 10, (op1, op2) => Op(op1, u => u >> (int)op2)),
+                new Tuple<string, int, Func<IntPtr, ulong, IntPtr>>("<<", 10, (op1, op2) => Op(op1, u => u << (int)op2))
             };
 
             internal Func<IntPtr, ulong, IntPtr> Func;
-            internal int Priority;
+            internal int                         Priority;
 
             /// <summary>
             ///     Gets the amount of stack consumed.
@@ -641,8 +648,7 @@
             /// <param name="stack">The stack.</param>
             /// <returns></returns>
             /// <exception cref="System.InvalidOperationException"></exception>
-            internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack) =>
-                throw new InvalidOperationException();
+            internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack) => throw new InvalidOperationException();
 
             /// <summary>
             ///     Creates the operator from specified input. Returns null if couldn't parse.
@@ -652,16 +658,17 @@
             /// <returns></returns>
             internal static StatementOperator Create(string input, ref int length)
             {
-                for (var i = 0; i < Operators.Length; i++)
+                for ( var i = 0; i < Operators.Length; i++ )
                 {
                     var t = Operators[i];
-                    if (!input.StartsWith(t.Item1))
+
+                    if ( !input.StartsWith(t.Item1) )
                     {
                         continue;
                     }
 
                     length = t.Item1.Length;
-                    return new StatementOperator {Priority = t.Item2, Func = t.Item3};
+                    return new StatementOperator { Priority = t.Item2, Func = t.Item3 };
                 }
 
                 return null;
@@ -674,8 +681,8 @@
         /// <seealso cref="NetScriptFramework.MemoryParser.Statement" />
         private sealed class StatementOperatorImpl : Statement
         {
-            internal Statement Operand1;
-            internal Statement Operand2;
+            internal Statement         Operand1;
+            internal Statement         Operand2;
             internal StatementOperator Operator;
 
             /// <summary>
@@ -704,7 +711,7 @@
             /// <returns></returns>
             internal override bool Process(CPURegisters cpu, StatementBlock parent, List<IntPtr> stack)
             {
-                if (!this.Operand1.Process(cpu, parent, stack))
+                if ( !this.Operand1.Process(cpu, parent, stack) )
                 {
                     return false;
                 }
@@ -712,7 +719,7 @@
                 var op1 = stack[stack.Count - 1];
                 stack.RemoveAt(stack.Count - 1);
 
-                if (!this.Operand2.Process(cpu, parent, stack))
+                if ( !this.Operand2.Process(cpu, parent, stack) )
                 {
                     return false;
                 }
@@ -727,7 +734,6 @@
                 return true;
             }
         }
-
 
         /// <summary>
         ///     Constant value.
@@ -786,16 +792,19 @@
             {
                 var i = 0;
                 var j = 0;
-                if (input.StartsWith("0x"))
+
+                if ( input.StartsWith("0x") )
                 {
                     i = 2;
                 }
 
                 var bld = new StringBuilder(16);
-                while (i < input.Length)
+
+                while ( i < input.Length )
                 {
                     var ch = input[i];
-                    if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f'))
+
+                    if ( (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') )
                     {
                         bld.Append(ch);
                         i++;
@@ -806,22 +815,24 @@
                     break;
                 }
 
-                if (j == 0)
+                if ( j == 0 )
                 {
                     return null;
                 }
 
                 ulong u = 0;
-                if (!ulong.TryParse(bld.ToString(), NumberStyles.HexNumber, null, out u))
+
+                if ( !ulong.TryParse(bld.ToString(), NumberStyles.HexNumber, null, out u) )
                 {
                     return null;
                 }
 
                 IntPtr val;
-                if (Main.Is64Bit) { val = new IntPtr(unchecked((long)u)); }
+
+                if ( Main.Is64Bit ) { val = new IntPtr(unchecked((long)u)); }
                 else
                 {
-                    if ((u & 0xFFFFFFFF) != u)
+                    if ( (u & 0xFFFFFFFF) != u )
                     {
                         throw new FormatException(u.ToString("X") + " does not fit into a 32 bit pointer!");
                     }
@@ -831,7 +842,7 @@
                 }
 
                 length = i;
-                return new StatementConstant {Value = val};
+                return new StatementConstant { Value = val };
             }
         }
 
@@ -891,15 +902,15 @@
             /// <exception cref="System.FormatException"></exception>
             internal static StatementModule Create(List<KeyValuePair<string, IntPtr>> ls, string input, ref int length)
             {
-                for (var i = 0; i < ls.Count; i++)
+                for ( var i = 0; i < ls.Count; i++ )
                 {
-                    if (!input.StartsWith(ls[i].Key, StringComparison.OrdinalIgnoreCase))
+                    if ( !input.StartsWith(ls[i].Key, StringComparison.OrdinalIgnoreCase) )
                     {
                         continue;
                     }
 
                     length = ls[i].Key.Length;
-                    return new StatementModule {Value = ls[i].Value};
+                    return new StatementModule { Value = ls[i].Value };
                 }
 
                 return null;

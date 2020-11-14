@@ -54,8 +54,7 @@
         /// <summary>
         ///     The type instance info map.
         /// </summary>
-        private readonly Dictionary<uint, List<GameTypeInstanceInfo>> tiiMap =
-            new Dictionary<uint, List<GameTypeInstanceInfo>>();
+        private readonly Dictionary<uint, List<GameTypeInstanceInfo>> tiiMap = new Dictionary<uint, List<GameTypeInstanceInfo>>();
 
         /// <summary>
         ///     The types.
@@ -115,7 +114,7 @@
         internal GameInfo(ulong baseOffset, bool is64Bit)
         {
             this.BaseOffset = baseOffset;
-            this.Is64Bit = is64Bit;
+            this.Is64Bit    = is64Bit;
         }
 
         /// <summary>
@@ -164,9 +163,9 @@
         /// <param name="targetFileInfo">The target file information.</param>
         public void DumpVids(FileInfo targetFileInfo)
         {
-            using (var sw = targetFileInfo.CreateText())
+            using ( var sw = targetFileInfo.CreateText() )
             {
-                foreach (var x in this.vidAddrMap)
+                foreach ( var x in this.vidAddrMap )
                 {
                     sw.Write(x.Key);
                     sw.Write("\t0x");
@@ -183,10 +182,11 @@
         /// <returns></returns>
         public GameFunctionInfo GetFunctionInfo(ulong id)
         {
-            if (id != 0)
+            if ( id != 0 )
             {
                 GameFunctionInfo fi = null;
-                if (this.vidFnMap.TryGetValue(id, out fi))
+
+                if ( this.vidFnMap.TryGetValue(id, out fi) )
                 {
                     return fi;
                 }
@@ -202,10 +202,11 @@
         /// <returns></returns>
         public GameGlobalInfo GetGlobalInfo(ulong id)
         {
-            if (id != 0)
+            if ( id != 0 )
             {
                 GameGlobalInfo fi = null;
-                if (this.vidGbMap.TryGetValue(id, out fi))
+
+                if ( this.vidGbMap.TryGetValue(id, out fi) )
                 {
                     return fi;
                 }
@@ -221,10 +222,11 @@
         /// <returns></returns>
         public GameTypeInfo GetTypeInfo(ulong id)
         {
-            if (id != 0)
+            if ( id != 0 )
             {
                 GameTypeInfo ti = null;
-                if (this.uqTpMap.TryGetValue(id, out ti))
+
+                if ( this.uqTpMap.TryGetValue(id, out ti) )
                 {
                     return ti;
                 }
@@ -240,10 +242,11 @@
         /// <returns></returns>
         public IReadOnlyList<GameTypeInstanceInfo> GetTypeInstanceInfos(uint id)
         {
-            if (id != 0)
+            if ( id != 0 )
             {
                 List<GameTypeInstanceInfo> ls = null;
-                if (this.tiiMap.TryGetValue(id, out ls))
+
+                if ( this.tiiMap.TryGetValue(id, out ls) )
                 {
                     return ls;
                 }
@@ -258,9 +261,9 @@
         /// <param name="dt">The type info.</param>
         internal void AddTypeInfo(GameTypeInfo dt)
         {
-            if (dt.Id != 0)
+            if ( dt.Id != 0 )
             {
-                if (this.uqTpMap.ContainsKey(dt.Id))
+                if ( this.uqTpMap.ContainsKey(dt.Id) )
                 {
                     throw new ArgumentException("A type with this unique identifier (" + dt.Id + ") is already added!");
                 }
@@ -268,9 +271,9 @@
                 this.uqTpMap[dt.Id] = dt;
             }
 
-            if (dt.VTable != 0)
+            if ( dt.VTable != 0 )
             {
-                if (!this.vtTpMap.ContainsKey(dt.VTable))
+                if ( !this.vtTpMap.ContainsKey(dt.VTable) )
                 {
                     this.vtTpMap[dt.VTable] = dt;
                 }
@@ -285,16 +288,15 @@
         /// <param name="fi">The function info.</param>
         internal void AddFunctionInfo(GameFunctionInfo fi)
         {
-            if (fi.Id != 0)
+            if ( fi.Id != 0 )
             {
-                if (this.vidAddrMap.ContainsKey(fi.Id))
+                if ( this.vidAddrMap.ContainsKey(fi.Id) )
                 {
-                    throw new ArgumentException("An object with specified version independent identifier (" + fi.Id +
-                                                ") was already registered!");
+                    throw new ArgumentException("An object with specified version independent identifier (" + fi.Id + ") was already registered!");
                 }
 
                 this.vidAddrMap[fi.Id] = fi.Begin;
-                this.vidFnMap[fi.Id] = fi;
+                this.vidFnMap[fi.Id]   = fi;
             }
 
             this.functionsList.Add(fi);
@@ -306,16 +308,15 @@
         /// <param name="gb">The global info.</param>
         internal void AddGlobalInfo(GameGlobalInfo gb)
         {
-            if (gb.Id != 0)
+            if ( gb.Id != 0 )
             {
-                if (this.vidAddrMap.ContainsKey(gb.Id))
+                if ( this.vidAddrMap.ContainsKey(gb.Id) )
                 {
-                    throw new ArgumentException("An object with specified version independent identifier (" + gb.Id +
-                                                ") was already registered!");
+                    throw new ArgumentException("An object with specified version independent identifier (" + gb.Id + ") was already registered!");
                 }
 
                 this.vidAddrMap[gb.Id] = gb.Begin;
-                this.vidGbMap[gb.Id] = gb;
+                this.vidGbMap[gb.Id]   = gb;
             }
 
             this.globalsList.Add(gb);
@@ -328,7 +329,7 @@
         /// <param name="ls">The list.</param>
         internal void AddTypeInstanceInfos(uint id, List<GameTypeInstanceInfo> ls)
         {
-            if (id != 0)
+            if ( id != 0 )
             {
                 this.tiiMap[id] = ls;
             }
@@ -344,22 +345,22 @@
         {
             this.Clear();
 
-            if (!file.Exists)
+            if ( !file.Exists )
             {
                 throw new FileNotFoundException(file.FullName);
             }
 
-            using (var stream = file.OpenRead())
+            using ( var stream = file.OpenRead() )
             {
-                using (var comp = new GZipStream(stream, CompressionMode.Decompress))
+                using ( var comp = new GZipStream(stream, CompressionMode.Decompress) )
                 {
-                    using (var reader = new BinaryReader(comp))
+                    using ( var reader = new BinaryReader(comp) )
                     {
                         this.ReadFromStream(reader, file, isLoadingAlias);
 
-                        if (isLoadingAlias == 0 && this.AliasFileVersion != null)
+                        if ( isLoadingAlias == 0 && this.AliasFileVersion != null )
                         {
-                            this.FileVersion = this.AliasFileVersion;
+                            this.FileVersion      = this.AliasFileVersion;
                             this.AliasFileVersion = null;
                         }
                     }
@@ -375,11 +376,11 @@
         {
             this.functionsList.Sort((u, v) => u.Begin.CompareTo(v.Begin));
 
-            using (var stream = file.Create())
+            using ( var stream = file.Create() )
             {
-                using (var comp = new GZipStream(stream, CompressionMode.Compress))
+                using ( var comp = new GZipStream(stream, CompressionMode.Compress) )
                 {
-                    using (var writer = new BinaryWriter(comp))
+                    using ( var writer = new BinaryWriter(comp) )
                     {
                         this.WriteToStream(writer);
                     }
@@ -415,34 +416,35 @@
         private void ReadFromStream(BinaryReader stream, FileInfo info, int isLoadingAlias)
         {
             var version = stream.ReadInt32();
-            if (version < 2 || version > StreamVersion)
+
+            if ( version < 2 || version > StreamVersion )
             {
                 throw new InvalidDataException("Version of library is not supported!");
             }
 
             this.LibraryVersion = stream.ReadInt32();
-            this.FileVersion = new int[4];
-            for (var i = 0; i < 4; i++)
+            this.FileVersion    = new int[4];
+
+            for ( var i = 0; i < 4; i++ )
             {
                 this.FileVersion[i] = stream.ReadInt32();
             }
 
-            if (stream.ReadByte() != 0)
+            if ( stream.ReadByte() != 0 )
             {
-                if (isLoadingAlias >= 10)
+                if ( isLoadingAlias >= 10 )
                 {
-                    throw new ArgumentException(
-                        "Version library failed to load because alias loading depth was exceeded (" + isLoadingAlias +
-                        ")! This could indicate infinite alias file recursion.");
+                    throw new ArgumentException("Version library failed to load because alias loading depth was exceeded (" + isLoadingAlias + ")! This could indicate infinite alias file recursion.");
                 }
 
                 var alias = new int[4];
-                for (var i = 0; i < 4; i++)
+
+                for ( var i = 0; i < 4; i++ )
                 {
                     alias[i] = stream.ReadInt32();
                 }
 
-                if (isLoadingAlias == 0)
+                if ( isLoadingAlias == 0 )
                 {
                     this.AliasFileVersion = this.FileVersion;
                 }
@@ -451,16 +453,16 @@
                 var newPart = string.Join("_", alias);
 
                 int replaceIndex;
-                if ((replaceIndex = info.FullName.LastIndexOf(oldPart)) < 0)
+
+                if ( (replaceIndex = info.FullName.LastIndexOf(oldPart)) < 0 )
                 {
-                    throw new ArgumentException(
-                        "Unable to solve library file alias because old file name did not contain `" + oldPart + "`!");
+                    throw new ArgumentException("Unable to solve library file alias because old file name did not contain `" + oldPart + "`!");
                 }
 
                 var newName = info.FullName.Remove(replaceIndex, oldPart.Length);
                 newName = newName.Insert(replaceIndex, newPart);
 
-                if (newName == info.FullName)
+                if ( newName == info.FullName )
                 {
                     throw new ArgumentException("Unable to load library due to alias pointing to same file!");
                 }
@@ -471,11 +473,12 @@
             }
 
             this.LibraryBaseOffset = stream.ReadUInt64();
-            this.HashVersion = stream.ReadUInt64();
+            this.HashVersion       = stream.ReadUInt64();
 
             {
                 var count = stream.ReadInt32();
-                for (var i = 0; i < count; i++)
+
+                for ( var i = 0; i < count; i++ )
                 {
                     var dt = new GameTypeInfo();
                     dt.ReadFromStream(stream, version);
@@ -485,7 +488,8 @@
 
             {
                 var count = stream.ReadInt32();
-                for (var i = 0; i < count; i++)
+
+                for ( var i = 0; i < count; i++ )
                 {
                     var fi = new GameFunctionInfo();
                     fi.ReadFromStream(stream, version);
@@ -495,7 +499,8 @@
 
             {
                 var count = stream.ReadInt32();
-                for (var i = 0; i < count; i++)
+
+                for ( var i = 0; i < count; i++ )
                 {
                     var fi = new GameGlobalInfo();
                     fi.ReadFromStream(stream, version);
@@ -505,7 +510,8 @@
 
             {
                 var count = stream.ReadInt32();
-                for (var i = 0; i < count; i++)
+
+                for ( var i = 0; i < count; i++ )
                 {
                     var ri = new GameTypeRegistration();
                     ri.ReadFromStream(stream, version);
@@ -515,14 +521,16 @@
 
             {
                 var count = stream.ReadInt32();
-                for (var i = 0; i < count; i++)
+
+                for ( var i = 0; i < count; i++ )
                 {
-                    int lcount;
+                    int  lcount;
                     uint lid;
+
                     {
                         var ltype = stream.ReadByte();
 
-                        if ((ltype & 1) == 0)
+                        if ( (ltype & 1) == 0 )
                         {
                             lcount = stream.ReadByte();
                         }
@@ -531,11 +539,11 @@
                             lcount = stream.ReadInt32();
                         }
 
-                        if ((ltype & 2) != 0)
+                        if ( (ltype & 2) != 0 )
                         {
                             lid = stream.ReadUInt16();
                         }
-                        else if ((ltype & 4) != 0)
+                        else if ( (ltype & 4) != 0 )
                         {
                             lid = stream.ReadByte();
                         }
@@ -546,20 +554,22 @@
                     }
 
                     var ls = new List<GameTypeInstanceInfo>(Math.Max(0, Math.Min(lcount, 64)));
-                    for (var j = 0; j < lcount; j++)
+
+                    for ( var j = 0; j < lcount; j++ )
                     {
-                        int? begin = null;
-                        int? end = null;
-                        ulong id = 0;
+                        int?  begin = null;
+                        int?  end   = null;
+                        ulong id    = 0;
 
                         var jtype = stream.ReadByte();
-                        if ((jtype & 1) != 0)
+
+                        if ( (jtype & 1) != 0 )
                         {
-                            if ((jtype & 2) != 0)
+                            if ( (jtype & 2) != 0 )
                             {
                                 begin = stream.ReadByte();
                             }
-                            else if ((jtype & 4) != 0)
+                            else if ( (jtype & 4) != 0 )
                             {
                                 begin = stream.ReadUInt16();
                             }
@@ -569,13 +579,13 @@
                             }
                         }
 
-                        if ((jtype & 8) != 0)
+                        if ( (jtype & 8) != 0 )
                         {
-                            if ((jtype & 0x10) != 0)
+                            if ( (jtype & 0x10) != 0 )
                             {
                                 end = stream.ReadByte();
                             }
-                            else if ((jtype & 0x20) != 0)
+                            else if ( (jtype & 0x20) != 0 )
                             {
                                 end = stream.ReadUInt16();
                             }
@@ -585,11 +595,11 @@
                             }
                         }
 
-                        if ((jtype & 0x40) != 0)
+                        if ( (jtype & 0x40) != 0 )
                         {
                             id = stream.ReadUInt16();
                         }
-                        else if ((jtype & 0x80) != 0)
+                        else if ( (jtype & 0x80) != 0 )
                         {
                             id = stream.ReadUInt32();
                         }
@@ -599,7 +609,7 @@
                         }
 
                         var inf = this.GetTypeInfo(id);
-                        var ti = new GameTypeInstanceInfo(begin, end, inf);
+                        var ti  = new GameTypeInstanceInfo(begin, end, inf);
                         ls.Add(ti);
                     }
 
@@ -609,14 +619,17 @@
 
             {
                 var count = stream.ReadInt32();
-                var did = 0;
-                while (did < count)
+                var did   = 0;
+
+                while ( did < count )
                 {
                     var nx = stream.ReadInt32();
-                    if (nx > 0)
+
+                    if ( nx > 0 )
                     {
                         did += nx;
-                        for (var i = 0; i < nx; i++)
+
+                        for ( var i = 0; i < nx; i++ )
                         {
                             var val = stream.ReadInt32();
                             this.cachedValues.Add(val);
@@ -624,9 +637,10 @@
                     }
                     else
                     {
-                        nx = -nx;
+                        nx  =  -nx;
                         did += nx;
-                        for (var i = 0; i < nx; i++)
+
+                        for ( var i = 0; i < nx; i++ )
                         {
                             this.cachedValues.Add(null);
                         }
@@ -645,15 +659,16 @@
 
             stream.Write(this.LibraryVersion);
 
-            for (var i = 0; i < 4; i++)
+            for ( var i = 0; i < 4; i++ )
             {
                 stream.Write(this.FileVersion[i]);
             }
 
-            if (this.AliasFileVersion != null)
+            if ( this.AliasFileVersion != null )
             {
                 stream.Write((byte)1);
-                for (var i = 0; i < 4; i++)
+
+                for ( var i = 0; i < 4; i++ )
                 {
                     stream.Write(this.AliasFileVersion[i]);
                 }
@@ -668,7 +683,8 @@
 
             {
                 stream.Write(this.typesList.Count);
-                foreach (var x in this.typesList)
+
+                foreach ( var x in this.typesList )
                 {
                     x.WriteToStream(stream);
                 }
@@ -676,7 +692,8 @@
 
             {
                 stream.Write(this.functionsList.Count);
-                foreach (var x in this.functionsList)
+
+                foreach ( var x in this.functionsList )
                 {
                     x.WriteToStream(stream);
                 }
@@ -684,7 +701,8 @@
 
             {
                 stream.Write(this.globalsList.Count);
-                foreach (var x in this.globalsList)
+
+                foreach ( var x in this.globalsList )
                 {
                     x.WriteToStream(stream);
                 }
@@ -692,7 +710,8 @@
 
             {
                 stream.Write(this.registrationList.Count);
-                foreach (var x in this.registrationList)
+
+                foreach ( var x in this.registrationList )
                 {
                     x.WriteToStream(stream);
                 }
@@ -700,31 +719,33 @@
 
             {
                 stream.Write(this.tiiMap.Count);
-                foreach (var pair in this.tiiMap)
+
+                foreach ( var pair in this.tiiMap )
                 {
                     {
-                        var lid = pair.Key;
-                        var ls = pair.Value;
+                        var lid    = pair.Key;
+                        var ls     = pair.Value;
                         var lcount = ls.Count;
 
                         byte ltype = 0;
-                        if (lcount < 0 || lcount > byte.MaxValue)
+
+                        if ( lcount < 0 || lcount > byte.MaxValue )
                         {
                             ltype |= 1;
                         }
 
-                        if (lid <= byte.MaxValue)
+                        if ( lid <= byte.MaxValue )
                         {
                             ltype |= 4;
                         }
-                        else if (lid <= ushort.MaxValue)
+                        else if ( lid <= ushort.MaxValue )
                         {
                             ltype |= 2;
                         }
 
                         stream.Write(ltype);
 
-                        if ((ltype & 1) == 0)
+                        if ( (ltype & 1) == 0 )
                         {
                             stream.Write((byte)lcount);
                         }
@@ -733,11 +754,11 @@
                             stream.Write(lcount);
                         }
 
-                        if ((ltype & 2) != 0)
+                        if ( (ltype & 2) != 0 )
                         {
                             stream.Write((ushort)lid);
                         }
-                        else if ((ltype & 4) != 0)
+                        else if ( (ltype & 4) != 0 )
                         {
                             stream.Write((byte)lid);
                         }
@@ -747,54 +768,58 @@
                         }
                     }
 
-                    foreach (var x in pair.Value)
+                    foreach ( var x in pair.Value )
                     {
                         byte jtype = 0;
-                        if (x.BeginOffset.HasValue)
+
+                        if ( x.BeginOffset.HasValue )
                         {
                             jtype |= 1;
-                            if (x.BeginOffset.Value >= 0 && x.BeginOffset.Value <= byte.MaxValue)
+
+                            if ( x.BeginOffset.Value >= 0 && x.BeginOffset.Value <= byte.MaxValue )
                             {
                                 jtype |= 2;
                             }
-                            else if (x.BeginOffset.Value >= 0 && x.BeginOffset.Value <= ushort.MaxValue)
+                            else if ( x.BeginOffset.Value >= 0 && x.BeginOffset.Value <= ushort.MaxValue )
                             {
                                 jtype |= 4;
                             }
                         }
 
-                        if (x.EndOffset.HasValue)
+                        if ( x.EndOffset.HasValue )
                         {
                             jtype |= 8;
-                            if (x.EndOffset.Value >= 0 && x.EndOffset.Value <= byte.MaxValue)
+
+                            if ( x.EndOffset.Value >= 0 && x.EndOffset.Value <= byte.MaxValue )
                             {
                                 jtype |= 0x10;
                             }
-                            else if (x.EndOffset.Value >= 0 && x.EndOffset.Value <= ushort.MaxValue)
+                            else if ( x.EndOffset.Value >= 0 && x.EndOffset.Value <= ushort.MaxValue )
                             {
                                 jtype |= 0x20;
                             }
                         }
 
                         var id = x.Info != null ? x.Info.Id : 0;
-                        if (id <= ushort.MaxValue)
+
+                        if ( id <= ushort.MaxValue )
                         {
                             jtype |= 0x40;
                         }
-                        else if (id <= uint.MaxValue)
+                        else if ( id <= uint.MaxValue )
                         {
                             jtype |= 0x80;
                         }
 
                         stream.Write(jtype);
 
-                        if ((jtype & 1) != 0)
+                        if ( (jtype & 1) != 0 )
                         {
-                            if ((jtype & 2) != 0)
+                            if ( (jtype & 2) != 0 )
                             {
                                 stream.Write((byte)x.BeginOffset.Value);
                             }
-                            else if ((jtype & 4) != 0)
+                            else if ( (jtype & 4) != 0 )
                             {
                                 stream.Write((ushort)x.BeginOffset.Value);
                             }
@@ -804,13 +829,13 @@
                             }
                         }
 
-                        if ((jtype & 8) != 0)
+                        if ( (jtype & 8) != 0 )
                         {
-                            if ((jtype & 0x10) != 0)
+                            if ( (jtype & 0x10) != 0 )
                             {
                                 stream.Write((byte)x.EndOffset.Value);
                             }
-                            else if ((jtype & 0x20) != 0)
+                            else if ( (jtype & 0x20) != 0 )
                             {
                                 stream.Write((ushort)x.EndOffset.Value);
                             }
@@ -820,11 +845,11 @@
                             }
                         }
 
-                        if ((jtype & 0x40) != 0)
+                        if ( (jtype & 0x40) != 0 )
                         {
                             stream.Write((ushort)id);
                         }
-                        else if ((jtype & 0x80) != 0)
+                        else if ( (jtype & 0x80) != 0 )
                         {
                             stream.Write((uint)id);
                         }
@@ -840,15 +865,18 @@
                 var cvt = this.cachedValues.Count;
                 stream.Write(cvt);
                 var lastWrite = 0;
-                while (lastWrite < cvt)
+
+                while ( lastWrite < cvt )
                 {
                     var cnt = 1;
-                    if (this.cachedValues[lastWrite].HasValue)
+
+                    if ( this.cachedValues[lastWrite].HasValue )
                     {
-                        for (var i = lastWrite + 1; i < cvt; i++)
+                        for ( var i = lastWrite + 1; i < cvt; i++ )
                         {
                             var v = this.cachedValues[i];
-                            if (!v.HasValue)
+
+                            if ( !v.HasValue )
                             {
                                 break;
                             }
@@ -858,7 +886,7 @@
 
                         stream.Write(cnt);
 
-                        for (var i = 0; i < cnt; i++)
+                        for ( var i = 0; i < cnt; i++ )
                         {
                             stream.Write(this.cachedValues[i + lastWrite].Value);
                         }
@@ -867,10 +895,11 @@
                     }
                     else
                     {
-                        for (var i = lastWrite + 1; i < cvt; i++)
+                        for ( var i = lastWrite + 1; i < cvt; i++ )
                         {
                             var v = this.cachedValues[i];
-                            if (v.HasValue)
+
+                            if ( v.HasValue )
                             {
                                 break;
                             }
@@ -915,8 +944,8 @@
             public GameTypeInstanceInfo(int? begin, int? end, GameTypeInfo info)
             {
                 this.BeginOffset = begin;
-                this.EndOffset = end;
-                this.Info = info;
+                this.EndOffset   = end;
+                this.Info        = info;
             }
         }
 
@@ -940,10 +969,10 @@
             /// <param name="fields">The fields.</param>
             public GameTypeInfo(ulong guid, ulong vtable, string name, int? size, IReadOnlyList<GameFieldInfo> fields)
             {
-                this.Id = guid;
+                this.Id     = guid;
                 this.VTable = vtable;
-                this.Name = name;
-                this.Size = size;
+                this.Name   = name;
+                this.Size   = size;
                 this.Fields = fields;
             }
 
@@ -991,9 +1020,9 @@
             {
                 var ltype = stream.ReadByte();
 
-                if ((ltype & 1) != 0)
+                if ( (ltype & 1) != 0 )
                 {
-                    if ((ltype & 2) != 0)
+                    if ( (ltype & 2) != 0 )
                     {
                         this.VTable = stream.ReadUInt64();
                     }
@@ -1004,12 +1033,13 @@
                 }
 
                 this.Name = stream.ReadString();
-                if ((ltype & 4) != 0)
+
+                if ( (ltype & 4) != 0 )
                 {
                     this.Size = stream.ReadInt32();
                 }
 
-                if ((ltype & 8) != 0)
+                if ( (ltype & 8) != 0 )
                 {
                     this.Id = stream.ReadUInt64();
                 }
@@ -1018,11 +1048,12 @@
                     this.Id = stream.ReadUInt32();
                 }
 
-                if ((ltype & 0x10) != 0)
+                if ( (ltype & 0x10) != 0 )
                 {
                     var cn = stream.ReadInt32();
                     var ls = new List<GameFieldInfo>(Math.Min(256, cn));
-                    for (var i = 0; i < cn; i++)
+
+                    for ( var i = 0; i < cn; i++ )
                     {
                         var fi = new GameFieldInfo();
                         fi.ReadFromStream(stream, version);
@@ -1040,35 +1071,37 @@
             internal void WriteToStream(BinaryWriter stream)
             {
                 byte ltype = 0;
-                if (this.VTable != 0)
+
+                if ( this.VTable != 0 )
                 {
                     ltype |= 1;
-                    if (this.VTable > uint.MaxValue)
+
+                    if ( this.VTable > uint.MaxValue )
                     {
                         ltype |= 2;
                     }
                 }
 
-                if (this.Size.HasValue)
+                if ( this.Size.HasValue )
                 {
                     ltype |= 4;
                 }
 
-                if (this.Id > uint.MaxValue)
+                if ( this.Id > uint.MaxValue )
                 {
                     ltype |= 8;
                 }
 
-                if (this.Fields != null && this.Fields.Count != 0)
+                if ( this.Fields != null && this.Fields.Count != 0 )
                 {
                     ltype |= 0x10;
                 }
 
                 stream.Write(ltype);
 
-                if ((ltype & 1) != 0)
+                if ( (ltype & 1) != 0 )
                 {
-                    if ((ltype & 2) != 0)
+                    if ( (ltype & 2) != 0 )
                     {
                         stream.Write(this.VTable);
                     }
@@ -1079,12 +1112,13 @@
                 }
 
                 stream.Write(this.Name);
-                if ((ltype & 4) != 0)
+
+                if ( (ltype & 4) != 0 )
                 {
                     stream.Write(this.Size.Value);
                 }
 
-                if ((ltype & 8) != 0)
+                if ( (ltype & 8) != 0 )
                 {
                     stream.Write(this.Id);
                 }
@@ -1093,10 +1127,11 @@
                     stream.Write((uint)this.Id);
                 }
 
-                if ((ltype & 0x10) != 0)
+                if ( (ltype & 0x10) != 0 )
                 {
                     stream.Write(this.Fields.Count);
-                    foreach (var x in this.Fields)
+
+                    foreach ( var x in this.Fields )
                     {
                         x.WriteToStream(stream);
                     }
@@ -1123,10 +1158,10 @@
             /// <param name="typename">The typename.</param>
             public GameFieldInfo(uint fieldId, int? begin, string shortname, string typename)
             {
-                this.FieldId = fieldId;
-                this.Begin = begin;
+                this.FieldId   = fieldId;
+                this.Begin     = begin;
                 this.ShortName = shortname;
-                this.TypeName = typename;
+                this.TypeName  = typename;
             }
 
             /// <summary>
@@ -1171,9 +1206,10 @@
             internal void ReadFromStream(BinaryReader stream, int version)
             {
                 var ltype = stream.ReadByte();
-                if ((ltype & 1) != 0)
+
+                if ( (ltype & 1) != 0 )
                 {
-                    if ((ltype & 2) != 0)
+                    if ( (ltype & 2) != 0 )
                     {
                         this.Begin = stream.ReadInt32();
                     }
@@ -1183,19 +1219,19 @@
                     }
                 }
 
-                if ((ltype & 4) != 0)
+                if ( (ltype & 4) != 0 )
                 {
                     this.ShortName = stream.ReadString();
                 }
 
-                if ((ltype & 8) != 0)
+                if ( (ltype & 8) != 0 )
                 {
                     this.TypeName = stream.ReadString();
                 }
 
-                if ((ltype & 0x10) != 0)
+                if ( (ltype & 0x10) != 0 )
                 {
-                    if ((ltype & 0x20) != 0)
+                    if ( (ltype & 0x20) != 0 )
                     {
                         this.FieldId = stream.ReadByte();
                     }
@@ -1217,39 +1253,41 @@
             internal void WriteToStream(BinaryWriter stream)
             {
                 byte ltype = 0;
-                if (this.Begin.HasValue)
+
+                if ( this.Begin.HasValue )
                 {
                     ltype |= 1;
-                    if (this.Begin.Value < 0 || this.Begin.Value > ushort.MaxValue)
+
+                    if ( this.Begin.Value < 0 || this.Begin.Value > ushort.MaxValue )
                     {
                         ltype |= 2;
                     }
                 }
 
-                if (!string.IsNullOrEmpty(this.ShortName))
+                if ( !string.IsNullOrEmpty(this.ShortName) )
                 {
                     ltype |= 4;
                 }
 
-                if (!string.IsNullOrEmpty(this.TypeName))
+                if ( !string.IsNullOrEmpty(this.TypeName) )
                 {
                     ltype |= 8;
                 }
 
-                if (this.FieldId <= byte.MaxValue)
+                if ( this.FieldId <= byte.MaxValue )
                 {
                     ltype |= 0x30;
                 }
-                else if (this.FieldId <= ushort.MaxValue)
+                else if ( this.FieldId <= ushort.MaxValue )
                 {
                     ltype |= 0x10;
                 }
 
                 stream.Write(ltype);
 
-                if ((ltype & 1) != 0)
+                if ( (ltype & 1) != 0 )
                 {
-                    if ((ltype & 2) != 0)
+                    if ( (ltype & 2) != 0 )
                     {
                         stream.Write(this.Begin.Value);
                     }
@@ -1259,19 +1297,19 @@
                     }
                 }
 
-                if ((ltype & 4) != 0)
+                if ( (ltype & 4) != 0 )
                 {
                     stream.Write(this.ShortName);
                 }
 
-                if ((ltype & 8) != 0)
+                if ( (ltype & 8) != 0 )
                 {
                     stream.Write(this.TypeName);
                 }
 
-                if ((ltype & 0x10) != 0)
+                if ( (ltype & 0x10) != 0 )
                 {
-                    if ((ltype & 0x20) != 0)
+                    if ( (ltype & 0x20) != 0 )
                     {
                         stream.Write((byte)this.FieldId);
                     }
@@ -1303,10 +1341,10 @@
             /// <param name="typename">The typename.</param>
             public GameGlobalInfo(ulong id, ulong begin, string shortname, string typename)
             {
-                this.Id = id;
-                this.Begin = begin;
+                this.Id        = id;
+                this.Begin     = begin;
                 this.ShortName = shortname;
-                this.TypeName = typename;
+                this.TypeName  = typename;
             }
 
             /// <summary>
@@ -1341,7 +1379,8 @@
             internal void ReadFromStream(BinaryReader stream, int version)
             {
                 var ltype = stream.ReadByte();
-                if ((ltype & 1) != 0)
+
+                if ( (ltype & 1) != 0 )
                 {
                     this.Begin = stream.ReadUInt64();
                 }
@@ -1350,17 +1389,17 @@
                     this.Begin = stream.ReadUInt32();
                 }
 
-                if ((ltype & 2) != 0)
+                if ( (ltype & 2) != 0 )
                 {
                     this.ShortName = stream.ReadString();
                 }
 
-                if ((ltype & 4) != 0)
+                if ( (ltype & 4) != 0 )
                 {
                     this.TypeName = stream.ReadString();
                 }
 
-                if ((ltype & 8) != 0)
+                if ( (ltype & 8) != 0 )
                 {
                     this.Id = stream.ReadUInt64();
                 }
@@ -1377,29 +1416,30 @@
             internal void WriteToStream(BinaryWriter stream)
             {
                 byte ltype = 0;
-                if (this.Begin > uint.MaxValue)
+
+                if ( this.Begin > uint.MaxValue )
                 {
                     ltype |= 1;
                 }
 
-                if (!string.IsNullOrEmpty(this.ShortName))
+                if ( !string.IsNullOrEmpty(this.ShortName) )
                 {
                     ltype |= 2;
                 }
 
-                if (!string.IsNullOrEmpty(this.TypeName))
+                if ( !string.IsNullOrEmpty(this.TypeName) )
                 {
                     ltype |= 4;
                 }
 
-                if (this.Id > uint.MaxValue)
+                if ( this.Id > uint.MaxValue )
                 {
                     ltype |= 8;
                 }
 
                 stream.Write(ltype);
 
-                if ((ltype & 1) != 0)
+                if ( (ltype & 1) != 0 )
                 {
                     stream.Write(this.Begin);
                 }
@@ -1408,17 +1448,17 @@
                     stream.Write((uint)this.Begin);
                 }
 
-                if ((ltype & 2) != 0)
+                if ( (ltype & 2) != 0 )
                 {
                     stream.Write(this.ShortName);
                 }
 
-                if ((ltype & 4) != 0)
+                if ( (ltype & 4) != 0 )
                 {
                     stream.Write(this.TypeName);
                 }
 
-                if ((ltype & 8) != 0)
+                if ( (ltype & 8) != 0 )
                 {
                     stream.Write(this.Id);
                 }
@@ -1449,11 +1489,11 @@
             /// <param name="fullname">The fullname.</param>
             public GameFunctionInfo(ulong id, ulong begin, ulong end, string shortname, string fullname)
             {
-                this.Id = id;
-                this.Begin = begin;
-                this.End = end;
+                this.Id        = id;
+                this.Begin     = begin;
+                this.End       = end;
                 this.ShortName = shortname;
-                this.FullName = fullname;
+                this.FullName  = fullname;
             }
 
             /// <summary>
@@ -1490,7 +1530,8 @@
             {
                 var bld = new StringBuilder(32);
                 bld.Append(!string.IsNullOrEmpty(this.ShortName) ? this.ShortName : "unk");
-                if (includeOffset)
+
+                if ( includeOffset )
                 {
                     bld.Append('_');
                     bld.Append(this.Begin.ToString("X"));
@@ -1509,7 +1550,7 @@
             {
                 var ltype = stream.ReadByte();
 
-                if ((ltype & 1) != 0)
+                if ( (ltype & 1) != 0 )
                 {
                     this.Begin = stream.ReadUInt64();
                 }
@@ -1518,9 +1559,9 @@
                     this.Begin = stream.ReadUInt32();
                 }
 
-                if ((ltype & 2) != 0)
+                if ( (ltype & 2) != 0 )
                 {
-                    if ((ltype & 4) != 0)
+                    if ( (ltype & 4) != 0 )
                     {
                         this.End = stream.ReadUInt64();
                     }
@@ -1534,17 +1575,17 @@
                     this.End = this.Begin + stream.ReadUInt16();
                 }
 
-                if ((ltype & 8) != 0)
+                if ( (ltype & 8) != 0 )
                 {
                     this.ShortName = stream.ReadString();
                 }
 
-                if ((ltype & 0x10) != 0)
+                if ( (ltype & 0x10) != 0 )
                 {
                     this.FullName = stream.ReadString();
                 }
 
-                if ((ltype & 0x20) != 0)
+                if ( (ltype & 0x20) != 0 )
                 {
                     this.Id = stream.ReadUInt64();
                 }
@@ -1561,38 +1602,40 @@
             internal void WriteToStream(BinaryWriter stream)
             {
                 byte ltype = 0;
-                if (this.Begin > uint.MaxValue)
+
+                if ( this.Begin > uint.MaxValue )
                 {
                     ltype |= 1;
                 }
 
-                if (this.End < this.Begin || this.End - this.Begin > ushort.MaxValue)
+                if ( this.End < this.Begin || this.End - this.Begin > ushort.MaxValue )
                 {
                     ltype |= 2;
-                    if (this.End > uint.MaxValue)
+
+                    if ( this.End > uint.MaxValue )
                     {
                         ltype |= 4;
                     }
                 }
 
-                if (!string.IsNullOrEmpty(this.ShortName))
+                if ( !string.IsNullOrEmpty(this.ShortName) )
                 {
                     ltype |= 8;
                 }
 
-                if (!string.IsNullOrEmpty(this.FullName))
+                if ( !string.IsNullOrEmpty(this.FullName) )
                 {
                     ltype |= 0x10;
                 }
 
-                if (this.Id > uint.MaxValue)
+                if ( this.Id > uint.MaxValue )
                 {
                     ltype |= 0x20;
                 }
 
                 stream.Write(ltype);
 
-                if ((ltype & 1) != 0)
+                if ( (ltype & 1) != 0 )
                 {
                     stream.Write(this.Begin);
                 }
@@ -1601,9 +1644,9 @@
                     stream.Write((uint)this.Begin);
                 }
 
-                if ((ltype & 2) != 0)
+                if ( (ltype & 2) != 0 )
                 {
-                    if ((ltype & 4) != 0)
+                    if ( (ltype & 4) != 0 )
                     {
                         stream.Write(this.End);
                     }
@@ -1614,17 +1657,17 @@
                 }
                 else { stream.Write((ushort)(this.End - this.Begin)); }
 
-                if ((ltype & 8) != 0)
+                if ( (ltype & 8) != 0 )
                 {
                     stream.Write(this.ShortName);
                 }
 
-                if ((ltype & 0x10) != 0)
+                if ( (ltype & 0x10) != 0 )
                 {
                     stream.Write(this.FullName);
                 }
 
-                if ((ltype & 0x20) != 0)
+                if ( (ltype & 0x20) != 0 )
                 {
                     stream.Write(this.Id);
                 }
@@ -1654,10 +1697,10 @@
             /// <param name="offsetInType">Type of the offset in.</param>
             internal GameTypeRegistration(uint interfaceId, uint implementationId, int vtableOffset, int offsetInType)
             {
-                this.InterfaceId = interfaceId;
+                this.InterfaceId      = interfaceId;
                 this.ImplementationId = implementationId;
-                this.VTableOffset = vtableOffset;
-                this.OffsetInType = offsetInType;
+                this.VTableOffset     = vtableOffset;
+                this.OffsetInType     = offsetInType;
             }
 
             /// <summary>
@@ -1702,7 +1745,7 @@
             {
                 var ltype = stream.ReadByte();
 
-                if ((ltype & 1) != 0)
+                if ( (ltype & 1) != 0 )
                 {
                     this.InterfaceId = stream.ReadUInt16();
                 }
@@ -1711,7 +1754,7 @@
                     this.InterfaceId = stream.ReadUInt32();
                 }
 
-                if ((ltype & 2) != 0)
+                if ( (ltype & 2) != 0 )
                 {
                     this.ImplementationId = stream.ReadUInt16();
                 }
@@ -1720,7 +1763,7 @@
                     this.ImplementationId = stream.ReadUInt32();
                 }
 
-                if ((ltype & 4) != 0)
+                if ( (ltype & 4) != 0 )
                 {
                     this.VTableOffset = stream.ReadInt32();
                 }
@@ -1729,13 +1772,13 @@
                     this.VTableOffset = -1;
                 }
 
-                if ((ltype & 8) != 0)
+                if ( (ltype & 8) != 0 )
                 {
-                    if ((ltype & 0x10) != 0)
+                    if ( (ltype & 0x10) != 0 )
                     {
                         this.OffsetInType = stream.ReadByte();
                     }
-                    else if ((ltype & 0x20) != 0)
+                    else if ( (ltype & 0x20) != 0 )
                     {
                         this.OffsetInType = stream.ReadUInt16();
                     }
@@ -1754,31 +1797,32 @@
             {
                 byte ltype = 0;
 
-                if (this.InterfaceId <= ushort.MaxValue)
+                if ( this.InterfaceId <= ushort.MaxValue )
                 {
                     ltype |= 1;
                 }
 
-                if (this.ImplementationId <= ushort.MaxValue)
+                if ( this.ImplementationId <= ushort.MaxValue )
                 {
                     ltype |= 2;
                 }
 
-                if (this.VTableOffset >= 0)
+                if ( this.VTableOffset >= 0 )
                 {
                     ltype |= 4;
                 }
 
-                if (this.OffsetInType != 0)
+                if ( this.OffsetInType != 0 )
                 {
                     ltype |= 8;
-                    if (this.OffsetInType >= 0)
+
+                    if ( this.OffsetInType >= 0 )
                     {
-                        if (this.OffsetInType <= byte.MaxValue)
+                        if ( this.OffsetInType <= byte.MaxValue )
                         {
                             ltype |= 0x10;
                         }
-                        else if (this.OffsetInType <= ushort.MaxValue)
+                        else if ( this.OffsetInType <= ushort.MaxValue )
                         {
                             ltype |= 0x20;
                         }
@@ -1787,7 +1831,7 @@
 
                 stream.Write(ltype);
 
-                if ((ltype & 1) != 0)
+                if ( (ltype & 1) != 0 )
                 {
                     stream.Write((ushort)this.InterfaceId);
                 }
@@ -1796,7 +1840,7 @@
                     stream.Write(this.InterfaceId);
                 }
 
-                if ((ltype & 2) != 0)
+                if ( (ltype & 2) != 0 )
                 {
                     stream.Write((ushort)this.ImplementationId);
                 }
@@ -1805,18 +1849,18 @@
                     stream.Write(this.ImplementationId);
                 }
 
-                if ((ltype & 4) != 0)
+                if ( (ltype & 4) != 0 )
                 {
                     stream.Write(this.VTableOffset);
                 }
 
-                if ((ltype & 8) != 0)
+                if ( (ltype & 8) != 0 )
                 {
-                    if ((ltype & 0x10) != 0)
+                    if ( (ltype & 0x10) != 0 )
                     {
                         stream.Write((byte)this.OffsetInType);
                     }
-                    else if ((ltype & 0x20) != 0)
+                    else if ( (ltype & 0x20) != 0 )
                     {
                         stream.Write((ushort)this.OffsetInType);
                     }
@@ -1828,7 +1872,7 @@
             }
         }
 
-#if NETSCRIPTFRAMEWORK
+    #if NETSCRIPTFRAMEWORK
         /// <summary>
         ///     Gets the type from vtable address.
         /// </summary>
@@ -1838,13 +1882,15 @@
         public GameTypeInfo GetTypeInfo(IntPtr vtable, bool withBaseOffset)
         {
             var v = this.Is64Bit ? vtable.ToUInt64() : vtable.ToUInt32();
-            if (withBaseOffset)
+
+            if ( withBaseOffset )
             {
                 v = unchecked(v - this.BaseOffset);
             }
 
             GameTypeInfo result = null;
-            if (this.vtTpMap.TryGetValue(v, out result))
+
+            if ( this.vtTpMap.TryGetValue(v, out result) )
             {
                 return result;
             }
@@ -1881,18 +1927,19 @@
                 var v = this.Address;
                 var a = x;
                 var m = 1;
-                if (a == null)
+
+                if ( a == null )
                 {
                     a = y;
                     m = -1;
                 }
 
-                if (a.End <= v)
+                if ( a.End <= v )
                 {
                     return -m;
                 }
 
-                if (a.Begin > v)
+                if ( a.Begin > v )
                 {
                     return m;
                 }
@@ -1910,7 +1957,8 @@
         public GameFunctionInfo GetFunctionInfo(IntPtr address, bool withBaseOffset)
         {
             var v = this.Is64Bit ? address.ToUInt64() : address.ToUInt32();
-            if (withBaseOffset)
+
+            if ( withBaseOffset )
             {
                 v = unchecked(v - this.BaseOffset);
             }
@@ -1921,18 +1969,19 @@
                     return f;
             }*/
 
-            var searcher = new FunctionSearcher {Address = v};
-            var result = this.functionsList.BinarySearch(null, searcher);
-            if (result < 0)
+            var searcher = new FunctionSearcher { Address = v };
+            var result   = this.functionsList.BinarySearch(null, searcher);
+
+            if ( result < 0 )
             {
                 return null;
             }
 
             return this.functionsList[result];
         }
-#endif
+    #endif
 
-#if NETSCRIPTFRAMEWORK
+    #if NETSCRIPTFRAMEWORK
         /// <summary>
         ///     Gets the address of the specified object by its version independent identifier. This will throw an exception if the
         ///     address was not found.
@@ -1947,11 +1996,13 @@
         public IntPtr GetAddressOf(ulong id, int extraOffset = 0, int patternOffset = 0, string pattern = null)
         {
             ulong offset = 0;
-            if (id != 0 && this.vidAddrMap.TryGetValue(id, out offset))
+
+            if ( id != 0 && this.vidAddrMap.TryGetValue(id, out offset) )
             {
-                var full = this.BaseOffset + offset;
+                var    full = this.BaseOffset + offset;
                 IntPtr result;
-                if (this.Is64Bit)
+
+                if ( this.Is64Bit )
                 {
                     result = new IntPtr(unchecked((long)full));
                 }
@@ -1960,32 +2011,31 @@
                     result = new IntPtr(unchecked((int)full));
                 }
 
-                if (extraOffset != 0)
+                if ( extraOffset != 0 )
                 {
                     result = result + extraOffset;
                 }
 
-                if (!string.IsNullOrEmpty(pattern))
+                if ( !string.IsNullOrEmpty(pattern) )
                 {
                     var target = result + patternOffset;
-                    while (pattern.Length >= 2 && pattern[0] == '[' && pattern[pattern.Length - 1] == ']')
+
+                    while ( pattern.Length >= 2 && pattern[0] == '[' && pattern[pattern.Length - 1] == ']' )
                     {
                         pattern = pattern.Substring(1, pattern.Length - 2);
-                        target = Memory.ReadPointer(target);
+                        target  = Memory.ReadPointer(target);
                     }
 
-                    if (!Memory.VerifyBytes(target, pattern))
+                    if ( !Memory.VerifyBytes(target, pattern) )
                     {
-                        throw new ArgumentException("Object with version independent id `" + id +
-                                                    "` did not match specified byte pattern! This usually means plugin must be updated by author.");
+                        throw new ArgumentException("Object with version independent id `" + id + "` did not match specified byte pattern! This usually means plugin must be updated by author.");
                     }
                 }
 
                 return result;
             }
 
-            throw new KeyNotFoundException("Object with version independent id `" + id +
-                                           "` was not found in version library! This usually means plugin must be updated by author.");
+            throw new KeyNotFoundException("Object with version independent id `" + id + "` was not found in version library! This usually means plugin must be updated by author.");
         }
 
         /// <summary>
@@ -2000,11 +2050,13 @@
         public IntPtr? TryGetAddressOf(ulong id, int extraOffset = 0, int patternOffset = 0, string pattern = null)
         {
             ulong offset = 0;
-            if (id != 0 && this.vidAddrMap.TryGetValue(id, out offset))
+
+            if ( id != 0 && this.vidAddrMap.TryGetValue(id, out offset) )
             {
-                var full = this.BaseOffset + offset;
+                var    full = this.BaseOffset + offset;
                 IntPtr result;
-                if (this.Is64Bit)
+
+                if ( this.Is64Bit )
                 {
                     result = new IntPtr(unchecked((long)full));
                 }
@@ -2013,18 +2065,20 @@
                     result = new IntPtr(unchecked((int)full));
                 }
 
-                if (extraOffset != 0)
+                if ( extraOffset != 0 )
                 {
                     result = result + extraOffset;
                 }
 
-                if (!string.IsNullOrEmpty(pattern))
+                if ( !string.IsNullOrEmpty(pattern) )
                 {
                     var target = result + patternOffset;
-                    while (pattern.Length >= 2 && pattern[0] == '[' && pattern[pattern.Length - 1] == ']')
+
+                    while ( pattern.Length >= 2 && pattern[0] == '[' && pattern[pattern.Length - 1] == ']' )
                     {
                         pattern = pattern.Substring(1, pattern.Length - 2);
-                        if (!Memory.TryReadPointer(target, ref target))
+
+                        if ( !Memory.TryReadPointer(target, ref target) )
                         {
                             return null;
                         }
@@ -2032,7 +2086,7 @@
 
                     try
                     {
-                        if (!Memory.VerifyBytes(target, pattern))
+                        if ( !Memory.VerifyBytes(target, pattern) )
                         {
                             return null;
                         }
@@ -2045,6 +2099,6 @@
 
             return null;
         }
-#endif
+    #endif
     }
 }

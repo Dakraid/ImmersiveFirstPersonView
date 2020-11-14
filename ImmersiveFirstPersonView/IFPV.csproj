@@ -11,7 +11,7 @@
     <Product>IFPV</Product>
     <Copyright>Copyright © WZT 2018</Copyright>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <OutputPath>..\Build\Release\Data\NetScriptFramework\Plugins\</OutputPath>
+    <OutputPath>..\Build\Debug\Data\NetScriptFramework\Plugins\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	<UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
@@ -26,6 +26,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>..\Build\Debug\Data\NetScriptFramework\Plugins\IFPV.xml</DocumentationFile>
     <NoWarn>1701;1702,CS1591</NoWarn>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />

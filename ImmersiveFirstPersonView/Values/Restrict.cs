@@ -42,12 +42,12 @@ namespace IFPV
 
     internal partial class CameraValueMap
     {
-        internal readonly RestrictDown RestrictDown = new RestrictDown();
-        internal readonly RestrictLeft RestrictLeft = new RestrictLeft();
-        internal readonly RestrictLeft2 RestrictLeft2 = new RestrictLeft2();
-        internal readonly RestrictRight RestrictRight = new RestrictRight();
-        internal readonly RestrictRight2 RestrictRight2 = new RestrictRight2();
+        internal readonly RestrictDown     RestrictDown     = new RestrictDown();
+        internal readonly RestrictLeft     RestrictLeft     = new RestrictLeft();
+        internal readonly RestrictLeft2    RestrictLeft2    = new RestrictLeft2();
+        internal readonly RestrictRight    RestrictRight    = new RestrictRight();
+        internal readonly RestrictRight2   RestrictRight2   = new RestrictRight2();
         internal readonly RestrictSideDown RestrictSideDown = new RestrictSideDown();
-        internal readonly RestrictUp RestrictUp = new RestrictUp();
+        internal readonly RestrictUp       RestrictUp       = new RestrictUp();
     }
 }

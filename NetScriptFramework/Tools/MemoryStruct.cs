@@ -72,40 +72,40 @@
         /// <exception cref="System.InvalidOperationException"></exception>
         public void SetValue(int offset, MemoryStructField value)
         {
-            if (offset < 0)
+            if ( offset < 0 )
             {
                 throw new ArgumentOutOfRangeException("offset", "Offset can not be negative!");
             }
 
-            if (offset > this.Size)
+            if ( offset > this.Size )
             {
                 throw new ArgumentOutOfRangeException("offset", "Offset can not exceed the size of struct!");
             }
 
-            if (offset + value.Size > this.Size)
+            if ( offset + value.Size > this.Size )
             {
-                throw new ArgumentOutOfRangeException("offset",
-                    "Offset + value.Size can not exceed the size of struct!");
+                throw new ArgumentOutOfRangeException("offset", "Offset + value.Size can not exceed the size of struct!");
             }
 
-            if (value == null)
+            if ( value == null )
             {
                 throw new ArgumentNullException("value");
             }
 
-            if (value.Data == null)
+            if ( value.Data == null )
             {
                 throw new InvalidOperationException();
             }
 
             value.Offset = offset;
 
-            var p = value.Packed;
+            var p     = value.Packed;
             var begin = offset;
-            var end = offset + value.Size;
-            for (var i = begin; i < end; i++)
+            var end   = offset + value.Size;
+
+            for ( var i = begin; i < end; i++ )
             {
-                if (this.Fields[i] != 0)
+                if ( this.Fields[i] != 0 )
                 {
                     this.ClearValue(i);
                 }
@@ -135,54 +135,55 @@
         /// <exception cref="System.InvalidOperationException"></exception>
         public bool SetValueSafe(int offset, MemoryStructField value)
         {
-            if (offset < 0)
+            if ( offset < 0 )
             {
                 throw new ArgumentOutOfRangeException("offset", "Offset can not be negative!");
             }
 
-            if (offset > this.Size)
+            if ( offset > this.Size )
             {
                 throw new ArgumentOutOfRangeException("offset", "Offset can not exceed the size of struct!");
             }
 
-            if (offset + value.Size > this.Size)
+            if ( offset + value.Size > this.Size )
             {
-                throw new ArgumentOutOfRangeException("offset",
-                    "Offset + value.Size can not exceed the size of struct!");
+                throw new ArgumentOutOfRangeException("offset", "Offset + value.Size can not exceed the size of struct!");
             }
 
-            if (value == null)
+            if ( value == null )
             {
                 throw new ArgumentNullException("value");
             }
 
             value.Offset = offset;
 
-            var begin = offset;
-            var end = offset + value.Size;
-            ulong p2 = 0;
-            var p = value.Packed;
-            for (var i = begin; i < end; i++)
+            var   begin = offset;
+            var   end   = offset + value.Size;
+            ulong p2    = 0;
+            var   p     = value.Packed;
+
+            for ( var i = begin; i < end; i++ )
             {
                 p2 = this.Fields[i];
-                if (p2 == 0)
+
+                if ( p2 == 0 )
                 {
                     continue;
                 }
 
                 // Exact same type and offset and size of value.
-                if (p2 == p)
+                if ( p2 == p )
                 {
                     break;
                 }
             }
 
-            if (value.Data == null)
+            if ( value.Data == null )
             {
                 throw new InvalidOperationException();
             }
 
-            for (var i = begin; i < end; i++)
+            for ( var i = begin; i < end; i++ )
             {
                 this.Fields[i] = p;
             }
@@ -205,18 +206,19 @@
         /// </exception>
         public MemoryStructField GetValue(int offset)
         {
-            if (offset < 0)
+            if ( offset < 0 )
             {
                 throw new ArgumentOutOfRangeException("offset", "Offset can not be negative!");
             }
 
-            if (offset > this.Size)
+            if ( offset > this.Size )
             {
                 throw new ArgumentOutOfRangeException("offset", "Offset can not exceed the size of struct!");
             }
 
             ulong p = 0;
-            if (offset == this.Size || (p = this.Fields[offset]) == 0)
+
+            if ( offset == this.Size || (p = this.Fields[offset]) == 0 )
             {
                 return null;
             }
@@ -236,34 +238,36 @@
         /// </exception>
         public bool ClearValue(int offset)
         {
-            if (offset < 0)
+            if ( offset < 0 )
             {
                 throw new ArgumentOutOfRangeException("offset", "Offset can not be negative!");
             }
 
-            if (offset > this.Size)
+            if ( offset > this.Size )
             {
                 throw new ArgumentOutOfRangeException("offset", "Offset can not exceed the size of struct!");
             }
 
-            if (offset == this.Size)
+            if ( offset == this.Size )
             {
                 return false;
             }
 
             var p = this.Fields[offset];
-            if (p == 0)
+
+            if ( p == 0 )
             {
                 return false;
             }
 
-            var realOffset = 0;
-            var realSize = 0;
-            byte realType = 0;
+            var  realOffset = 0;
+            var  realSize   = 0;
+            byte realType   = 0;
             MemoryStructField.ReadPacked(p, ref realOffset, ref realSize, ref realType);
 
             var end = realOffset + realSize;
-            for (var i = realOffset; i < end; i++)
+
+            for ( var i = realOffset; i < end; i++ )
             {
                 this.Fields[i] = 0;
             }
@@ -277,7 +281,7 @@
         /// </summary>
         protected override void Free()
         {
-            if (this.Allocation != null)
+            if ( this.Allocation != null )
             {
                 this.Allocation.Dispose();
                 this.Allocation = null;
@@ -297,17 +301,17 @@
         {
             None = 0,
 
-            Pointer = 1,
-            Float = 2,
-            Double = 3,
-            UInt8 = 4,
-            Int8 = 5,
-            UInt16 = 6,
-            Int16 = 7,
-            UInt32 = 8,
-            Int32 = 9,
-            UInt64 = 10,
-            Int64 = 11,
+            Pointer   = 1,
+            Float     = 2,
+            Double    = 3,
+            UInt8     = 4,
+            Int8      = 5,
+            UInt16    = 6,
+            Int16     = 7,
+            UInt32    = 8,
+            Int32     = 9,
+            UInt64    = 10,
+            Int64     = 11,
             ByteArray = 12
         }
 
@@ -359,11 +363,11 @@
             get
             {
                 ulong v = 0;
-                v = (byte)this.Type;
+                v =   (byte)this.Type;
                 v <<= 24;
-                v |= (uint)(this.Size & 0x00FFFFFF);
+                v |=  (uint)(this.Size & 0x00FFFFFF);
                 v <<= 24;
-                v |= (uint)(this.Offset & 0x00FFFFFF);
+                v |=  (uint)(this.Offset & 0x00FFFFFF);
                 return v;
             }
         }
@@ -377,9 +381,9 @@
         /// <param name="type">The type.</param>
         internal static void ReadPacked(ulong packed, ref int offset, ref int size, ref byte type)
         {
-            offset = (int)(packed & 0x00FFFFFF);
-            size = (int)((packed >> 24) & 0x00FFFFFF);
-            type = (byte)((packed >> 48) & 0xFF);
+            offset = (int)(packed          & 0x00FFFFFF);
+            size   = (int)((packed  >> 24) & 0x00FFFFFF);
+            type   = (byte)((packed >> 48) & 0xFF);
         }
 
         /// <summary>
@@ -390,21 +394,21 @@
         /// <returns></returns>
         internal static MemoryStructField FromPacked(ulong packed, MemoryStruct obj)
         {
-            if (packed == 0)
+            if ( packed == 0 )
             {
                 return null;
             }
 
-            var offset = 0;
-            var size = 0;
-            byte type = 0;
+            var  offset = 0;
+            var  size   = 0;
+            byte type   = 0;
             ReadPacked(packed, ref offset, ref size, ref type);
 
             var f = new MemoryStructField();
             f.Offset = offset;
-            f.Size = size;
-            f.Type = (FieldTypes)type;
-            f.Data = Memory.ReadBytes(obj.Address + offset, size);
+            f.Size   = size;
+            f.Type   = (FieldTypes)type;
+            f.Data   = Memory.ReadBytes(obj.Address + offset, size);
             return f;
         }
 
@@ -419,7 +423,8 @@
         {
             var f = new MemoryStructField();
             f.Type = FieldTypes.Pointer;
-            if (Main.Is64Bit)
+
+            if ( Main.Is64Bit )
             {
                 f.Data = BitConverter.GetBytes(value.ToInt64());
             }
@@ -439,12 +444,12 @@
         /// <returns></returns>
         public bool TryToPointer(ref IntPtr value)
         {
-            if (this.Type != FieldTypes.Pointer)
+            if ( this.Type != FieldTypes.Pointer )
             {
                 return false;
             }
 
-            if (Main.Is64Bit)
+            if ( Main.Is64Bit )
             {
                 var v = BitConverter.ToInt64(this.Data, 0);
                 value = new IntPtr(v);
@@ -481,7 +486,7 @@
         /// <returns></returns>
         public bool TryToFloat(ref float value)
         {
-            if (this.Type != FieldTypes.Float)
+            if ( this.Type != FieldTypes.Float )
             {
                 return false;
             }
@@ -513,7 +518,7 @@
         /// <returns></returns>
         public bool TryToDouble(ref double value)
         {
-            if (this.Type != FieldTypes.Double)
+            if ( this.Type != FieldTypes.Double )
             {
                 return false;
             }
@@ -533,7 +538,7 @@
         {
             var f = new MemoryStructField();
             f.Type = FieldTypes.UInt8;
-            f.Data = new[] {value};
+            f.Data = new[] { value };
             f.Size = f.Data.Length;
             return f;
         }
@@ -545,7 +550,7 @@
         /// <returns></returns>
         public bool TryToUInt8(ref byte value)
         {
-            if (this.Type != FieldTypes.UInt8)
+            if ( this.Type != FieldTypes.UInt8 )
             {
                 return false;
             }
@@ -565,7 +570,7 @@
         {
             var f = new MemoryStructField();
             f.Type = FieldTypes.Int8;
-            f.Data = new[] {unchecked((byte)value)};
+            f.Data = new[] { unchecked((byte)value) };
             f.Size = f.Data.Length;
             return f;
         }
@@ -577,7 +582,7 @@
         /// <returns></returns>
         public bool TryToInt8(ref sbyte value)
         {
-            if (this.Type != FieldTypes.Int8)
+            if ( this.Type != FieldTypes.Int8 )
             {
                 return false;
             }
@@ -609,7 +614,7 @@
         /// <returns></returns>
         public bool TryToUInt16(ref ushort value)
         {
-            if (this.Type != FieldTypes.UInt16)
+            if ( this.Type != FieldTypes.UInt16 )
             {
                 return false;
             }
@@ -641,7 +646,7 @@
         /// <returns></returns>
         public bool TryToInt16(ref short value)
         {
-            if (this.Type != FieldTypes.Int16)
+            if ( this.Type != FieldTypes.Int16 )
             {
                 return false;
             }
@@ -673,7 +678,7 @@
         /// <returns></returns>
         public bool TryToUInt32(ref uint value)
         {
-            if (this.Type != FieldTypes.UInt32)
+            if ( this.Type != FieldTypes.UInt32 )
             {
                 return false;
             }
@@ -705,7 +710,7 @@
         /// <returns></returns>
         public bool TryToInt32(ref int value)
         {
-            if (this.Type != FieldTypes.Int32)
+            if ( this.Type != FieldTypes.Int32 )
             {
                 return false;
             }
@@ -737,7 +742,7 @@
         /// <returns></returns>
         public bool TryToUInt64(ref ulong value)
         {
-            if (this.Type != FieldTypes.UInt64)
+            if ( this.Type != FieldTypes.UInt64 )
             {
                 return false;
             }
@@ -769,7 +774,7 @@
         /// <returns></returns>
         public bool TryToInt64(ref long value)
         {
-            if (this.Type != FieldTypes.Int64)
+            if ( this.Type != FieldTypes.Int64 )
             {
                 return false;
             }
@@ -789,12 +794,12 @@
         /// <exception cref="System.ArgumentOutOfRangeException">value.Length</exception>
         public static implicit operator MemoryStructField(byte[] value)
         {
-            if (value == null)
+            if ( value == null )
             {
                 throw new ArgumentNullException("value");
             }
 
-            if (value.Length == 0)
+            if ( value.Length == 0 )
             {
                 throw new ArgumentOutOfRangeException("value.Length");
             }
@@ -813,7 +818,7 @@
         /// <returns></returns>
         public bool TryToBytes(ref byte[] value)
         {
-            if (this.Type != FieldTypes.ByteArray)
+            if ( this.Type != FieldTypes.ByteArray )
             {
                 return false;
             }

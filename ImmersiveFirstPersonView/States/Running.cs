@@ -8,18 +8,19 @@
 
         internal override bool Check(CameraUpdate update)
         {
-            if (!update.CameraMain.IsEnabled)
+            if ( !update.CameraMain.IsEnabled )
             {
                 return false;
             }
 
-            if (update.CachedMounted)
+            if ( update.CachedMounted )
             {
                 return false;
             }
 
             var actor = update.Target.Actor;
-            if (actor == null)
+
+            if ( actor == null )
             {
                 return false;
             }
@@ -32,8 +33,7 @@
         {
             base.OnEntering(update);
 
-            update.Values.StabilizeIgnoreOffsetY.AddModifier(this,
-                CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 23.0, true, 200);
+            update.Values.StabilizeIgnoreOffsetY.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 23.0, true, 200);
             this.AddHeadBobModifier(update);
         }
     }

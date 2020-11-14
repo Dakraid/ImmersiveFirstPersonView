@@ -4,14 +4,14 @@
     using System.Reflection;
     using System.Threading;
 
-    #region Plugin class
+#region Plugin class
 
     /// <summary>
     ///     Implement base plugin class. All loaded plugins must inherit from this and provide plugin header information.
     /// </summary>
     public abstract class Plugin
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="Plugin" /> class. Don't put any initialization code in constructor! If
@@ -20,16 +20,15 @@
         /// </summary>
         public Plugin()
         {
-            if (Interlocked.Exchange(ref PluginManager.CreatingPlugin, 0) != 1)
+            if ( Interlocked.Exchange(ref PluginManager.CreatingPlugin, 0) != 1 )
             {
-                throw new InvalidOperationException(
-                    "Plugin's can not be manually created! Only PluginManager will create the plugins.");
+                throw new InvalidOperationException("Plugin's can not be manually created! Only PluginManager will create the plugins.");
             }
         }
 
-        #endregion
+    #endregion
 
-        #region Plugin members
+    #region Plugin members
 
         /// <summary>
         ///     Gets the unique keyword of plugin.
@@ -131,7 +130,7 @@
 
         internal bool _initialize(bool loadedAny)
         {
-            if (this.Initialize(loadedAny))
+            if ( this.Initialize(loadedAny) )
             {
                 this.IsInitialized = true;
                 return true;
@@ -159,7 +158,7 @@
 
         internal void _shutdown()
         {
-            if (this.IsInitialized)
+            if ( this.IsInitialized )
             {
                 this.Shutdown();
             }
@@ -221,9 +220,9 @@
                 throw new InvalidOperationException("Failed to write TLS for plugin " + this.ToString() + ", internal index was " + this.InternalIndex + "!");
         }*/
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         ///     Gets the internal string to display in log about the plugin.
@@ -233,8 +232,8 @@
         {
             try
             {
-                var name = this.InternalName;
-                var key = this.InternalKey ?? string.Empty;
+                var name    = this.InternalName;
+                var key     = this.InternalKey ?? string.Empty;
                 var version = this.InternalVersion;
                 return "\"" + name + "\" [" + key + "] (" + version + ")";
             }
@@ -248,9 +247,9 @@
         {
             get
             {
-                if (!this._in)
+                if ( !this._in )
                 {
-                    this._in = true;
+                    this._in           = true;
                     this._internalName = this.Name ?? string.Empty;
                 }
 
@@ -259,7 +258,7 @@
         }
 
         private string _internalName;
-        private bool _in;
+        private bool   _in;
 
         /// <summary>
         ///     Gets the version of plugin for internal use.
@@ -268,9 +267,9 @@
         {
             get
             {
-                if (!this._iv)
+                if ( !this._iv )
                 {
-                    this._iv = true;
+                    this._iv              = true;
                     this._internalVersion = this.Version;
                 }
 
@@ -278,7 +277,7 @@
             }
         }
 
-        private int _internalVersion;
+        private int  _internalVersion;
         private bool _iv;
 
         /// <summary>
@@ -288,9 +287,9 @@
         {
             get
             {
-                if (!this._ik)
+                if ( !this._ik )
                 {
-                    this._ik = true;
+                    this._ik          = true;
                     this._internalKey = this.Key;
                 }
 
@@ -299,7 +298,7 @@
         }
 
         private string _internalKey;
-        private bool _ik;
+        private bool   _ik;
 
         /// <summary>
         ///     Gets or sets the internal plugin index.
@@ -309,8 +308,8 @@
         /// </value>
         internal int InternalIndex { get; set; }
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 }

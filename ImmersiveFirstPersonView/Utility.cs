@@ -1,6 +1,7 @@
 namespace IFPV
 {
     using System;
+
     using NetScriptFramework;
     using NetScriptFramework.SkyrimSE;
 
@@ -8,28 +9,27 @@ namespace IFPV
     {
         internal static double ApplyFormula(double ratio, TValue.TweenTypes type)
         {
-            if (ratio < 0.0)
+            if ( ratio < 0.0 )
             {
                 return 0.0;
             }
 
-            if (ratio > 1.0)
+            if ( ratio > 1.0 )
             {
                 return 1.0;
             }
 
-            switch (type)
+            switch ( type )
             {
-                case TValue.TweenTypes.Linear: return ratio;
+                case TValue.TweenTypes.Linear : return ratio;
 
-                case TValue.TweenTypes.Accelerating: return ratio * ratio;
+                case TValue.TweenTypes.Accelerating : return ratio * ratio;
 
-                case TValue.TweenTypes.Decelerating: return Math.Sqrt(ratio);
+                case TValue.TweenTypes.Decelerating : return Math.Sqrt(ratio);
 
-                case TValue.TweenTypes.AccelAndDecel:
-                    return (Math.Sin((ratio * Math.PI) - (Math.PI * 0.5)) * 0.5) + 0.5;
+                case TValue.TweenTypes.AccelAndDecel : return (Math.Sin((ratio * Math.PI) - (Math.PI * 0.5)) * 0.5) + 0.5;
 
-                default: return ratio;
+                default : return ratio;
             }
         }
 
@@ -42,13 +42,15 @@ namespace IFPV
             //double max = Math.PI * 2.0;
             const double add = Math.PI * 2.0;
 
-            if (rad < min)
+            if ( rad < min )
             {
-                do { rad += add; } while (rad < min);
+                do { rad += add; }
+                while ( rad < min );
             }
-            else if (rad > max)
+            else if ( rad > max )
             {
-                do { rad -= add; } while (rad > max);
+                do { rad -= add; }
+                while ( rad > max );
             }
 
             return rad;
@@ -61,8 +63,9 @@ namespace IFPV
         internal static void ModNiAVFlags(NiAVObject obj, uint flags, bool add)
         {
             var ofl = GetNiAVFlags(obj);
-            var fl = ofl;
-            if (add)
+            var fl  = ofl;
+
+            if ( add )
             {
                 fl |= flags;
             }
@@ -71,7 +74,7 @@ namespace IFPV
                 fl &= ~flags;
             }
 
-            if (ofl != fl)
+            if ( ofl != fl )
             {
                 SetNiAVFlags(obj, fl);
             }
@@ -86,10 +89,8 @@ namespace IFPV
     {
         internal static void CopyFrom(this NiPoint3 pt, NiPoint3 other) => Memory.Copy(other.Address, pt.Address, 0xC);
 
-        internal static void CopyFrom(this NiTransform pt, NiTransform other) =>
-            Memory.Copy(other.Address, pt.Address, 0x34);
+        internal static void CopyFrom(this NiTransform pt, NiTransform other) => Memory.Copy(other.Address, pt.Address, 0x34);
 
-        internal static void CopyFrom(this NiMatrix33 pt, NiMatrix33 other) =>
-            Memory.Copy(other.Address, pt.Address, 0x24);
+        internal static void CopyFrom(this NiMatrix33 pt, NiMatrix33 other) => Memory.Copy(other.Address, pt.Address, 0x24);
     }
 }

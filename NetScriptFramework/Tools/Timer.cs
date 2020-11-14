@@ -3,18 +3,18 @@
     using System.Diagnostics;
     using System.Threading;
 
-    #region Timer class
+#region Timer class
 
     /// <summary>
     ///     This helps measure time. The timer is not started automatically.
     /// </summary>
     public sealed class Timer
     {
-        #region Constructors
+    #region Constructors
 
-        #endregion
+    #endregion
 
-        #region Timer members
+    #region Timer members
 
         /// <summary>
         ///     Get or set time offset. This will be added to time.
@@ -32,7 +32,7 @@
         {
             get
             {
-                if (!this.ManualUpdate)
+                if ( !this.ManualUpdate )
                 {
                     this.Update();
                 }
@@ -51,8 +51,7 @@
         /// <summary>
         ///     Perform manual time update now.
         /// </summary>
-        public void Update() =>
-            Interlocked.Exchange(ref this._value, (this._timer.ElapsedTicks * 1000) / Stopwatch.Frequency);
+        public void Update() => Interlocked.Exchange(ref this._value, (this._timer.ElapsedTicks * 1000) / Stopwatch.Frequency);
 
         /// <summary>
         ///     Start timer.
@@ -65,7 +64,8 @@
         public void Stop()
         {
             this._timer.Stop();
-            if (!this.ManualUpdate)
+
+            if ( !this.ManualUpdate )
             {
                 this.Update();
             }
@@ -86,16 +86,16 @@
         /// </summary>
         public void Restart() => this._timer.Restart();
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         private readonly Stopwatch _timer = new Stopwatch();
-        private long _offset;
-        private long _value;
-
-        #endregion
-    }
+        private          long      _offset;
+        private          long      _value;
 
     #endregion
+    }
+
+#endregion
 }

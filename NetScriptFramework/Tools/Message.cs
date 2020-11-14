@@ -4,14 +4,14 @@
     using System.Collections.Generic;
     using System.Text;
 
-    #region Block class
+#region Block class
 
     /// <summary>
     ///     Contains information about one block in a message.
     /// </summary>
     internal sealed class Block
     {
-        #region Static members
+    #region Static members
 
         /// <summary>
         ///     Parse a block from text.
@@ -37,10 +37,10 @@
             var block = new Block(message);
 
             // Parse until end.
-            while (index < text.Length)
+            while ( index < text.Length )
             {
                 // If we have escaped then just append to token.
-                if ((state & BlockParseStates.Escaped) != BlockParseStates.None)
+                if ( (state & BlockParseStates.Escaped) != BlockParseStates.None )
                 {
                     str.Append(text[index]);
                     state &= ~BlockParseStates.Escaped;
@@ -49,7 +49,7 @@
                 }
 
                 // Escape symbol.
-                if (Parser.IsSymbol(text, index, ParserActions.Escape, ref len))
+                if ( Parser.IsSymbol(text, index, ParserActions.Escape, ref len) )
                 {
                     state |= BlockParseStates.Escaped;
                     index += len;
@@ -57,11 +57,10 @@
                 }
 
                 // Literals are only allowed in block.
-                if (isBlock)
+                if ( isBlock )
                 {
                     // End of literal.
-                    if ((state & BlockParseStates.Literal) != BlockParseStates.None &&
-                        Parser.IsSymbol(text, index, ParserActions.LiteralEnd, ref len))
+                    if ( (state & BlockParseStates.Literal) != BlockParseStates.None && Parser.IsSymbol(text, index, ParserActions.LiteralEnd, ref len) )
                     {
                         // Advance index.
                         index += len;
@@ -72,7 +71,7 @@
                     }
 
                     // Is literal.
-                    if ((state & BlockParseStates.Literal) != BlockParseStates.None)
+                    if ( (state & BlockParseStates.Literal) != BlockParseStates.None )
                     {
                         // Append to token.
                         str.Append(text[index]);
@@ -81,7 +80,7 @@
                     }
 
                     // Start of literal.
-                    if (Parser.IsSymbol(text, index, ParserActions.LiteralStart, ref len))
+                    if ( Parser.IsSymbol(text, index, ParserActions.LiteralStart, ref len) )
                     {
                         // Advance index.
                         index += len;
@@ -93,8 +92,7 @@
                 }
 
                 // Ignore symbol.
-                if ((isBlock && Parser.IsSymbol(text, index, ParserActions.BlockIgnore, ref len)) ||
-                    Parser.IsSymbol(text, index, ParserActions.AlwaysIgnore, ref len))
+                if ( (isBlock && Parser.IsSymbol(text, index, ParserActions.BlockIgnore, ref len)) || Parser.IsSymbol(text, index, ParserActions.AlwaysIgnore, ref len) )
                 {
                     // Advance index.
                     index += len;
@@ -104,27 +102,24 @@
                 }
 
                 // End of block.
-                if (isBlock && Parser.IsSymbol(text, index, ParserActions.VariableEnd, ref len))
+                if ( isBlock && Parser.IsSymbol(text, index, ParserActions.VariableEnd, ref len) )
                 {
                     // Parameter list was not closed! Reached end of block unexpectedly.
-                    if ((state & BlockParseStates.ParameterList) != BlockParseStates.None)
+                    if ( (state & BlockParseStates.ParameterList) != BlockParseStates.None )
                     {
-                        return "Reached end of block before closing parameter list at index " + index +
-                               " in string \"" + text + "\"!";
+                        return "Reached end of block before closing parameter list at index " + index + " in string \"" + text + "\"!";
                     }
 
                     // Finish last token.
-                    if (str.Length != 0)
+                    if ( str.Length != 0 )
                     {
                         // Somehow had tokens left after parameter list.
-                        if ((state & BlockParseStates.HadParameterList) != BlockParseStates.None)
+                        if ( (state & BlockParseStates.HadParameterList) != BlockParseStates.None )
                         {
-                            return "Reached end of block with invalid token at index " + index + " in string\"" + text +
-                                   "\"!";
+                            return "Reached end of block with invalid token at index " + index + " in string\"" + text + "\"!";
                         }
 
-                        block.Elements.Add(
-                            new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Variable, str.ToString()));
+                        block.Elements.Add(new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Variable, str.ToString()));
                         str.Clear();
                     }
 
@@ -137,24 +132,22 @@
                 }
 
                 // Start of block.
-                if (Parser.IsSymbol(text, index, ParserActions.VariableStart, ref len))
+                if ( Parser.IsSymbol(text, index, ParserActions.VariableStart, ref len) )
                 {
                     // Only in block.
-                    if (isBlock)
+                    if ( isBlock )
                         // Sub-blocks are only allowed in parameters.
                     {
-                        if ((state & BlockParseStates.ParameterList) == BlockParseStates.None)
+                        if ( (state & BlockParseStates.ParameterList) == BlockParseStates.None )
                         {
-                            return "Unexpected start of another block at index " + index + " in string \"" + text +
-                                   "\"!";
+                            return "Unexpected start of another block at index " + index + " in string \"" + text + "\"!";
                         }
                     }
 
                     // Finish last token.
-                    if (str.Length != 0)
+                    if ( str.Length != 0 )
                     {
-                        block.Elements.Add(
-                            new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Literal, str.ToString()));
+                        block.Elements.Add(new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Literal, str.ToString()));
                         str.Clear();
                     }
 
@@ -163,10 +156,10 @@
 
                     // Read another block recursively.
                     Block read = null;
-                    var r = Parse(message, text, ref index, ref read, true);
+                    var   r    = Parse(message, text, ref index, ref read, true);
 
                     // Error occurred while reading sub-block. Return error.
-                    if (r != null)
+                    if ( r != null )
                     {
                         return r;
                     }
@@ -177,14 +170,13 @@
                 }
 
                 // Block control symbols.
-                if (isBlock)
+                if ( isBlock )
                 {
                     // Token delimiter.
-                    if ((state & BlockParseStates.ParameterList) == BlockParseStates.None &&
-                        Parser.IsSymbol(text, index, ParserActions.VariableDelimiter, ref len))
+                    if ( (state & BlockParseStates.ParameterList) == BlockParseStates.None && Parser.IsSymbol(text, index, ParserActions.VariableDelimiter, ref len) )
                     {
                         // Invalid location for delimiter.
-                        if (str.Length == 0)
+                        if ( str.Length == 0 )
                         {
                             return "Unexpected argument delimiter at index " + index + " in string \"" + text + "\"!";
                         }
@@ -193,24 +185,22 @@
                         index += len;
 
                         // Convert to argument.
-                        block.Elements.Add(
-                            new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Argument, str.ToString()));
+                        block.Elements.Add(new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Argument, str.ToString()));
                         str.Clear();
                         continue;
                     }
 
                     // Argument start.
-                    if ((state & BlockParseStates.ParameterList) == BlockParseStates.None &&
-                        Parser.IsSymbol(text, index, ParserActions.ArgumentStart, ref len))
+                    if ( (state & BlockParseStates.ParameterList) == BlockParseStates.None && Parser.IsSymbol(text, index, ParserActions.ArgumentStart, ref len) )
                     {
                         // Empty token.
-                        if (str.Length == 0)
+                        if ( str.Length == 0 )
                         {
                             return "Unexpected parameter list at index " + index + " in string \"" + text + "\"!";
                         }
 
                         // Already had list.
-                        if ((state & BlockParseStates.HadParameterList) != BlockParseStates.None)
+                        if ( (state & BlockParseStates.HadParameterList) != BlockParseStates.None )
                         {
                             return "Unexpected parameter list at index " + index + " in string\"" + text + "\"!";
                         }
@@ -219,8 +209,7 @@
                         index += len;
 
                         // Add last token as function.
-                        block.Elements.Add(
-                            new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Function, str.ToString()));
+                        block.Elements.Add(new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Function, str.ToString()));
                         str.Clear();
 
                         // Now we are listening parameters.
@@ -229,17 +218,15 @@
                     }
 
                     // Argument end.
-                    if ((state & BlockParseStates.ParameterList) != BlockParseStates.None &&
-                        Parser.IsSymbol(text, index, ParserActions.ArgumentEnd, ref len))
+                    if ( (state & BlockParseStates.ParameterList) != BlockParseStates.None && Parser.IsSymbol(text, index, ParserActions.ArgumentEnd, ref len) )
                     {
                         // Advance index.
                         index += len;
 
                         // If have token then it's argument.
-                        if (str.Length != 0)
+                        if ( str.Length != 0 )
                         {
-                            block.Elements.Add(
-                                new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Literal, str.ToString()));
+                            block.Elements.Add(new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Literal, str.ToString()));
                             str.Clear();
                         }
 
@@ -250,23 +237,20 @@
                     }
 
                     // Argument delimiter.
-                    if ((state & BlockParseStates.ParameterList) != BlockParseStates.None &&
-                        Parser.IsSymbol(text, index, ParserActions.ArgumentDelimiter, ref len))
+                    if ( (state & BlockParseStates.ParameterList) != BlockParseStates.None && Parser.IsSymbol(text, index, ParserActions.ArgumentDelimiter, ref len) )
                     {
                         // Advance index.
                         index += len;
 
                         // If have token then it's argument.
-                        if (str.Length != 0)
+                        if ( str.Length != 0 )
                         {
-                            block.Elements.Add(
-                                new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Literal, str.ToString()));
+                            block.Elements.Add(new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Literal, str.ToString()));
                             str.Clear();
                         }
 
                         // Add delimiter.
-                        block.Elements.Add(
-                            new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.ParameterDelimiter, null));
+                        block.Elements.Add(new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.ParameterDelimiter, null));
                         continue;
                     }
                 }
@@ -277,17 +261,16 @@
             }
 
             // Not allowed to reach here in block.
-            if (isBlock)
+            if ( isBlock )
                 // Error.
             {
                 return "Reached end of string unexpectedly while parsing block in string \"" + text + "\"!";
             }
 
             // If have token then it's text.
-            if (str.Length != 0)
+            if ( str.Length != 0 )
             {
-                block.Elements.Add(
-                    new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Literal, str.ToString()));
+                block.Elements.Add(new KeyValuePair<BlockElementTypes, object>(BlockElementTypes.Literal, str.ToString()));
                 str.Clear();
             }
 
@@ -296,9 +279,9 @@
             return null;
         }
 
-        #endregion
+    #endregion
 
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         ///     Create a new block.
@@ -313,13 +296,13 @@
         /// <param name="msg">New message.</param>
         internal Block(Block block, Message msg)
         {
-            this.Message = msg;
+            this.Message  = msg;
             this.Elements = block.Elements;
         }
 
-        #endregion
+    #endregion
 
-        #region Block members
+    #region Block members
 
         /// <summary>
         ///     Check if this block or any sub block has element with this type.
@@ -328,14 +311,14 @@
         /// <returns></returns>
         internal bool HasAnyElementType(BlockElementTypes type)
         {
-            foreach (var x in this.Elements)
+            foreach ( var x in this.Elements )
             {
-                if (x.Key == type)
+                if ( x.Key == type )
                 {
                     return true;
                 }
 
-                if (x.Key == BlockElementTypes.Block && ((Block)x.Value).HasAnyElementType(type))
+                if ( x.Key == BlockElementTypes.Block && ((Block)x.Value).HasAnyElementType(type) )
                 {
                     return true;
                 }
@@ -352,8 +335,7 @@
         /// <summary>
         ///     Elements of block.
         /// </summary>
-        private readonly List<KeyValuePair<BlockElementTypes, object>> Elements =
-            new List<KeyValuePair<BlockElementTypes, object>>();
+        private readonly List<KeyValuePair<BlockElementTypes, object>> Elements = new List<KeyValuePair<BlockElementTypes, object>>();
 
         /// <summary>
         ///     Convert block to string.
@@ -367,51 +349,53 @@
             var str = new StringBuilder();
 
             // Function temporary data.
-            string fn = null;
+            string       fn   = null;
             List<string> args = null;
 
             // Start to parse.
             var obj = parser["this"];
-            for (var i = 0; i < this.Elements.Count; i++)
+
+            for ( var i = 0; i < this.Elements.Count; i++ )
             {
-                switch (this.Elements[i].Key)
+                switch ( this.Elements[i].Key )
                 {
-                    case BlockElementTypes.Argument:
+                    case BlockElementTypes.Argument :
                         obj = parser.ParseArgument(this.Message, (string)this.Elements[i].Value, obj);
-                        if (obj == null)
+
+                        if ( obj == null )
                         {
                             obj = parser[(string)this.Elements[i].Value];
                         }
 
-                        if (obj == null)
+                        if ( obj == null )
                         {
-                            result = "Failed to parse argument \"" + this.Elements[i].Value + "\" on " +
-                                     (obj != null ? obj.ToString() : "(null)") + "!";
+                            result = "Failed to parse argument \"" + this.Elements[i].Value + "\" on " + (obj != null ? obj.ToString() : "(null)") + "!";
                             return false;
                         }
 
                         break;
 
-                    case BlockElementTypes.Variable:
+                    case BlockElementTypes.Variable :
                     {
                         var val = parser.ParseVariable(this.Message, (string)this.Elements[i].Value, obj);
-                        if (val == null)
+
+                        if ( val == null )
                         {
-                            result = "Failed to parse variable \"" + this.Elements[i].Value + "\" on " +
-                                     (obj != null ? obj.ToString() : "(null)") + "!";
+                            result = "Failed to parse variable \"" + this.Elements[i].Value + "\" on " + (obj != null ? obj.ToString() : "(null)") + "!";
                             return false;
                         }
 
                         str.Append(val);
                     }
+
                         break;
 
-                    case BlockElementTypes.Literal:
-                        if (fn != null)
+                    case BlockElementTypes.Literal :
+                        if ( fn != null )
                         {
-                            if (args == null)
+                            if ( args == null )
                             {
-                                args = new List<string> {(string)this.Elements[i].Value};
+                                args = new List<string> { (string)this.Elements[i].Value };
                             }
                             else
                             {
@@ -422,21 +406,22 @@
 
                         break;
 
-                    case BlockElementTypes.Block:
+                    case BlockElementTypes.Block :
                     {
                         string val = null;
-                        var r = ((Block)this.Elements[i].Value).ToString(parser, ref val);
-                        if (!r)
+                        var    r   = ((Block)this.Elements[i].Value).ToString(parser, ref val);
+
+                        if ( !r )
                         {
                             result = val;
                             return r;
                         }
 
-                        if (fn != null)
+                        if ( fn != null )
                         {
-                            if (args == null)
+                            if ( args == null )
                             {
-                                args = new List<string> {val};
+                                args = new List<string> { val };
                             }
                             else
                             {
@@ -445,11 +430,12 @@
                         }
                         else { str.Append(val); }
                     }
+
                         break;
 
-                    case BlockElementTypes.Function:
+                    case BlockElementTypes.Function :
                     {
-                        if (fn != null)
+                        if ( fn != null )
                         {
                             result = "Found more than one function call in a block!";
                             return false;
@@ -457,39 +443,40 @@
 
                         fn = (string)this.Elements[i].Value;
                     }
+
                         break;
 
-                    case BlockElementTypes.ParameterDelimiter:
+                    case BlockElementTypes.ParameterDelimiter :
                     {
-                        if (fn == null)
+                        if ( fn == null )
                         {
                             result = "Found invalid parameter delimiter in a block!";
                             return false;
                         }
 
-                        if (args == null)
+                        if ( args == null )
                         {
-                            args = new List<string> {""};
+                            args = new List<string> { "" };
                         }
                         else
                         {
                             args.Add("");
                         }
                     }
+
                         break;
 
-                    default:
-                        throw new NotImplementedException();
+                    default : throw new NotImplementedException();
                 }
             }
 
-            if (fn != null)
+            if ( fn != null )
             {
                 var val = parser.ParseFunction(this.Message, fn, args != null ? args.ToArray() : new string[0], obj);
-                if (val == null)
+
+                if ( val == null )
                 {
-                    result = "Failed to parse function \"" + fn + "\" on " + (obj != null ? obj.ToString() : "(null)") +
-                             "!";
+                    result = "Failed to parse function \"" + fn + "\" on " + (obj != null ? obj.ToString() : "(null)") + "!";
                     return false;
                 }
 
@@ -500,17 +487,17 @@
             return true;
         }
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 
-    #region Block enums
+#region Block enums
 
     /// <summary>
     ///     All possible states of block parse.
     /// </summary>
-    [Flags]
+    [ Flags ]
     internal enum BlockParseStates : uint
     {
         /// <summary>
@@ -575,16 +562,16 @@
         ParameterDelimiter
     }
 
-    #endregion
+#endregion
 
-    #region IArgument interface
+#region IArgument interface
 
     /// <summary>
     ///     This implements functionality for an argument of message that can be parsed.
     /// </summary>
     public interface IArgument
     {
-        #region IArgument members
+    #region IArgument members
 
         /// <summary>
         ///     Parse an argument from this object.
@@ -614,26 +601,26 @@
         /// <returns></returns>
         string ParseFunction(string key, string[] args, Message message, Parser parser);
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 
-    #region Message class
+#region Message class
 
     /// <summary>
     ///     This contains a message that may contain variables to be parsed by the parser.
     /// </summary>
     public sealed class Message
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         ///     Create a new empty message.
         /// </summary>
         public Message()
         {
-            this._text = "";
+            this._text  = "";
             this._block = new Block(this);
         }
 
@@ -643,15 +630,16 @@
         /// <param name="text">Text to set. Null is not allowed.</param>
         public Message(string text)
         {
-            if (text == null)
+            if ( text == null )
             {
                 throw new ArgumentNullException("text");
             }
 
             this._text = text;
             var index = 0;
-            var r = Block.Parse(this, text, ref index, ref this._block, false);
-            if (!string.IsNullOrEmpty(r))
+            var r     = Block.Parse(this, text, ref index, ref this._block, false);
+
+            if ( !string.IsNullOrEmpty(r) )
             {
                 throw new ArgumentException("text", r);
             }
@@ -663,18 +651,18 @@
         /// <param name="msg">Message to copy.</param>
         public Message(Message msg)
         {
-            if (msg == null)
+            if ( msg == null )
             {
                 throw new ArgumentNullException("msg");
             }
 
-            this._text = msg._text;
+            this._text  = msg._text;
             this._block = new Block(msg._block, this);
         }
 
-        #endregion
+    #endregion
 
-        #region Message members
+    #region Message members
 
         /// <summary>
         ///     Get or set raw text of message.
@@ -687,13 +675,13 @@
             set
             {
                 // Null is not allowed.
-                if (value == null)
+                if ( value == null )
                 {
                     throw new ArgumentNullException("value");
                 }
 
                 // Save some resources.
-                if (this._text == value)
+                if ( this._text == value )
                 {
                     return;
                 }
@@ -703,8 +691,9 @@
 
                 // Calculate cached block.
                 var index = 0;
-                var r = Block.Parse(this, this._text, ref index, ref this._block, false);
-                if (!string.IsNullOrEmpty(r))
+                var r     = Block.Parse(this, this._text, ref index, ref this._block, false);
+
+                if ( !string.IsNullOrEmpty(r) )
                 {
                     throw new ArgumentException("value", r);
                 }
@@ -718,14 +707,15 @@
         /// <returns></returns>
         public string Parse(Parser parser = null)
         {
-            if (parser == null)
+            if ( parser == null )
             {
                 parser = new Parser();
             }
 
             string v = null;
-            var r = this._block.ToString(parser, ref v);
-            if (!r)
+            var    r = this._block.ToString(parser, ref v);
+
+            if ( !r )
             {
                 throw new InvalidOperationException(v);
             }
@@ -741,68 +731,69 @@
         /// <returns></returns>
         public bool TryParse(out string result, Parser parser = null)
         {
-            if (parser == null)
+            if ( parser == null )
             {
                 parser = new Parser();
             }
 
             string v = null;
-            var r = this._block.ToString(parser, ref v);
+            var    r = this._block.ToString(parser, ref v);
             result = v;
             return r;
         }
 
-        #endregion
-
-        #region Internal members
-
-        private string _text;
-        private Block _block;
-
-        #endregion
-    }
-
     #endregion
 
-    #region Parser class
+    #region Internal members
+
+        private string _text;
+        private Block  _block;
+
+    #endregion
+    }
+
+#endregion
+
+#region Parser class
 
     /// <summary>
     ///     Implements default message parser behavior.
     /// </summary>
     public class Parser
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         ///     Perform static initialization.
         /// </summary>
         static Parser()
         {
-            EscapeSymbol = new SymbolList("\\");
-            VariableStartSymbol = new SymbolList("<");
-            VariableEndSymbol = new SymbolList(">");
+            EscapeSymbol            = new SymbolList("\\");
+            VariableStartSymbol     = new SymbolList("<");
+            VariableEndSymbol       = new SymbolList(">");
             VariableDelimiterSymbol = new SymbolList(".");
-            ArgumentStartSymbol = new SymbolList("(");
-            ArgumentEndSymbol = new SymbolList(")");
+            ArgumentStartSymbol     = new SymbolList("(");
+            ArgumentEndSymbol       = new SymbolList(")");
             ArgumentDelimiterSymbol = new SymbolList(",");
-            LiteralStartSymbol = new SymbolList("\"");
-            LiteralEndSymbol = new SymbolList("\"");
-            IgnoreBlockSymbol = new SymbolList(" ", "\t");
-            IgnoreAlwaysSymbol = new SymbolList();
+            LiteralStartSymbol      = new SymbolList("\"");
+            LiteralEndSymbol        = new SymbolList("\"");
+            IgnoreBlockSymbol       = new SymbolList(" ", "\t");
+            IgnoreAlwaysSymbol      = new SymbolList();
 
             // Register if function.
             Functions["if"] = q =>
             {
-                if (q.Length <= 1)
+                if ( q.Length <= 1 )
                 {
                     return null;
                 }
 
-                if (q.Length == 2)
+                if ( q.Length == 2 )
                 {
-                    var v = new Value(q[0]);
+                    var v  = new Value(q[0]);
                     var qr = false;
-                    if (v.TryToBoolean(out qr))
+
+                    if ( v.TryToBoolean(out qr) )
                     {
                         return qr ? q[1] : "";
                     }
@@ -810,11 +801,12 @@
                     return null;
                 }
 
-                if (q.Length == 3)
+                if ( q.Length == 3 )
                 {
-                    var v = new Value(q[0]);
+                    var v  = new Value(q[0]);
                     var qr = false;
-                    if (v.TryToBoolean(out qr))
+
+                    if ( v.TryToBoolean(out qr) )
                     {
                         return qr ? q[1] : q[2];
                     }
@@ -828,16 +820,17 @@
             // Register randomizer function.
             Functions["rand"] = q =>
             {
-                if (q.Length == 0)
+                if ( q.Length == 0 )
                 {
                     return new Value(Randomizer.NextDouble()).ToString();
                 }
 
-                if (q.Length == 1)
+                if ( q.Length == 1 )
                 {
-                    var v = new Value(q[0]);
+                    var    v = new Value(q[0]);
                     double qv;
-                    if (v.TryToDouble(out qv))
+
+                    if ( v.TryToDouble(out qv) )
                     {
                         return Randomizer.Roll(qv) ? "1" : "0";
                     }
@@ -845,18 +838,19 @@
                     return null;
                 }
 
-                if (q.Length == 2)
+                if ( q.Length == 2 )
                 {
                     var v1 = new Value(q[0]);
                     var v2 = new Value(q[1]);
 
                     double qv1, qv2;
-                    if (!v1.TryToDouble(out qv1) || !v2.TryToDouble(out qv2))
+
+                    if ( !v1.TryToDouble(out qv1) || !v2.TryToDouble(out qv2) )
                     {
                         return null;
                     }
 
-                    if (qv2 < qv1)
+                    if ( qv2 < qv1 )
                     {
                         return v1.ToString();
                     }
@@ -866,13 +860,14 @@
 
                 return null;
             };
-            Functions["rnd"] = Functions["rand"];
+
+            Functions["rnd"]    = Functions["rand"];
             Functions["random"] = Functions["rand"];
         }
 
-        #endregion
+    #endregion
 
-        #region Parser members
+    #region Parser members
 
         /// <summary>
         ///     Get or set escape sequence symbol. Default is one backslash.
@@ -939,7 +934,7 @@
         public virtual IArgument ParseArgument(Message message, string keyword, IArgument obj)
         {
             // Let object handle this.
-            if (obj != null)
+            if ( obj != null )
             {
                 return obj.ParseArgument(keyword, message, this);
             }
@@ -958,7 +953,7 @@
         public virtual string ParseVariable(Message message, string keyword, IArgument obj)
         {
             // Let object handle this.
-            if (obj != null)
+            if ( obj != null )
             {
                 return obj.ParseVariable(keyword, message, this);
             }
@@ -978,13 +973,14 @@
         public virtual string ParseFunction(Message message, string keyword, string[] args, IArgument obj)
         {
             // Let object handle this.
-            if (obj != null)
+            if ( obj != null )
             {
                 return obj.ParseFunction(keyword, args, message, this);
             }
 
             Func<string[], string> registered = null;
-            if (Functions.TryGetValue(keyword, out registered))
+
+            if ( Functions.TryGetValue(keyword, out registered) )
             {
                 return registered(args);
             }
@@ -1002,13 +998,14 @@
         {
             get
             {
-                if (keyword == null)
+                if ( keyword == null )
                 {
                     throw new ArgumentNullException("keyword");
                 }
 
                 IArgument v = null;
-                if (this.Arguments.TryGetValue(keyword, out v))
+
+                if ( this.Arguments.TryGetValue(keyword, out v) )
                 {
                     return v;
                 }
@@ -1017,12 +1014,12 @@
             }
             set
             {
-                if (keyword == null)
+                if ( keyword == null )
                 {
                     throw new ArgumentNullException("keyword");
                 }
 
-                if (value == null)
+                if ( value == null )
                 {
                     this.Arguments.Remove(keyword);
                 }
@@ -1033,9 +1030,9 @@
             }
         }
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         ///     Check if text has symbol for current action.
@@ -1049,43 +1046,54 @@
         {
             // Get symbol list for action.
             SymbolList list = null;
-            switch (action)
+
+            switch ( action )
             {
-                case ParserActions.Escape:
+                case ParserActions.Escape :
                     list = EscapeSymbol;
                     break;
-                case ParserActions.VariableStart:
+
+                case ParserActions.VariableStart :
                     list = VariableStartSymbol;
                     break;
-                case ParserActions.VariableEnd:
+
+                case ParserActions.VariableEnd :
                     list = VariableEndSymbol;
                     break;
-                case ParserActions.VariableDelimiter:
+
+                case ParserActions.VariableDelimiter :
                     list = VariableDelimiterSymbol;
                     break;
-                case ParserActions.ArgumentStart:
+
+                case ParserActions.ArgumentStart :
                     list = ArgumentStartSymbol;
                     break;
-                case ParserActions.ArgumentEnd:
+
+                case ParserActions.ArgumentEnd :
                     list = ArgumentEndSymbol;
                     break;
-                case ParserActions.ArgumentDelimiter:
+
+                case ParserActions.ArgumentDelimiter :
                     list = ArgumentDelimiterSymbol;
                     break;
-                case ParserActions.LiteralStart:
+
+                case ParserActions.LiteralStart :
                     list = LiteralStartSymbol;
                     break;
-                case ParserActions.LiteralEnd:
+
+                case ParserActions.LiteralEnd :
                     list = LiteralEndSymbol;
                     break;
-                case ParserActions.BlockIgnore:
+
+                case ParserActions.BlockIgnore :
                     list = IgnoreBlockSymbol;
                     break;
-                case ParserActions.AlwaysIgnore:
+
+                case ParserActions.AlwaysIgnore :
                     list = IgnoreAlwaysSymbol;
                     break;
-                default:
-                    throw new InvalidOperationException();
+
+                default : throw new InvalidOperationException();
             }
 
             return list.Test(text, index, ref length);
@@ -1094,26 +1102,24 @@
         /// <summary>
         ///     Arguments added to this parser.
         /// </summary>
-        private readonly Dictionary<string, IArgument> Arguments =
-            new Dictionary<string, IArgument>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, IArgument> Arguments = new Dictionary<string, IArgument>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         ///     Custom functions.
         /// </summary>
-        protected static readonly Dictionary<string, Func<string[], string>> Functions =
-            new Dictionary<string, Func<string[], string>>(StringComparer.OrdinalIgnoreCase);
-
-        #endregion
-    }
+        protected static readonly Dictionary<string, Func<string[], string>> Functions = new Dictionary<string, Func<string[], string>>(StringComparer.OrdinalIgnoreCase);
 
     #endregion
+    }
 
-    #region Parser enums
+#endregion
+
+#region Parser enums
 
     /// <summary>
     ///     Options for parser.
     /// </summary>
-    [Flags]
+    [ Flags ]
     public enum ParserFlags : ulong
     {
         None = 0
@@ -1122,7 +1128,7 @@
     /// <summary>
     ///     All actions that the parser can perform.
     /// </summary>
-    [Flags]
+    [ Flags ]
     internal enum ParserActions : uint
     {
         None = 0,
@@ -1183,25 +1189,25 @@
         AlwaysIgnore = 0x400
     }
 
-    #endregion
+#endregion
 
-    #region SymbolList class
+#region SymbolList class
 
     /// <summary>
     ///     Represents a list of symbols that can be modified.
     /// </summary>
     public sealed class SymbolList
     {
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         ///     List of symbols.
         /// </summary>
         private readonly List<string> Symbols = new List<string>();
 
-        #endregion
+    #endregion
 
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         ///     Create a new symbol list.
@@ -1209,15 +1215,15 @@
         /// <param name="defaultSymbols">Default symbols to add to list.</param>
         internal SymbolList(params string[] defaultSymbols)
         {
-            foreach (var x in defaultSymbols)
+            foreach ( var x in defaultSymbols )
             {
                 this.Add(x);
             }
         }
 
-        #endregion
+    #endregion
 
-        #region SymbolList members
+    #region SymbolList members
 
         /// <summary>
         ///     Add a symbol to this list.
@@ -1225,17 +1231,17 @@
         /// <param name="symbol">Symbol to add.</param>
         public void Add(string symbol)
         {
-            if (symbol == null)
+            if ( symbol == null )
             {
                 throw new ArgumentNullException("symbol");
             }
 
-            if (symbol.Length == 0)
+            if ( symbol.Length == 0 )
             {
                 throw new ArgumentOutOfRangeException("symbol");
             }
 
-            if (this.Symbols.Contains(symbol))
+            if ( this.Symbols.Contains(symbol) )
             {
                 return;
             }
@@ -1250,7 +1256,7 @@
         /// <returns></returns>
         public bool Remove(string symbol)
         {
-            if (this.Symbols.Remove(symbol))
+            if ( this.Symbols.Remove(symbol) )
             {
                 return true;
             }
@@ -1273,10 +1279,10 @@
         public bool Test(string text, int index, ref int length)
         {
             // Check each symbol.
-            foreach (var x in this.Symbols)
+            foreach ( var x in this.Symbols )
                 // This matched.
             {
-                if (string.Compare(text, index, x, 0, x.Length) == 0)
+                if ( string.Compare(text, index, x, 0, x.Length) == 0 )
                 {
                     length = x.Length;
                     return true;
@@ -1298,8 +1304,8 @@
         /// <returns></returns>
         public string[] ToArray() => this.Symbols.ToArray();
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 }

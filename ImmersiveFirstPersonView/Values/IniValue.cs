@@ -5,14 +5,14 @@
     internal abstract class IniValue : CameraValueBase
     {
         private readonly string _name;
-        private double _def;
+        private          double _def;
 
         private Setting _setting;
-        private bool _tried;
+        private bool    _tried;
 
         internal IniValue(string name)
         {
-            this._name = name;
+            this._name =  name;
             this.Flags |= CameraValueFlags.NoTween;
         }
 
@@ -23,16 +23,18 @@
             get
             {
                 this.init();
-                if (this._setting == null)
+
+                if ( this._setting == null )
                 {
                     return 0;
                 }
 
-                switch (this._setting.SettingType)
+                switch ( this._setting.SettingType )
                 {
-                    case SettingTypes.Float: return this._setting.GetFloat();
-                    case SettingTypes.Int:
-                    case SettingTypes.UInt: return this._setting.GetInt();
+                    case SettingTypes.Float : return this._setting.GetFloat();
+
+                    case SettingTypes.Int :
+                    case SettingTypes.UInt : return this._setting.GetInt();
                 }
 
                 return 0;
@@ -41,18 +43,20 @@
             set
             {
                 this.init();
-                if (this._setting == null)
+
+                if ( this._setting == null )
                 {
                     return;
                 }
 
-                switch (this._setting.SettingType)
+                switch ( this._setting.SettingType )
                 {
-                    case SettingTypes.Float:
+                    case SettingTypes.Float :
                         this._setting.SetFloat((float)value);
                         break;
-                    case SettingTypes.Int:
-                    case SettingTypes.UInt:
+
+                    case SettingTypes.Int :
+                    case SettingTypes.UInt :
                         this._setting.SetInt((int)value);
                         break;
                 }
@@ -65,15 +69,15 @@
 
         private void init()
         {
-            if (this._tried)
+            if ( this._tried )
             {
                 return;
             }
 
-            this._tried = true;
+            this._tried   = true;
             this._setting = Setting.FindSettingByName(this.Name, true, true);
 
-            if (this._setting != null)
+            if ( this._setting != null )
             {
                 this._def = this.CurrentValue;
             }

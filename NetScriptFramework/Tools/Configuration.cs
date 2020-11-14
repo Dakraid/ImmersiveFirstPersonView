@@ -7,35 +7,35 @@
     using System.Reflection;
     using System.Text;
 
-    #region ConfigEntry class
+#region ConfigEntry class
 
     /// <summary>
     ///     One entry in configuration settings.
     /// </summary>
     public sealed class ConfigEntry
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         ///     Create a new entry.
         /// </summary>
-        internal ConfigEntry(string keyword, Value defaultValue, string name = null, string description = null,
-            ConfigEntryFlags flags = ConfigEntryFlags.None)
+        internal ConfigEntry(string keyword, Value defaultValue, string name = null, string description = null, ConfigEntryFlags flags = ConfigEntryFlags.None)
         {
             // Missing keyword.
-            if (keyword == null)
+            if ( keyword == null )
             {
                 throw new ArgumentNullException("keyword");
             }
 
             keyword = keyword.Trim();
-            if (keyword.Length == 0)
+
+            if ( keyword.Length == 0 )
             {
                 throw new ArgumentOutOfRangeException("keyword");
             }
 
             // Default value is missing.
-            if (defaultValue == null)
+            if ( defaultValue == null )
             {
                 throw new ArgumentNullException("defaultValue");
             }
@@ -51,13 +51,13 @@
             this.CurrentValue = defaultValue;
 
             // Set as name and description.
-            this.Name = name;
+            this.Name        = name;
             this.Description = description;
         }
 
-        #endregion
+    #endregion
 
-        #region ConfigEntry members
+    #region ConfigEntry members
 
         /// <summary>
         ///     Keyword of entry.
@@ -99,7 +99,7 @@
         public void AddValidRange(Value min, Value max)
         {
             // Invalid.
-            if (min == null && max == null)
+            if ( min == null && max == null )
             {
                 return;
             }
@@ -116,7 +116,7 @@
         public void AddValidValue(Value value)
         {
             // Invalid.
-            if (value == null)
+            if ( value == null )
             {
                 return;
             }
@@ -125,9 +125,9 @@
             this._validValue.Add(value);
         }
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         ///     Try to set value of this entry.
@@ -136,24 +136,25 @@
         /// <returns></returns>
         internal bool TrySetValue(string text)
         {
-            if (text == null)
+            if ( text == null )
             {
                 throw new ArgumentNullException("text");
             }
 
             Value newValue = null;
-            if (!Value.TryParse(text, this.DefaultValue.GetTypeCode(), out newValue))
+
+            if ( !Value.TryParse(text, this.DefaultValue.GetTypeCode(), out newValue) )
             {
                 return false;
             }
 
-            if (this.CurrentValue.Equals(newValue))
+            if ( this.CurrentValue.Equals(newValue) )
             {
                 return true;
             }
 
             this.CurrentValue = newValue;
-            this.IsModified = true;
+            this.IsModified   = true;
             return true;
         }
 
@@ -164,110 +165,128 @@
         internal string TryGetValue()
         {
             var text = this.CurrentValue.ToString();
-            if (this.DefaultValue.GetTypeCode() == TypeCode.String || this.DefaultValue.GetTypeCode() == TypeCode.Char)
+
+            if ( this.DefaultValue.GetTypeCode() == TypeCode.String || this.DefaultValue.GetTypeCode() == TypeCode.Char )
             {
                 return "\"" + text + "\"";
             }
 
-            if ((this.Flags & ConfigEntryFlags.PreferHex) != ConfigEntryFlags.None)
+            if ( (this.Flags & ConfigEntryFlags.PreferHex) != ConfigEntryFlags.None )
             {
                 var ok = false;
-                switch (this.DefaultValue.GetTypeCode())
+
+                switch ( this.DefaultValue.GetTypeCode() )
                 {
-                    case TypeCode.Byte:
-                    case TypeCode.Int16:
-                    case TypeCode.Int32:
-                    case TypeCode.Int64:
-                    case TypeCode.SByte:
-                    case TypeCode.UInt16:
-                    case TypeCode.UInt32:
-                    case TypeCode.UInt64:
+                    case TypeCode.Byte :
+                    case TypeCode.Int16 :
+                    case TypeCode.Int32 :
+                    case TypeCode.Int64 :
+                    case TypeCode.SByte :
+                    case TypeCode.UInt16 :
+                    case TypeCode.UInt32 :
+                    case TypeCode.UInt64 :
                         ok = true;
                         break;
                 }
 
-                if (ok)
+                if ( ok )
                 {
-                    switch (this.CurrentValue.GetTypeCode())
+                    switch ( this.CurrentValue.GetTypeCode() )
                     {
-                        case TypeCode.Byte:
+                        case TypeCode.Byte :
                         {
                             byte v = 0;
-                            if (byte.TryParse(text, out v))
+
+                            if ( byte.TryParse(text, out v) )
                             {
                                 return "0x" + v.ToString("X");
                             }
                         }
+
                             break;
 
-                        case TypeCode.SByte:
+                        case TypeCode.SByte :
                         {
                             sbyte v = 0;
-                            if (sbyte.TryParse(text, out v))
+
+                            if ( sbyte.TryParse(text, out v) )
                             {
                                 return "0x" + v.ToString("X");
                             }
                         }
+
                             break;
 
-                        case TypeCode.Int16:
+                        case TypeCode.Int16 :
                         {
                             short v = 0;
-                            if (short.TryParse(text, out v))
+
+                            if ( short.TryParse(text, out v) )
                             {
                                 return "0x" + v.ToString("X");
                             }
                         }
+
                             break;
 
-                        case TypeCode.UInt16:
+                        case TypeCode.UInt16 :
                         {
                             ushort v = 0;
-                            if (ushort.TryParse(text, out v))
+
+                            if ( ushort.TryParse(text, out v) )
                             {
                                 return "0x" + v.ToString("X");
                             }
                         }
+
                             break;
 
-                        case TypeCode.Int32:
+                        case TypeCode.Int32 :
                         {
                             var v = 0;
-                            if (int.TryParse(text, out v))
+
+                            if ( int.TryParse(text, out v) )
                             {
                                 return "0x" + v.ToString("X");
                             }
                         }
+
                             break;
 
-                        case TypeCode.UInt32:
+                        case TypeCode.UInt32 :
                         {
                             uint v = 0;
-                            if (uint.TryParse(text, out v))
+
+                            if ( uint.TryParse(text, out v) )
                             {
                                 return "0x" + v.ToString("X");
                             }
                         }
+
                             break;
 
-                        case TypeCode.Int64:
+                        case TypeCode.Int64 :
                         {
                             long v = 0;
-                            if (long.TryParse(text, out v))
+
+                            if ( long.TryParse(text, out v) )
                             {
                                 return "0x" + v.ToString("X");
                             }
                         }
+
                             break;
 
-                        case TypeCode.UInt64:
+                        case TypeCode.UInt64 :
                         {
                             ulong v = 0;
-                            if (ulong.TryParse(text, out v))
+
+                            if ( ulong.TryParse(text, out v) )
                             {
                                 return "0x" + v.ToString("X");
                             }
                         }
+
                             break;
                     }
                 }
@@ -282,28 +301,30 @@
         /// <returns></returns>
         internal List<string> GenerateCommentBlock()
         {
-            if ((this.Flags & ConfigEntryFlags.VeryShortComment) != ConfigEntryFlags.None)
+            if ( (this.Flags & ConfigEntryFlags.VeryShortComment) != ConfigEntryFlags.None )
             {
                 var cls = new List<string>();
-                if (!string.IsNullOrEmpty(this.Description))
+
+                if ( !string.IsNullOrEmpty(this.Description) )
                 {
                     var spl = Wrap(this.Description, GetLineLength());
-                    if (spl != null && spl.Length != 0)
+
+                    if ( spl != null && spl.Length != 0 )
                     {
                         cls.AddRange(spl);
                     }
 
-                    while (cls.Count != 0 && string.IsNullOrEmpty(cls[0]))
+                    while ( cls.Count != 0 && string.IsNullOrEmpty(cls[0]) )
                     {
                         cls.RemoveAt(0);
                     }
 
-                    while (cls.Count != 0 && string.IsNullOrEmpty(cls[cls.Count - 1]))
+                    while ( cls.Count != 0 && string.IsNullOrEmpty(cls[cls.Count - 1]) )
                     {
                         cls.RemoveAt(cls.Count - 1);
                     }
 
-                    for (var i = 0; i < cls.Count; i++)
+                    for ( var i = 0; i < cls.Count; i++ )
                     {
                         cls[i] = "# " + cls[i];
                     }
@@ -313,16 +334,16 @@
             }
 
             var started = false;
-            var lines = new List<string>();
+            var lines   = new List<string>();
 
-            if (!string.IsNullOrEmpty(this.Name))
+            if ( !string.IsNullOrEmpty(this.Name) )
             {
-                if (!started)
+                if ( !started )
                 {
                     lines.Add(ConfigLines.CommentBlockTop);
                     started = true;
 
-                    for (var i = 0; i < ConfigLines.CommentBlockTopMargin; i++)
+                    for ( var i = 0; i < ConfigLines.CommentBlockTopMargin; i++ )
                     {
                         WriteCommentBlock("", lines);
                     }
@@ -331,14 +352,14 @@
                 WriteCommentBlock("  " + this.Name, lines);
             }
 
-            if (!string.IsNullOrEmpty(this.Description))
+            if ( !string.IsNullOrEmpty(this.Description) )
             {
-                if (!started)
+                if ( !started )
                 {
                     lines.Add(ConfigLines.CommentBlockTop);
                     started = true;
 
-                    for (var i = 0; i < ConfigLines.CommentBlockTopMargin; i++)
+                    for ( var i = 0; i < ConfigLines.CommentBlockTopMargin; i++ )
                     {
                         WriteCommentBlock("", lines);
                     }
@@ -348,22 +369,25 @@
                 WriteCommentBlock(this.Description, lines);
             }
 
-            if (started)
+            if ( started )
             {
                 WriteCommentBlock("", lines);
 
                 var tn = this.DefaultValue.GetTypeCode().ToString().ToLower();
-                if (tn == "single")
+
+                if ( tn == "single" )
                 {
                     tn = "float";
                 }
 
                 WriteCommentBlock("   Type: (" + tn + ")", lines);
                 var valid = new List<string[]>();
-                foreach (var x in this._validRange)
+
+                foreach ( var x in this._validRange )
                 {
                     var vl = new string[2];
-                    if (x.Key == null)
+
+                    if ( x.Key == null )
                     {
                         vl[0] = "...";
                     }
@@ -372,7 +396,7 @@
                         vl[0] = x.Key.ToString();
                     }
 
-                    if (x.Value == null)
+                    if ( x.Value == null )
                     {
                         vl[1] = "...";
                     }
@@ -384,7 +408,7 @@
                     valid.Add(vl);
                 }
 
-                foreach (var x in this._validValue)
+                foreach ( var x in this._validValue )
                 {
                     var vl = new string[1];
                     vl[0] = x.ToString();
@@ -393,26 +417,28 @@
                 }
 
                 var strVal = new StringBuilder();
-                foreach (var x in valid)
+
+                foreach ( var x in valid )
                 {
-                    if (x.Length == 1)
+                    if ( x.Length == 1 )
                     {
-                        if (strVal.Length != 0)
+                        if ( strVal.Length != 0 )
                         {
                             strVal.Append("; ");
                         }
 
                         strVal.Append(x[0]);
                     }
-                    else if (x.Length == 2)
+                    else if ( x.Length == 2 )
                     {
-                        if (strVal.Length != 0)
+                        if ( strVal.Length != 0 )
                         {
                             strVal.Append("; ");
                         }
 
                         strVal.Append(x[0]);
-                        if (x[0] != "..." && x[1] != "...")
+
+                        if ( x[0] != "..." && x[1] != "..." )
                         {
                             strVal.Append("...");
                         }
@@ -421,12 +447,12 @@
                     }
                 }
 
-                if (strVal.Length != 0)
+                if ( strVal.Length != 0 )
                 {
                     WriteCommentBlock("   Range: " + strVal, lines);
                 }
 
-                for (var i = 0; i < ConfigLines.CommentBlockBottomMargin; i++)
+                for ( var i = 0; i < ConfigLines.CommentBlockBottomMargin; i++ )
                 {
                     WriteCommentBlock("", lines);
                 }
@@ -454,21 +480,23 @@
         /// <param name="writer">File stream.</param>
         internal void WriteToFile(StreamWriter writer)
         {
-            if (!this.ShouldWriteToFile())
+            if ( !this.ShouldWriteToFile() )
             {
                 return;
             }
 
             var lines = this.GenerateCommentBlock();
-            if (lines.Count != 0 && (this.Flags & ConfigEntryFlags.VeryShortComment) == ConfigEntryFlags.None)
+
+            if ( lines.Count != 0 && (this.Flags & ConfigEntryFlags.VeryShortComment) == ConfigEntryFlags.None )
             {
                 lines.Add("");
             }
 
             writer.Flush();
-            if (writer.BaseStream.Position != 0)
+
+            if ( writer.BaseStream.Position != 0 )
             {
-                if (lines.Count != 0 || (this.Flags & ConfigEntryFlags.NoNewLineBefore) == ConfigEntryFlags.None)
+                if ( lines.Count != 0 || (this.Flags & ConfigEntryFlags.NoNewLineBefore) == ConfigEntryFlags.None )
                 {
                     lines.Insert(0, "");
                 }
@@ -476,7 +504,7 @@
 
             lines.Add(this.GenerateSetting());
 
-            foreach (var x in lines)
+            foreach ( var x in lines )
             {
                 writer.WriteLine(x);
             }
@@ -489,14 +517,13 @@
         internal bool ShouldWriteToFile()
         {
             // Don't write this to file.
-            if ((this.Flags & ConfigEntryFlags.NoSave) != ConfigEntryFlags.None)
+            if ( (this.Flags & ConfigEntryFlags.NoSave) != ConfigEntryFlags.None )
             {
                 return false;
             }
 
             // No need to write to file.
-            if ((this.Flags & ConfigEntryFlags.Hidden) != ConfigEntryFlags.None &&
-                this.CurrentValue.Equals(this.DefaultValue))
+            if ( (this.Flags & ConfigEntryFlags.Hidden) != ConfigEntryFlags.None && this.CurrentValue.Equals(this.DefaultValue) )
             {
                 return false;
             }
@@ -512,7 +539,7 @@
         private void Validate(Value value)
         {
             // Invalid.
-            if (value == null)
+            if ( value == null )
             {
                 throw new ArgumentNullException("value");
             }
@@ -520,25 +547,26 @@
             // Check range.
             {
                 var isValid = false;
-                foreach (var o in this._validValue)
+
+                foreach ( var o in this._validValue )
                 {
-                    if (o.Equals(value))
+                    if ( o.Equals(value) )
                     {
                         isValid = true;
                         break;
                     }
                 }
 
-                if (!isValid)
+                if ( !isValid )
                 {
-                    foreach (var x in this._validRange)
+                    foreach ( var x in this._validRange )
                     {
-                        if (x.Key != null && value.CompareTo(x.Key) < 0)
+                        if ( x.Key != null && value.CompareTo(x.Key) < 0 )
                         {
                             continue;
                         }
 
-                        if (x.Value != null && value.CompareTo(x.Value) > 0)
+                        if ( x.Value != null && value.CompareTo(x.Value) > 0 )
                         {
                             continue;
                         }
@@ -547,7 +575,7 @@
                         break;
                     }
 
-                    if (!isValid && (this._validValue.Count != 0 || this._validRange.Count != 0))
+                    if ( !isValid && (this._validValue.Count != 0 || this._validRange.Count != 0) )
                     {
                         throw new ArgumentOutOfRangeException("value", "Value is out of range!");
                     }
@@ -566,37 +594,39 @@
         /// <returns></returns>
         internal static string[] Wrap(string text, int length, int indent = 0)
         {
-            if (text == null)
+            if ( text == null )
             {
                 throw new ArgumentNullException("text");
             }
 
-            if (text.Length <= length)
+            if ( text.Length <= length )
             {
-                return text.Split(new[] {"\r\n", "\n", "\r"}, StringSplitOptions.None);
+                return text.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);
             }
 
             indent = Math.Max(0, Math.Min(indent, length - 1));
 
-            var lines = new StringBuilder();
-            var lastOk = -1;
+            var lines     = new StringBuilder();
+            var lastOk    = -1;
             var lastWrite = 0;
-            var len = 0;
-            for (var i = 0; i < text.Length; i++)
+            var len       = 0;
+
+            for ( var i = 0; i < text.Length; i++ )
             {
-                if (len == length)
+                if ( len == length )
                 {
-                    if (text[i] == ' ' || text[i] == '\t' || text[i] == '\n' || text[i] == '\r')
+                    if ( text[i] == ' ' || text[i] == '\t' || text[i] == '\n' || text[i] == '\r' )
                     {
                         lastOk = i;
                     }
 
-                    if (lastOk == -1)
+                    if ( lastOk == -1 )
                     {
-                        if (lines.Length > 0)
+                        if ( lines.Length > 0 )
                         {
                             lines.Append("\n");
-                            if (indent > 0)
+
+                            if ( indent > 0 )
                             {
                                 lines.Append(' ', indent);
                             }
@@ -604,14 +634,15 @@
 
                         lines.Append(text.Substring(lastWrite, i - lastWrite));
                         lastWrite = i;
-                        len = indent;
+                        len       = indent;
                     }
                     else
                     {
-                        if (lines.Length > 0)
+                        if ( lines.Length > 0 )
                         {
                             lines.Append("\n");
-                            if (indent > 0)
+
+                            if ( indent > 0 )
                             {
                                 lines.Append(' ', indent);
                             }
@@ -619,26 +650,28 @@
 
                         lines.Append(text.Substring(lastWrite, lastOk - lastWrite));
                         lastWrite = lastOk;
-                        while (lastWrite < text.Length && (text[lastWrite] == ' ' || text[lastWrite] == '\t'))
+
+                        while ( lastWrite < text.Length && (text[lastWrite] == ' ' || text[lastWrite] == '\t') )
                         {
                             lastWrite++;
                         }
 
                         lastOk = -1;
-                        len = indent;
-                        i = lastWrite - 1;
+                        len    = indent;
+                        i      = lastWrite - 1;
                         continue;
                     }
                 }
 
-                switch (text[i])
+                switch ( text[i] )
                 {
-                    case '\n':
-                    case '\r':
-                        if (lines.Length > 0)
+                    case '\n' :
+                    case '\r' :
+                        if ( lines.Length > 0 )
                         {
                             lines.Append("\n");
-                            if (indent > 0)
+
+                            if ( indent > 0 )
                             {
                                 lines.Append(' ', indent);
                             }
@@ -646,24 +679,26 @@
 
                         lines.Append(text.Substring(lastWrite, i - lastWrite));
                         lastWrite = i + 1;
-                        len = indent;
-                        lastOk = -1;
+                        len       = indent;
+                        lastOk    = -1;
                         continue;
                 }
 
                 len++;
-                if (_wrapChars.Contains(text[i]))
+
+                if ( _wrapChars.Contains(text[i]) )
                 {
                     lastOk = i;
                 }
             }
 
-            if (lastWrite < text.Length)
+            if ( lastWrite < text.Length )
             {
-                if (len > indent && lines.Length > 0)
+                if ( len > indent && lines.Length > 0 )
                 {
                     lines.Append("\n");
-                    if (indent > 0)
+
+                    if ( indent > 0 )
                     {
                         lines.Append(' ', indent);
                     }
@@ -672,13 +707,13 @@
                 lines.Append(text.Substring(lastWrite, text.Length - lastWrite));
             }
 
-            return lines.ToString().Split(new[] {'\n'}, StringSplitOptions.None);
+            return lines.ToString().Split(new[] { '\n' }, StringSplitOptions.None);
         }
 
         /// <summary>
         ///     Wrap characters.
         /// </summary>
-        private static readonly char[] _wrapChars = {' ', ',', '.', '?', '!', ':', ';', ')', ']', '}', '-', '>', '\t'};
+        private static readonly char[] _wrapChars = { ' ', ',', '.', '?', '!', ':', ';', ')', ']', '}', '-', '>', '\t' };
 
         /// <summary>
         ///     Write a comment block line.
@@ -688,12 +723,13 @@
         private static void WriteCommentBlock(string text, List<string> lines)
         {
             var wrp = Wrap(text, GetLineLength());
-            if (wrp.Length == 0)
+
+            if ( wrp.Length == 0 )
             {
-                wrp = new[] {""};
+                wrp = new[] { "" };
             }
 
-            foreach (var x in wrp)
+            foreach ( var x in wrp )
                 /*if (x.IndexOfAny(new[] { '\r', '\n' }) >= 0)
                     {
                         var spl = x.Split(new string[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);
@@ -726,10 +762,7 @@
         ///     Get comment block max line length.
         /// </summary>
         /// <returns></returns>
-        private static int GetLineLength() =>
-            120 - (ConfigLines.CommentBlockLeft.Length + ConfigLines.CommentBlockLeftMargin +
-                   ConfigLines.CommentBlockRight.Length +
-                   ConfigLines.CommentBlockRightMargin);
+        private static int GetLineLength() => 120 - (ConfigLines.CommentBlockLeft.Length + ConfigLines.CommentBlockLeftMargin + ConfigLines.CommentBlockRight.Length + ConfigLines.CommentBlockRightMargin);
 
         /// <summary>
         ///     Convert entry to string.
@@ -738,19 +771,19 @@
         public override string ToString() => this.GenerateSetting();
 
         private readonly List<KeyValuePair<Value, Value>> _validRange = new List<KeyValuePair<Value, Value>>();
-        private readonly List<Value> _validValue = new List<Value>();
-
-        #endregion
-    }
+        private readonly List<Value>                      _validValue = new List<Value>();
 
     #endregion
+    }
 
-    #region ConfigEntry enums
+#endregion
+
+#region ConfigEntry enums
 
     /// <summary>
     ///     Options for one configuration entry.
     /// </summary>
-    [Flags]
+    [ Flags ]
     public enum ConfigEntryFlags : ulong
     {
         None = 0,
@@ -786,16 +819,16 @@
         VeryShortComment = 0x20
     }
 
-    #endregion
+#endregion
 
-    #region ConfigFile class
+#region ConfigFile class
 
     /// <summary>
     ///     Handles reading and writing configuration settings from file.
     /// </summary>
     public sealed class ConfigFile
     {
-        #region Constructors
+    #region Constructors
 
         /// <summary>
         ///     Create a new configuration file.
@@ -806,22 +839,25 @@
         /// </param>
         public ConfigFile(string keyword)
         {
-            if (keyword == null)
+            if ( keyword == null )
             {
                 throw new ArgumentNullException("keyword");
             }
 
             keyword = keyword.Trim();
-            if (keyword.Length == 0)
+
+            if ( keyword.Length == 0 )
             {
                 throw new ArgumentOutOfRangeException("keyword");
             }
 
             this.Keyword = keyword;
-            if (Main.Config != null)
+
+            if ( Main.Config != null )
             {
                 var value = Main.Config.GetValue(Main._Config_Plugin_Path);
-                if (value != null)
+
+                if ( value != null )
                 {
                     this.Path = value.ToString();
                 }
@@ -834,12 +870,12 @@
         internal ConfigFile()
         {
             this.Keyword = Main.FrameworkName;
-            this.Path = Main.FrameworkPath;
+            this.Path    = Main.FrameworkPath;
         }
 
-        #endregion
+    #endregion
 
-        #region ConfigFile members
+    #region ConfigFile members
 
         /// <summary>
         ///     Keyword of file.
@@ -870,7 +906,7 @@
             get => (this.Flags & ConfigFileFlags.ManualSave) == ConfigFileFlags.None;
             set
             {
-                if (value)
+                if ( value )
                 {
                     this.Flags &= ~ConfigFileFlags.ManualSave;
                 }
@@ -890,7 +926,7 @@
             get => (this.Flags & ConfigFileFlags.ManualCreate) == ConfigFileFlags.None;
             set
             {
-                if (value)
+                if ( value )
                 {
                     this.Flags &= ~ConfigFileFlags.ManualCreate;
                 }
@@ -910,73 +946,76 @@
         /// <param name="keyword">The keyword of the configuration file.</param>
         /// <param name="createIfMissing">if set to <c>true</c> then create configuration file if missing or failed to load.</param>
         /// <exception cref="System.ArgumentNullException">obj</exception>
-        public static bool LoadFrom<T>(T obj, string keyword, bool createIfMissing) where T : class
+        public static bool LoadFrom <T>(T obj, string keyword, bool createIfMissing) where T : class
         {
-            if (ReferenceEquals(obj, null))
+            if ( ReferenceEquals(obj, null) )
             {
                 throw new ArgumentNullException("obj");
             }
 
-            var type = obj.GetType();
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var type   = obj.GetType();
+            var fields = type.GetFields(BindingFlags.Public     | BindingFlags.NonPublic | BindingFlags.Instance);
+            var props  = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             var cf = new ConfigFile(keyword);
 
             var valid = new List<Tuple<ConfigEntry, FieldInfo, PropertyInfo>>();
 
-            foreach (var f in fields)
+            foreach ( var f in fields )
             {
                 var attrs = f.GetCustomAttributes(typeof(ConfigValueAttribute), true);
-                if (attrs == null || attrs.Length == 0)
+
+                if ( attrs == null || attrs.Length == 0 )
                 {
                     continue;
                 }
 
                 var a = attrs[0] as ConfigValueAttribute;
-                if (a == null)
+
+                if ( a == null )
                 {
                     continue;
                 }
 
-                var val = ConfigValueAttribute.ToValue(f.FieldType, f.GetValue(obj));
+                var val     = ConfigValueAttribute.ToValue(f.FieldType, f.GetValue(obj));
                 var setting = cf.AddSetting(a.Keyword, val, a.Name, a.Description, a.Flags);
                 valid.Add(new Tuple<ConfigEntry, FieldInfo, PropertyInfo>(setting, f, null));
             }
 
-            foreach (var p in props)
+            foreach ( var p in props )
             {
                 var attrs = p.GetCustomAttributes(typeof(ConfigValueAttribute), true);
-                if (attrs == null || attrs.Length == 0)
+
+                if ( attrs == null || attrs.Length == 0 )
                 {
                     continue;
                 }
 
                 var a = attrs[0] as ConfigValueAttribute;
-                if (a == null)
+
+                if ( a == null )
                 {
                     continue;
                 }
 
-                if (p.GetMethod == null || p.SetMethod == null)
+                if ( p.GetMethod == null || p.SetMethod == null )
                 {
                     continue;
                 }
 
-                var val = ConfigValueAttribute.ToValue(p.PropertyType, p.GetValue(obj));
+                var val     = ConfigValueAttribute.ToValue(p.PropertyType, p.GetValue(obj));
                 var setting = cf.AddSetting(a.Keyword, val, a.Name, a.Description, a.Flags);
                 valid.Add(new Tuple<ConfigEntry, FieldInfo, PropertyInfo>(setting, null, p));
             }
 
-            if (valid.Count == 0)
+            if ( valid.Count == 0 )
             {
-                throw new ArgumentException(
-                    "Didn't find any valid fields or properties with the ConfigValueAttribute attribute!", "T");
+                throw new ArgumentException("Didn't find any valid fields or properties with the ConfigValueAttribute attribute!", "T");
             }
 
-            if (!cf.Load())
+            if ( !cf.Load() )
             {
-                if (createIfMissing)
+                if ( createIfMissing )
                 {
                     cf.Save();
                 }
@@ -984,31 +1023,32 @@
                 return false;
             }
 
-            foreach (var t in valid)
+            foreach ( var t in valid )
             {
                 var val = t.Item1.CurrentValue;
-                if (val == null)
+
+                if ( val == null )
                 {
                     continue;
                 }
 
-                if (t.Item2 != null)
+                if ( t.Item2 != null )
                 {
                     try
                     {
                         var v = ConfigValueAttribute.FromValue(t.Item2.FieldType, val);
                         t.Item2.SetValue(obj, v);
                     }
-                    catch (InvalidCastException) { }
+                    catch ( InvalidCastException ) { }
                 }
-                else if (t.Item3 != null)
+                else if ( t.Item3 != null )
                 {
                     try
                     {
                         var v = ConfigValueAttribute.FromValue(t.Item3.PropertyType, val);
                         t.Item3.SetValue(obj, v);
                     }
-                    catch (InvalidCastException) { }
+                    catch ( InvalidCastException ) { }
                 }
                 else
                 {
@@ -1025,7 +1065,7 @@
         public bool Load()
         {
             // Check if directory exists.
-            if (!this.CheckFolderExists(false))
+            if ( !this.CheckFolderExists(false) )
             {
                 return false;
             }
@@ -1037,13 +1077,13 @@
             var file = new FileInfo(filePath);
 
             // File does not exist.
-            if (!file.Exists)
+            if ( !file.Exists )
             {
                 return false;
             }
 
             // Try to read.
-            using (var reader = new StreamReader(file.FullName))
+            using ( var reader = new StreamReader(file.FullName) )
             {
                 // All currently registered entries.
                 var all = this.Entries.Values.ToList();
@@ -1056,15 +1096,16 @@
 
                 // Parse whole file.
                 string l;
-                while ((l = reader.ReadLine()) != null)
+
+                while ( (l = reader.ReadLine()) != null )
                 {
                     this.ParseLine(l, all, custom, temp);
                 }
 
                 // Register new custom entries.
-                if (custom.Count != 0)
+                if ( custom.Count != 0 )
                 {
-                    foreach (var e in custom)
+                    foreach ( var e in custom )
                     {
                         this._addCustomSetting(e);
                     }
@@ -1082,7 +1123,7 @@
         public void MarkAllAsModified()
         {
             // Set all entries as modified.
-            foreach (var x in this.Entries.Values)
+            foreach ( var x in this.Entries.Values )
             {
                 x.IsModified = true;
             }
@@ -1097,7 +1138,7 @@
         public void Save()
         {
             // Check if directory exists.
-            if (!this.CheckFolderExists(true))
+            if ( !this.CheckFolderExists(true) )
             {
                 return;
             }
@@ -1106,10 +1147,10 @@
             var filePath = this.GenerateFilePath();
 
             // Create file writer.
-            using (var writer = new StreamWriter(filePath, false))
+            using ( var writer = new StreamWriter(filePath, false) )
             {
                 // Gather all newest settings to previous lines if we had any.
-                if (this.Lines != null)
+                if ( this.Lines != null )
                 {
                     this.Lines.Modify(this.Entries.Values);
                     this.Lines.WriteToFile(writer);
@@ -1117,7 +1158,7 @@
                 else
                 {
                     // Let all entries write to file.
-                    foreach (var entry in this.Entries.Values)
+                    foreach ( var entry in this.Entries.Values )
                     {
                         entry.WriteToFile(writer);
                     }
@@ -1125,7 +1166,7 @@
             }
 
             // Set not modified to all entries.
-            foreach (var entry in this.Entries.Values)
+            foreach ( var entry in this.Entries.Values )
             {
                 entry.IsModified = false;
             }
@@ -1140,10 +1181,10 @@
         public void Reset()
         {
             // Reset all to default.
-            foreach (var e in this.Entries.Values)
+            foreach ( var e in this.Entries.Values )
             {
                 e.CurrentValue = e.DefaultValue;
-                e.IsModified = false;
+                e.IsModified   = false;
             }
 
             // Not loaded from file anymore.
@@ -1169,8 +1210,7 @@
         /// <param name="description">Description of setting. Optional.</param>
         /// <param name="flags">Options.</param>
         /// <returns></returns>
-        public ConfigEntry AddSetting(string keyword, Value value, string name = null, string description = null,
-            ConfigEntryFlags flags = ConfigEntryFlags.None)
+        public ConfigEntry AddSetting(string keyword, Value value, string name = null, string description = null, ConfigEntryFlags flags = ConfigEntryFlags.None)
         {
             var entry = new ConfigEntry(keyword, value, name, description, flags);
             this.Entries[entry.Keyword] = entry;
@@ -1184,7 +1224,7 @@
         /// <returns></returns>
         public Value GetValue(string keyword)
         {
-            if (keyword == null)
+            if ( keyword == null )
             {
                 throw new ArgumentNullException("keyword");
             }
@@ -1199,7 +1239,7 @@
         /// <returns></returns>
         public Value GetDefaultValue(string keyword)
         {
-            if (keyword == null)
+            if ( keyword == null )
             {
                 throw new ArgumentNullException("keyword");
             }
@@ -1215,18 +1255,19 @@
         /// <returns></returns>
         public bool SetValue(string keyword, string value)
         {
-            if (keyword == null)
+            if ( keyword == null )
             {
                 throw new ArgumentNullException("keyword");
             }
 
-            if (value == null)
+            if ( value == null )
             {
                 throw new ArgumentNullException("value");
             }
 
             var entry = this.GetEntry(keyword);
-            if (entry != null)
+
+            if ( entry != null )
             {
                 return entry.TrySetValue(value);
             }
@@ -1234,17 +1275,16 @@
             return false;
         }
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         ///     Get entry by keyword.
         /// </summary>
         /// <param name="keyword">Keyword of entry.</param>
         /// <returns></returns>
-        internal ConfigEntry GetEntry(string keyword) =>
-            this.Entries.ContainsKey(keyword) ? this.Entries[keyword] : null;
+        internal ConfigEntry GetEntry(string keyword) => this.Entries.ContainsKey(keyword) ? this.Entries[keyword] : null;
 
         /// <summary>
         ///     Add a new custom user setting.
@@ -1259,13 +1299,15 @@
         private string GenerateFilePath()
         {
             var strFile = new StringBuilder();
-            if (!string.IsNullOrEmpty(this.Prefix))
+
+            if ( !string.IsNullOrEmpty(this.Prefix) )
             {
                 strFile.Append(this.Prefix + ".");
             }
 
             strFile.Append(this.Keyword);
-            if (!string.IsNullOrEmpty(this.Suffix))
+
+            if ( !string.IsNullOrEmpty(this.Suffix) )
             {
                 strFile.Append("." + this.Suffix);
             }
@@ -1273,7 +1315,8 @@
             strFile.Append(".txt");
 
             var fullPath = strFile.ToString();
-            if (!string.IsNullOrEmpty(this.Path))
+
+            if ( !string.IsNullOrEmpty(this.Path) )
             {
                 fullPath = System.IO.Path.Combine(this.Path, fullPath);
             }
@@ -1292,7 +1335,7 @@
             var pathName = this.Path;
 
             // Executable folder, this always exists.
-            if (string.IsNullOrEmpty(pathName))
+            if ( string.IsNullOrEmpty(pathName) )
             {
                 return true;
             }
@@ -1301,13 +1344,13 @@
             var dir = new DirectoryInfo(pathName);
 
             // Already exists.
-            if (dir.Exists)
+            if ( dir.Exists )
             {
                 return true;
             }
 
             // Want to create.
-            if (allowCreate)
+            if ( allowCreate )
             {
                 dir.Create();
                 return true;
@@ -1327,7 +1370,7 @@
         private void ParseLine(string line, List<ConfigEntry> all, List<ConfigEntry> custom, List<string> loaded)
         {
             // Create new lines.
-            if (this.Lines == null)
+            if ( this.Lines == null )
             {
                 this.Lines = new ConfigLines();
             }
@@ -1336,23 +1379,22 @@
             this.Lines.ParseLine(line, all, custom, loaded, this);
         }
 
-        private readonly Dictionary<string, ConfigEntry> Entries =
-            new Dictionary<string, ConfigEntry>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, ConfigEntry> Entries = new Dictionary<string, ConfigEntry>(StringComparer.OrdinalIgnoreCase);
 
         private ConfigFileFlags Flags = ConfigFileFlags.None;
-        private ConfigLines Lines;
-
-        #endregion
-    }
+        private ConfigLines     Lines;
 
     #endregion
+    }
 
-    #region ConfigFile enums
+#endregion
+
+#region ConfigFile enums
 
     /// <summary>
     ///     Options for configuration file.
     /// </summary>
-    [Flags]
+    [ Flags ]
     internal enum ConfigFileFlags : uint
     {
         None = 0,
@@ -1368,20 +1410,20 @@
         ManualCreate = 2
     }
 
-    #endregion
+#endregion
 
-    #region ConfigLine class
+#region ConfigLine class
 
     /// <summary>
     ///     One line of configuration file. This is used internally to preserve manual changes to configuration file.
     /// </summary>
     internal sealed class ConfigLine
     {
-        #region Constructors
+    #region Constructors
 
-        #endregion
+    #endregion
 
-        #region ConfigLine members
+    #region ConfigLine members
 
         /// <summary>
         ///     Text of line.
@@ -1398,12 +1440,12 @@
         /// </summary>
         internal string Keyword = "";
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 
-    #region ConfigLine enums
+#region ConfigLine enums
 
     /// <summary>
     ///     All possible configuration file line types.
@@ -1426,20 +1468,20 @@
         Setting
     }
 
-    #endregion
+#endregion
 
-    #region ConfigLines class
+#region ConfigLines class
 
     /// <summary>
     ///     This class helps preserve manual changes to configuration files.
     /// </summary>
     internal sealed class ConfigLines
     {
-        #region Constructors
+    #region Constructors
 
-        #endregion
+    #endregion
 
-        #region ConfigLines members
+    #region ConfigLines members
 
         /// <summary>
         ///     Parse one line from file.
@@ -1449,11 +1491,10 @@
         /// <param name="custom">Any new custom entries will be added here and later registered.</param>
         /// <param name="processed">Already processed setting keywords.</param>
         /// <param name="file">File that is processing.</param>
-        internal void ParseLine(string line, List<ConfigEntry> all, List<ConfigEntry> custom, List<string> processed,
-            ConfigFile file)
+        internal void ParseLine(string line, List<ConfigEntry> all, List<ConfigEntry> custom, List<string> processed, ConfigFile file)
         {
             // This shouldn't happen.
-            if (line == null)
+            if ( line == null )
             {
                 throw new ArgumentNullException("line");
             }
@@ -1462,14 +1503,14 @@
             var text = line.Trim();
 
             // Empty line.
-            if (text.Length == 0)
+            if ( text.Length == 0 )
             {
                 this.AddEmptyLine(line);
                 return;
             }
 
             // Comment character.
-            if (text[0] == '#')
+            if ( text[0] == '#' )
             {
                 // Add new comment as is (line instead of text).
                 this.AddNewComment(line);
@@ -1478,23 +1519,21 @@
 
             // Try to parse keyword.
             string keyword = null;
-            for (var i = 0; i < text.Length; i++)
+
+            for ( var i = 0; i < text.Length; i++ )
             {
-                if (char.IsWhiteSpace(text[i]))
+                if ( char.IsWhiteSpace(text[i]) )
                 {
                     keyword = text.Substring(0, i);
-                    text = text.Substring(i).Trim();
+                    text    = text.Substring(i).Trim();
                     break;
                 }
             }
 
             // Invalid syntax.
-            if (keyword == null || text.Length == 0 || text[0] != '=')
+            if ( keyword == null || text.Length == 0 || text[0] != '=' )
             {
-                this.MakeError(new[]
-                {
-                    "Invalid syntax for line! Setting should be in format \"Keyword = Value\"", line
-                });
+                this.MakeError(new[] { "Invalid syntax for line! Setting should be in format \"Keyword = Value\"", line });
                 return;
             }
 
@@ -1504,22 +1543,22 @@
             // Check if no save.
             {
                 var en = file.GetEntry(keyword);
-                if (en != null && (en.Flags & ConfigEntryFlags.NoSave) != ConfigEntryFlags.None)
+
+                if ( en != null && (en.Flags & ConfigEntryFlags.NoSave) != ConfigEntryFlags.None )
                 {
-                    this.MakeError(new[] {"This setting is not allowed to be modified from configuration file!", line});
+                    this.MakeError(new[] { "This setting is not allowed to be modified from configuration file!", line });
                     return;
                 }
             }
 
             // Already processed this. Go back and comment it out.
-            if (processed.Contains(keyword, StringComparer.OrdinalIgnoreCase))
+            if ( processed.Contains(keyword, StringComparer.OrdinalIgnoreCase) )
             {
                 // Find previous setting of same name.
                 var settingIndex = this.FindSetting(keyword);
 
                 // Make previous as error.
-                this.MakeError(new[] {"Found duplicate entry for this setting! Using last assigned below."},
-                    settingIndex);
+                this.MakeError(new[] { "Found duplicate entry for this setting! Using last assigned below." }, settingIndex);
 
                 // Remove from custom list, we will create a new one since it might have a different value type.
                 custom.RemoveAll(q => q.Keyword.Equals(keyword, StringComparison.OrdinalIgnoreCase));
@@ -1532,34 +1571,39 @@
             var entry = all.FirstOrDefault(q => q.Keyword.Equals(keyword, StringComparison.OrdinalIgnoreCase));
 
             // Not registered, we must create a custom entry.
-            if (entry == null)
+            if ( entry == null )
             {
                 Value dv = null;
-                if (text.Length >= 2 && text[0] == '"' && text[text.Length - 1] == '"')
+
+                if ( text.Length >= 2 && text[0] == '"' && text[text.Length - 1] == '"' )
                 {
                     text = text.Substring(1, text.Length - 2);
-                    dv = new Value(text);
+                    dv   = new Value(text);
                 }
                 else
                 {
                     var vl = new Value(text);
+
                     {
                         long rl = 0;
-                        if (vl.TryToInt64(out rl))
-                        {
-                            dv = new Value(rl);
-                        }
-                    }
-                    if (dv == null)
-                    {
-                        var rl = 0.0;
-                        if (vl.TryToDouble(out rl))
+
+                        if ( vl.TryToInt64(out rl) )
                         {
                             dv = new Value(rl);
                         }
                     }
 
-                    if (dv == null)
+                    if ( dv == null )
+                    {
+                        var rl = 0.0;
+
+                        if ( vl.TryToDouble(out rl) )
+                        {
+                            dv = new Value(rl);
+                        }
+                    }
+
+                    if ( dv == null )
                     {
                         dv = new Value(text);
                     }
@@ -1571,22 +1615,21 @@
             }
 
             // Remove quotes.
-            if (entry.DefaultValue != null && (entry.DefaultValue.CurrentType == TypeCode.String ||
-                                               entry.DefaultValue.CurrentType == TypeCode.Char))
+            if ( entry.DefaultValue != null && (entry.DefaultValue.CurrentType == TypeCode.String || entry.DefaultValue.CurrentType == TypeCode.Char) )
             {
                 // Remove quotes but don't trim!
-                if (text.Length >= 2 && text[0] == '"' && text[text.Length - 1] == '"')
+                if ( text.Length >= 2 && text[0] == '"' && text[text.Length - 1] == '"' )
                 {
                     text = text.Substring(1, text.Length - 2);
                 }
-                else if (text.Length >= 2 && text[0] == '\'' && text[text.Length - 1] == '\'')
+                else if ( text.Length >= 2 && text[0] == '\'' && text[text.Length - 1] == '\'' )
                 {
                     text = text.Substring(1, text.Length - 2);
                 }
             }
 
             // Set new value.
-            if (!entry.TrySetValue(text))
+            if ( !entry.TrySetValue(text) )
             {
                 this.AddNewSetting(entry.GenerateSetting(), entry.Keyword);
             }
@@ -1607,7 +1650,7 @@
             var all = modifiedEntries.ToList();
 
             // Modify each.
-            foreach (var e in modifiedEntries)
+            foreach ( var e in modifiedEntries )
             {
                 this.Modify(e, all, force);
             }
@@ -1619,27 +1662,25 @@
         /// <param name="writer">File stream.</param>
         internal void WriteToFile(StreamWriter writer)
         {
-            foreach (var line in this.Lines)
+            foreach ( var line in this.Lines )
             {
                 writer.WriteLine(line.Text);
             }
         }
 
-        #endregion
+    #endregion
 
-        #region Internal members
+    #region Internal members
 
         /// <summary>
         ///     Comment block top line.
         /// </summary>
-        internal const string CommentBlockTop =
-            "########################################################################################################################";
+        internal const string CommentBlockTop = "########################################################################################################################";
 
         /// <summary>
         ///     Comment block bottom line.
         /// </summary>
-        internal const string CommentBlockBottom =
-            "########################################################################################################################";
+        internal const string CommentBlockBottom = "########################################################################################################################";
 
         /// <summary>
         ///     Comment block left (start of line).
@@ -1680,13 +1721,13 @@
         private void Modify(ConfigEntry entry, List<ConfigEntry> all, bool force)
         {
             // This entry was not modified.
-            if (!entry.IsModified && !force)
+            if ( !entry.IsModified && !force )
             {
                 return;
             }
 
             // Setting already exists.
-            if (this.FindSetting(entry.Keyword) >= 0)
+            if ( this.FindSetting(entry.Keyword) >= 0 )
             {
                 // Try to rewrite comment block if we can.
                 this.TryModifyCommentBlock(entry, all);
@@ -1712,7 +1753,7 @@
             var settingIndex = this.FindSetting(entry.Keyword);
 
             // Setting isn't present so we can't modify the comment block.
-            if (settingIndex < 0)
+            if ( settingIndex < 0 )
             {
                 return;
             }
@@ -1727,7 +1768,7 @@
             var commentBlockEnd = this.FindEndOfComment(previousSettingIndex, settingIndex);
 
             // Not valid block.
-            if (commentBlockEnd < 0)
+            if ( commentBlockEnd < 0 )
             {
                 return;
             }
@@ -1736,13 +1777,13 @@
             var commentBlockStart = this.FindStartOfComment(previousSettingIndex, commentBlockEnd);
 
             // Didn't find, not valid.
-            if (commentBlockStart < 0)
+            if ( commentBlockStart < 0 )
             {
                 return;
             }
 
             // Found ambiguous comment block.
-            if (this.HasMoreBlock(previousSettingIndex, commentBlockStart))
+            if ( this.HasMoreBlock(previousSettingIndex, commentBlockStart) )
             {
                 return;
             }
@@ -1765,7 +1806,8 @@
         private void TryModifySetting(ConfigEntry entry, List<ConfigEntry> all)
         {
             var settingIndex = this.FindSetting(entry.Keyword);
-            if (settingIndex < 0)
+
+            if ( settingIndex < 0 )
             {
                 throw new InvalidOperationException();
             }
@@ -1783,17 +1825,19 @@
             // Find proper index to add to.
             var indexToAdd = -1;
             var indexInAll = all.IndexOf(entry);
-            if (indexInAll < 0)
+
+            if ( indexInAll < 0 )
             {
                 throw new InvalidOperationException();
             }
 
             // See if we have previous setting added.
-            for (var i = indexInAll - 1; i >= 0; i--)
+            for ( var i = indexInAll - 1; i >= 0; i-- )
             {
                 // Get previous index.
                 var previousIndex = this.FindSetting(all[i].Keyword);
-                if (previousIndex >= 0)
+
+                if ( previousIndex >= 0 )
                 {
                     indexToAdd = previousIndex + 1;
                     break;
@@ -1801,17 +1845,19 @@
             }
 
             // Didn't find.
-            if (indexToAdd == -1)
+            if ( indexToAdd == -1 )
             {
                 // See if we have next setting added.
-                for (var i = indexInAll + 1; i < all.Count; i++)
+                for ( var i = indexInAll + 1; i < all.Count; i++ )
                 {
                     // Get next index.
                     var nextIndex = this.FindSetting(all[i].Keyword);
-                    if (nextIndex >= 0)
+
+                    if ( nextIndex >= 0 )
                     {
                         var previousNext = this.FindPreviousSetting(nextIndex);
-                        if (previousNext >= 0)
+
+                        if ( previousNext >= 0 )
                         {
                             indexToAdd = previousNext + 1;
                         }
@@ -1825,7 +1871,7 @@
                 }
 
                 // Didn't find any suitable, add to start of file.
-                if (indexToAdd == -1)
+                if ( indexToAdd == -1 )
                 {
                     indexToAdd = 0;
                 }
@@ -1842,7 +1888,7 @@
             indexToAdd += block.Count;
 
             // Add empty line only when necessary.
-            if (this.Lines[indexToAdd - 1].Type != ConfigLineTypes.Ignored)
+            if ( this.Lines[indexToAdd - 1].Type != ConfigLineTypes.Ignored )
             {
                 this.AddEmptyLine(null, indexToAdd++);
             }
@@ -1863,31 +1909,31 @@
         private void AddNewSetting(string line, string keyword, int index = -1)
         {
             // Invalid line.
-            if (line == null)
+            if ( line == null )
             {
                 throw new ArgumentNullException("line");
             }
 
-            if (keyword == null)
+            if ( keyword == null )
             {
                 throw new ArgumentNullException("keyword");
             }
 
             // Create new line.
             var cline = new ConfigLine();
-            cline.Text = line;
-            cline.Type = ConfigLineTypes.Setting;
+            cline.Text    = line;
+            cline.Type    = ConfigLineTypes.Setting;
             cline.Keyword = keyword;
 
             // Append.
-            if (index < 0)
+            if ( index < 0 )
             {
                 this.Lines.Add(cline);
             }
             else
             {
                 // Must be valid index.
-                if (index > this.Lines.Count)
+                if ( index > this.Lines.Count )
                 {
                     throw new ArgumentOutOfRangeException("index");
                 }
@@ -1905,7 +1951,7 @@
         private void AddNewCommentBlock(List<string> block, int startIndex = -1)
         {
             // Add each line.
-            for (var i = 0; i < block.Count; i++)
+            for ( var i = 0; i < block.Count; i++ )
             {
                 this.AddNewComment(block[i], startIndex < 0 ? startIndex : startIndex + i);
             }
@@ -1920,19 +1966,19 @@
         {
             // Create new line.
             var cline = new ConfigLine();
-            cline.Text = line;
-            cline.Type = ConfigLineTypes.Comment;
+            cline.Text    = line;
+            cline.Type    = ConfigLineTypes.Comment;
             cline.Keyword = "";
 
             // Append.
-            if (startIndex < 0)
+            if ( startIndex < 0 )
             {
                 this.Lines.Add(cline);
             }
             else
             {
                 // Must be valid index.
-                if (startIndex > this.Lines.Count)
+                if ( startIndex > this.Lines.Count )
                 {
                     throw new ArgumentOutOfRangeException("startIndex");
                 }
@@ -1951,19 +1997,19 @@
         {
             // Create new line.
             var cline = new ConfigLine();
-            cline.Text = line ?? string.Empty;
-            cline.Type = ConfigLineTypes.Ignored;
+            cline.Text    = line ?? string.Empty;
+            cline.Type    = ConfigLineTypes.Ignored;
             cline.Keyword = "";
 
             // Append.
-            if (startIndex < 0)
+            if ( startIndex < 0 )
             {
                 this.Lines.Add(cline);
             }
             else
             {
                 // Must be valid index.
-                if (startIndex > this.Lines.Count)
+                if ( startIndex > this.Lines.Count )
                 {
                     throw new ArgumentOutOfRangeException("startIndex");
                 }
@@ -1982,10 +2028,10 @@
         private bool HasMoreBlock(int start, int end)
         {
             // Check all lines.
-            for (var i = start; i < end; i++)
+            for ( var i = start; i < end; i++ )
                 // Comment block separator. Means we have ambiguous comment block.
             {
-                if (this.Lines[i].Text == CommentBlockBottom || this.Lines[i].Text == CommentBlockTop)
+                if ( this.Lines[i].Text == CommentBlockBottom || this.Lines[i].Text == CommentBlockTop )
                 {
                     return true;
                 }
@@ -2005,16 +2051,16 @@
         private int FindStartOfComment(int minIndex, int endIndex)
         {
             // Setting was not found.
-            if (endIndex < 0)
+            if ( endIndex < 0 )
             {
                 return -1;
             }
 
             // Go backwards.
-            for (var i = endIndex - 1; i >= minIndex; i--)
+            for ( var i = endIndex - 1; i >= minIndex; i-- )
                 // This is the start line.
             {
-                if (this.Lines[i].Text == CommentBlockTop)
+                if ( this.Lines[i].Text == CommentBlockTop )
                 {
                     return i;
                 }
@@ -2034,16 +2080,16 @@
         private int FindEndOfComment(int minIndex, int settingIndex)
         {
             // Setting was not found.
-            if (settingIndex < 0)
+            if ( settingIndex < 0 )
             {
                 return -1;
             }
 
             // Go backwards.
-            for (var i = settingIndex - 1; i >= minIndex; i--)
+            for ( var i = settingIndex - 1; i >= minIndex; i-- )
                 // This is the correct line.
             {
-                if (this.Lines[i].Text == CommentBlockBottom)
+                if ( this.Lines[i].Text == CommentBlockBottom )
                 {
                     return i;
                 }
@@ -2061,27 +2107,27 @@
         private int FindSetting(string keyword)
         {
             // Not a valid keyword.
-            if (keyword == null)
+            if ( keyword == null )
             {
                 throw new ArgumentNullException("keyword");
             }
 
-            if (keyword.Length == 0)
+            if ( keyword.Length == 0 )
             {
                 throw new ArgumentOutOfRangeException("keyword");
             }
 
             // Check each line.
-            for (var i = 0; i < this.Lines.Count; i++)
+            for ( var i = 0; i < this.Lines.Count; i++ )
             {
                 // Not a setting.
-                if (this.Lines[i].Type != ConfigLineTypes.Setting)
+                if ( this.Lines[i].Type != ConfigLineTypes.Setting )
                 {
                     continue;
                 }
 
                 // Not the right setting.
-                if (!this.Lines[i].Keyword.Equals(keyword, StringComparison.OrdinalIgnoreCase))
+                if ( !this.Lines[i].Keyword.Equals(keyword, StringComparison.OrdinalIgnoreCase) )
                 {
                     continue;
                 }
@@ -2102,10 +2148,10 @@
         private int FindPreviousSetting(int settingIndex)
         {
             // Go backwards until we find another setting.
-            for (var i = settingIndex - 1; i >= 0; i--)
+            for ( var i = settingIndex - 1; i >= 0; i-- )
             {
                 // Not a setting.
-                if (this.Lines[i].Type != ConfigLineTypes.Setting)
+                if ( this.Lines[i].Type != ConfigLineTypes.Setting )
                 {
                     continue;
                 }
@@ -2134,21 +2180,21 @@
         private void MakeError(string[] text, int index = -1)
         {
             // Find error line.
-            if (index >= 0)
+            if ( index >= 0 )
             {
                 // Must be a valid line.
-                if (index > this.Lines.Count)
+                if ( index > this.Lines.Count )
                 {
                     throw new ArgumentOutOfRangeException("index");
                 }
 
                 // Turn it into a comment.
-                this.Lines[index].Type = ConfigLineTypes.Comment;
-                this.Lines[index].Text = "# " + this.Lines[index].Text;
+                this.Lines[index].Type    = ConfigLineTypes.Comment;
+                this.Lines[index].Text    = "# " + this.Lines[index].Text;
                 this.Lines[index].Keyword = "";
 
                 // Insert message before the newly commented line.
-                foreach (var x in text)
+                foreach ( var x in text )
                 {
                     this.AddNewComment(x, index++);
                 }
@@ -2157,22 +2203,22 @@
             }
 
             // Append new error to end.
-            foreach (var x in text)
+            foreach ( var x in text )
             {
                 this.AddNewComment(x);
             }
         }
 
-        #endregion
+    #endregion
     }
 
-    #endregion
+#endregion
 
     /// <summary>
     ///     Attribute for a configuration value.
     /// </summary>
     /// <seealso cref="System.Attribute" />
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    [ AttributeUsage(AttributeTargets.Field | AttributeTargets.Property) ]
     public sealed class ConfigValueAttribute : Attribute
     {
         /// <summary>
@@ -2202,18 +2248,17 @@
         /// <param name="name">The name.</param>
         /// <param name="description">The description.</param>
         /// <param name="flags">Options for the value.</param>
-        public ConfigValueAttribute(string keyword, string name, string description = null,
-            ConfigEntryFlags flags = ConfigEntryFlags.None)
+        public ConfigValueAttribute(string keyword, string name, string description = null, ConfigEntryFlags flags = ConfigEntryFlags.None)
         {
-            if (string.IsNullOrEmpty(keyword))
+            if ( string.IsNullOrEmpty(keyword) )
             {
                 throw new ArgumentOutOfRangeException("keyword");
             }
 
-            this.Keyword = keyword;
-            this.Name = name;
+            this.Keyword     = keyword;
+            this.Name        = name;
             this.Description = description;
-            this.Flags = flags;
+            this.Flags       = flags;
         }
 
         /// <summary>
@@ -2225,72 +2270,72 @@
         /// <exception cref="System.ArgumentException">Unhandled type in configuration class ( + type.Name + )!;type</exception>
         internal static Value ToValue(Type type, object value)
         {
-            if (type == typeof(bool))
+            if ( type == typeof(bool) )
             {
                 return new Value((bool)value);
             }
 
-            if (type == typeof(sbyte))
+            if ( type == typeof(sbyte) )
             {
                 return new Value((sbyte)value);
             }
 
-            if (type == typeof(byte))
+            if ( type == typeof(byte) )
             {
                 return new Value((byte)value);
             }
 
-            if (type == typeof(short))
+            if ( type == typeof(short) )
             {
                 return new Value((short)value);
             }
 
-            if (type == typeof(ushort))
+            if ( type == typeof(ushort) )
             {
                 return new Value((ushort)value);
             }
 
-            if (type == typeof(int))
+            if ( type == typeof(int) )
             {
                 return new Value((int)value);
             }
 
-            if (type == typeof(uint))
+            if ( type == typeof(uint) )
             {
                 return new Value((uint)value);
             }
 
-            if (type == typeof(long))
+            if ( type == typeof(long) )
             {
                 return new Value((long)value);
             }
 
-            if (type == typeof(ulong))
+            if ( type == typeof(ulong) )
             {
                 return new Value((ulong)value);
             }
 
-            if (type == typeof(float))
+            if ( type == typeof(float) )
             {
                 return new Value((float)value);
             }
 
-            if (type == typeof(double))
+            if ( type == typeof(double) )
             {
                 return new Value((double)value);
             }
 
-            if (type == typeof(decimal))
+            if ( type == typeof(decimal) )
             {
                 return new Value((decimal)value);
             }
 
-            if (type == typeof(DateTime))
+            if ( type == typeof(DateTime) )
             {
                 return new Value((DateTime)value);
             }
 
-            if (type == typeof(string))
+            if ( type == typeof(string) )
             {
                 return new Value((string)value);
             }
@@ -2309,163 +2354,163 @@
         /// <exception cref="System.ArgumentException">Unhandled type in configuration class ( + type.Name + )!;type</exception>
         internal static object FromValue(Type type, Value value)
         {
-            if (type == typeof(bool))
+            if ( type == typeof(bool) )
             {
                 var v = false;
-                if (!value.TryToBoolean(out v))
+
+                if ( !value.TryToBoolean(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(sbyte))
+            if ( type == typeof(sbyte) )
             {
                 sbyte v = 0;
-                if (!value.TryToSByte(out v))
+
+                if ( !value.TryToSByte(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(byte))
+            if ( type == typeof(byte) )
             {
                 byte v = 0;
-                if (!value.TryToByte(out v))
+
+                if ( !value.TryToByte(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(short))
+            if ( type == typeof(short) )
             {
                 short v = 0;
-                if (!value.TryToInt16(out v))
+
+                if ( !value.TryToInt16(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(ushort))
+            if ( type == typeof(ushort) )
             {
                 ushort v = 0;
-                if (!value.TryToUInt16(out v))
+
+                if ( !value.TryToUInt16(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(int))
+            if ( type == typeof(int) )
             {
                 var v = 0;
-                if (!value.TryToInt32(out v))
+
+                if ( !value.TryToInt32(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(uint))
+            if ( type == typeof(uint) )
             {
                 uint v = 0;
-                if (!value.TryToUInt32(out v))
+
+                if ( !value.TryToUInt32(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(long))
+            if ( type == typeof(long) )
             {
                 long v = 0;
-                if (!value.TryToInt64(out v))
+
+                if ( !value.TryToInt64(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(ulong))
+            if ( type == typeof(ulong) )
             {
                 ulong v = 0;
-                if (!value.TryToUInt64(out v))
+
+                if ( !value.TryToUInt64(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(float))
+            if ( type == typeof(float) )
             {
                 float v = 0;
-                if (!value.TryToSingle(out v))
+
+                if ( !value.TryToSingle(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(double))
+            if ( type == typeof(double) )
             {
                 double v = 0;
-                if (!value.TryToDouble(out v))
+
+                if ( !value.TryToDouble(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(decimal))
+            if ( type == typeof(decimal) )
             {
                 decimal v = 0;
-                if (!value.TryToDecimal(out v))
+
+                if ( !value.TryToDecimal(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(DateTime))
+            if ( type == typeof(DateTime) )
             {
                 var v = default(DateTime);
-                if (!value.TryToDateTime(out v))
+
+                if ( !value.TryToDateTime(out v) )
                 {
-                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" +
-                                                   type.Name + ")!");
+                    throw new InvalidCastException("Unable to cast to underlying type in configuration value (" + type.Name + ")!");
                 }
 
                 return v;
             }
 
-            if (type == typeof(string))
+            if ( type == typeof(string) )
             {
                 var v = value.ToString();
                 return v;

@@ -24,12 +24,13 @@
 
             //NetScriptFramework.Debug.GUI.WriteLine((a ? ">>> " : "<<< ") + this.GetType().Name);
 
-            if (!a)
+            if ( !a )
             {
-                foreach (var m in this.RemoveModifiersOnLeave)
+                foreach ( var m in this.RemoveModifiersOnLeave )
                 {
                     var time = m.AutoRemoveDelay;
-                    if (time > 0)
+
+                    if ( time > 0 )
                     {
                         m.RemoveDelayed(time);
                     }
@@ -53,32 +54,25 @@
 
         internal virtual void Update(CameraUpdate update) { }
 
-        protected void AddHeadBobModifier(CameraUpdate update,
-            bool forceHeadBob = false,
-            bool forceReducedStabilizeHistory = false,
-            double multiplier = 1.0,
-            long extraDuration = 0)
+        protected void AddHeadBobModifier(CameraUpdate update, bool forceHeadBob = false, bool forceReducedStabilizeHistory = false, double multiplier = 1.0, long extraDuration = 0)
         {
             var headBob = forceHeadBob || Settings.Instance.HeadBob;
-            if (headBob)
+
+            if ( headBob )
             {
-                var value = 0.5;
+                var value  = 0.5;
                 var amount = (forceHeadBob ? 1.0 : Settings.Instance.HeadBobAmount) * multiplier;
-                if (amount > 0.01)
+
+                if ( amount > 0.01 )
                 {
                     value /= amount;
-                    update.Values.StabilizeIgnorePositionY.AddModifier(this,
-                        CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis,
-                        value,
-                        true,
-                        extraDuration);
+                    update.Values.StabilizeIgnorePositionY.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, value, true, extraDuration);
                 }
             }
 
-            if (headBob || forceReducedStabilizeHistory)
+            if ( headBob || forceReducedStabilizeHistory )
             {
-                update.Values.StabilizeHistoryDuration.AddModifier(this,
-                    CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 100.0, true, extraDuration);
+                update.Values.StabilizeHistoryDuration.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 100.0, true, extraDuration);
             }
         }
     }

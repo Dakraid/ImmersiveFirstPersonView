@@ -8,23 +8,24 @@
 
         internal override bool Check(CameraUpdate update)
         {
-            if (!update.CameraMain.IsEnabled)
+            if ( !update.CameraMain.IsEnabled )
             {
                 return false;
             }
 
-            if (update.CachedMounted)
+            if ( update.CachedMounted )
             {
                 return false;
             }
 
             var actor = update.Target.Actor;
-            if (actor == null)
+
+            if ( actor == null )
             {
                 return false;
             }
 
-            if (!actor.IsSneaking)
+            if ( !actor.IsSneaking )
             {
                 return false;
             }
