@@ -40,7 +40,7 @@ name: .NET Core Desktop
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, actions_dotNET5 ]
   pull_request:
     branches: [ develop ]
 
