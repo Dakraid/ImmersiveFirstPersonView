@@ -1,4 +1,4 @@
-﻿namespace IFPV
+namespace IFPV
 {
     using System;
     using System.Collections.Generic;
@@ -42,12 +42,14 @@
             {
                 var m = this.Modifiers[i];
 
-                if ( m.Priority > mod.Priority )
+                if ( m.Priority <= mod.Priority )
                 {
-                    this.Modifiers.Insert(i, mod);
-                    added = true;
-                    break;
+                    continue;
                 }
+
+                this.Modifiers.Insert(i, mod);
+                added = true;
+                break;
             }
 
             if ( !added )
@@ -55,9 +57,9 @@
                 this.Modifiers.Add(mod);
             }
 
-            if ( mod.AutoRemove && fromState != null )
+            if ( mod.AutoRemove )
             {
-                fromState.RemoveModifiersOnLeave.Add(mod);
+                fromState?.RemoveModifiersOnLeave.Add(mod);
             }
 
             this.UpdatedCountWhenDisabled = 0;
@@ -67,12 +69,14 @@
 
         internal void RemoveModifier(CameraValueModifier mod)
         {
-            if ( mod.Owner == this )
+            if ( mod.Owner != this )
             {
-                if ( this.Modifiers.Remove(mod) )
-                {
-                    this.UpdatedCountWhenDisabled = 0;
-                }
+                return;
+            }
+
+            if ( this.Modifiers.Remove(mod) )
+            {
+                this.UpdatedCountWhenDisabled = 0;
             }
         }
 
@@ -120,18 +124,20 @@
             {
                 var m = this.Modifiers[i];
 
-                if ( m.RemoveTimer.HasValue )
+                if ( !m.RemoveTimer.HasValue )
                 {
-                    var timer = m.RemoveTimer.Value;
+                    continue;
+                }
 
-                    if ( timer < 0 )
-                    {
-                        m.RemoveTimer = now - m.RemoveTimer.Value;
-                    }
-                    else if ( now >= m.RemoveTimer.Value )
-                    {
-                        m.Remove();
-                    }
+                var timer = m.RemoveTimer.Value;
+
+                if ( timer < 0 )
+                {
+                    m.RemoveTimer = now - m.RemoveTimer.Value;
+                }
+                else if ( now >= m.RemoveTimer.Value )
+                {
+                    m.Remove();
                 }
             }
 
@@ -226,11 +232,13 @@
             {
                 var hasNow = this.CurrentValue;
 
-                if ( hasNow != wantValue )
+                if ( hasNow == wantValue )
                 {
-                    this.CurrentValue = wantValue;
-                    this.LastValue    = wantValue;
+                    return;
                 }
+
+                this.CurrentValue = wantValue;
+                this.LastValue    = wantValue;
             }
         }
 
@@ -314,32 +322,34 @@
             this._cur_value   = defaultValue;
             this.ChangeSpeed  = changeSpeed;
 
-            if ( name == null )
+            if ( name != null )
             {
-                var t = this.GetType().Name;
+                return;
+            }
 
-                var words = new List<string>();
-                var cur   = new StringBuilder(32);
+            var t = this.GetType().Name;
 
-                foreach ( var c in t )
-                {
-                    if ( char.IsUpper(c) && cur.Length != 0 )
-                    {
-                        words.Add(cur.ToString().ToLowerInvariant());
+            var words = new List<string>();
+            var cur   = new StringBuilder(32);
 
-                        cur.Clear();
-                    }
-
-                    cur.Append(c);
-                }
-
-                if ( cur.Length != 0 )
+            foreach ( var c in t )
+            {
+                if ( char.IsUpper(c) && cur.Length != 0 )
                 {
                     words.Add(cur.ToString().ToLowerInvariant());
+
+                    cur.Clear();
                 }
 
-                this.Name = string.Join(" ", words);
+                cur.Append(c);
             }
+
+            if ( cur.Length != 0 )
+            {
+                words.Add(cur.ToString().ToLowerInvariant());
+            }
+
+            this.Name = string.Join(" ", words);
         }
 
         internal override double ChangeSpeed { get; }

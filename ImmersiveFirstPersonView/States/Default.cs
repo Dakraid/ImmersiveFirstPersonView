@@ -124,7 +124,7 @@ namespace IFPV.States
             {
                 if ( Utility.RadToDeg(Math.Abs(x)) >= autoTurn )
                 {
-                    this._autoTurnAngleMod ??= update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 1.0, false);
+                    this._autoTurnAngleMod ??= update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Force, 1.0, false);
 
                     this._autoTurnTime                       = update.CameraMain.Plugin.Time + 500;
                     update.CameraMain.LastTurnIsFromAutoTurn = update.CameraMain.Plugin.Time + 50;

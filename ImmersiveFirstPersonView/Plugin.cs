@@ -311,7 +311,6 @@ namespace IFPV
             Events.OnUpdatePlayerTurnToCamera.Register(
                 e =>
                 {
-                    Main.WriteDebugMessage("OnUpdatePlayerTurnToCamera");
                     if ( this.CameraMain == null || !this.CameraMain.IsInitialized )
                     {
                         return;
