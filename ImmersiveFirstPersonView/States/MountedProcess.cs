@@ -1,28 +1,34 @@
-﻿using NetScriptFramework.SkyrimSE;
-
-namespace IFPV.States
+﻿namespace IFPV.States
 {
+    using NetScriptFramework.SkyrimSE;
+
     internal class MountedProcess : CameraState
     {
-        internal override int Priority => (int) Priorities.MountedProcess;
+        internal override int Priority => (int)Priorities.MountedProcess;
 
         internal override bool Check(CameraUpdate update)
         {
-            if (!update.CameraMain.IsEnabled)
+            if ( !update.CameraMain.IsEnabled )
+            {
                 return false;
+            }
 
-            if (!update.CachedMounted)
+            if ( !update.CachedMounted )
+            {
                 return false;
+            }
 
             var actor = update.Target.Actor;
-            if (actor == null)
-                return false;
 
-            switch (actor.SitState)
+            if ( actor == null )
             {
-                case ActorActionStates.NotAction:
-                case ActorActionStates.InProgress:
-                    return false;
+                return false;
+            }
+
+            switch ( actor.SitState )
+            {
+                case ActorActionStates.NotAction :
+                case ActorActionStates.InProgress : return false;
             }
 
             return true;
@@ -32,8 +38,7 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            update.Values.RestrictLeft.AddModifier(
-                this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 10.0);
+            update.Values.RestrictLeft.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis, 10.0);
         }
     }
 }

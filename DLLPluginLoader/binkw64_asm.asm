@@ -1,0 +1,234 @@
+.code
+extern mProcs:QWORD
+BinkBufferBlit_wrapper proc
+	jmp mProcs[0*8]
+BinkBufferBlit_wrapper endp
+BinkBufferCheckWinPos_wrapper proc
+	jmp mProcs[1*8]
+BinkBufferCheckWinPos_wrapper endp
+BinkBufferClear_wrapper proc
+	jmp mProcs[2*8]
+BinkBufferClear_wrapper endp
+BinkBufferClose_wrapper proc
+	jmp mProcs[3*8]
+BinkBufferClose_wrapper endp
+BinkBufferGetDescription_wrapper proc
+	jmp mProcs[4*8]
+BinkBufferGetDescription_wrapper endp
+BinkBufferGetError_wrapper proc
+	jmp mProcs[5*8]
+BinkBufferGetError_wrapper endp
+BinkBufferLock_wrapper proc
+	jmp mProcs[6*8]
+BinkBufferLock_wrapper endp
+BinkBufferOpen_wrapper proc
+	jmp mProcs[7*8]
+BinkBufferOpen_wrapper endp
+BinkBufferSetDirectDraw_wrapper proc
+	jmp mProcs[8*8]
+BinkBufferSetDirectDraw_wrapper endp
+BinkBufferSetHWND_wrapper proc
+	jmp mProcs[9*8]
+BinkBufferSetHWND_wrapper endp
+BinkBufferSetOffset_wrapper proc
+	jmp mProcs[10*8]
+BinkBufferSetOffset_wrapper endp
+BinkBufferSetResolution_wrapper proc
+	jmp mProcs[11*8]
+BinkBufferSetResolution_wrapper endp
+BinkBufferSetScale_wrapper proc
+	jmp mProcs[12*8]
+BinkBufferSetScale_wrapper endp
+BinkBufferUnlock_wrapper proc
+	jmp mProcs[13*8]
+BinkBufferUnlock_wrapper endp
+BinkCheckCursor_wrapper proc
+	jmp mProcs[14*8]
+BinkCheckCursor_wrapper endp
+BinkClose_wrapper proc
+	jmp mProcs[15*8]
+BinkClose_wrapper endp
+BinkCloseTrack_wrapper proc
+	jmp mProcs[16*8]
+BinkCloseTrack_wrapper endp
+BinkControlBackgroundIO_wrapper proc
+	jmp mProcs[17*8]
+BinkControlBackgroundIO_wrapper endp
+BinkControlPlatformFeatures_wrapper proc
+	jmp mProcs[18*8]
+BinkControlPlatformFeatures_wrapper endp
+BinkCopyToBuffer_wrapper proc
+	jmp mProcs[19*8]
+BinkCopyToBuffer_wrapper endp
+BinkCopyToBufferRect_wrapper proc
+	jmp mProcs[20*8]
+BinkCopyToBufferRect_wrapper endp
+BinkDDSurfaceType_wrapper proc
+	jmp mProcs[21*8]
+BinkDDSurfaceType_wrapper endp
+BinkDX8SurfaceType_wrapper proc
+	jmp mProcs[22*8]
+BinkDX8SurfaceType_wrapper endp
+BinkDX9SurfaceType_wrapper proc
+	jmp mProcs[23*8]
+BinkDX9SurfaceType_wrapper endp
+BinkDoFrame_wrapper proc
+	jmp mProcs[24*8]
+BinkDoFrame_wrapper endp
+BinkDoFrameAsync_wrapper proc
+	jmp mProcs[25*8]
+BinkDoFrameAsync_wrapper endp
+BinkDoFrameAsyncWait_wrapper proc
+	jmp mProcs[26*8]
+BinkDoFrameAsyncWait_wrapper endp
+BinkDoFramePlane_wrapper proc
+	jmp mProcs[27*8]
+BinkDoFramePlane_wrapper endp
+BinkFreeGlobals_wrapper proc
+	jmp mProcs[28*8]
+BinkFreeGlobals_wrapper endp
+BinkGetError_wrapper proc
+	jmp mProcs[29*8]
+BinkGetError_wrapper endp
+BinkGetFrameBuffersInfo_wrapper proc
+	jmp mProcs[30*8]
+BinkGetFrameBuffersInfo_wrapper endp
+BinkGetKeyFrame_wrapper proc
+	jmp mProcs[31*8]
+BinkGetKeyFrame_wrapper endp
+BinkGetPalette_wrapper proc
+	jmp mProcs[32*8]
+BinkGetPalette_wrapper endp
+BinkGetPlatformInfo_wrapper proc
+	jmp mProcs[33*8]
+BinkGetPlatformInfo_wrapper endp
+BinkGetRealtime_wrapper proc
+	jmp mProcs[34*8]
+BinkGetRealtime_wrapper endp
+BinkGetRects_wrapper proc
+	jmp mProcs[35*8]
+BinkGetRects_wrapper endp
+BinkGetSummary_wrapper proc
+	jmp mProcs[36*8]
+BinkGetSummary_wrapper endp
+BinkGetTrackData_wrapper proc
+	jmp mProcs[37*8]
+BinkGetTrackData_wrapper endp
+BinkGetTrackID_wrapper proc
+	jmp mProcs[38*8]
+BinkGetTrackID_wrapper endp
+BinkGetTrackMaxSize_wrapper proc
+	jmp mProcs[39*8]
+BinkGetTrackMaxSize_wrapper endp
+BinkGetTrackType_wrapper proc
+	jmp mProcs[40*8]
+BinkGetTrackType_wrapper endp
+BinkGoto_wrapper proc
+	jmp mProcs[41*8]
+BinkGoto_wrapper endp
+BinkIsSoftwareCursor_wrapper proc
+	jmp mProcs[42*8]
+BinkIsSoftwareCursor_wrapper endp
+BinkLogoAddress_wrapper proc
+	jmp mProcs[43*8]
+BinkLogoAddress_wrapper endp
+BinkNextFrame_wrapper proc
+	jmp mProcs[44*8]
+BinkNextFrame_wrapper endp
+BinkOpen_wrapper proc
+	jmp mProcs[45*8]
+BinkOpen_wrapper endp
+BinkOpenDirectSound_wrapper proc
+	jmp mProcs[46*8]
+BinkOpenDirectSound_wrapper endp
+BinkOpenMiles_wrapper proc
+	jmp mProcs[47*8]
+BinkOpenMiles_wrapper endp
+BinkOpenTrack_wrapper proc
+	jmp mProcs[48*8]
+BinkOpenTrack_wrapper endp
+BinkOpenWaveOut_wrapper proc
+	jmp mProcs[49*8]
+BinkOpenWaveOut_wrapper endp
+BinkOpenWithOptions_wrapper proc
+	jmp mProcs[50*8]
+BinkOpenWithOptions_wrapper endp
+BinkOpenXAudio2_wrapper proc
+	jmp mProcs[51*8]
+BinkOpenXAudio2_wrapper endp
+BinkPause_wrapper proc
+	jmp mProcs[52*8]
+BinkPause_wrapper endp
+BinkRegisterFrameBuffers_wrapper proc
+	jmp mProcs[53*8]
+BinkRegisterFrameBuffers_wrapper endp
+BinkRequestStopAsyncThread_wrapper proc
+	jmp mProcs[54*8]
+BinkRequestStopAsyncThread_wrapper endp
+BinkRestoreCursor_wrapper proc
+	jmp mProcs[55*8]
+BinkRestoreCursor_wrapper endp
+BinkService_wrapper proc
+	jmp mProcs[56*8]
+BinkService_wrapper endp
+BinkSetError_wrapper proc
+	jmp mProcs[57*8]
+BinkSetError_wrapper endp
+BinkSetFileOffset_wrapper proc
+	jmp mProcs[58*8]
+BinkSetFileOffset_wrapper endp
+BinkSetFrameRate_wrapper proc
+	jmp mProcs[59*8]
+BinkSetFrameRate_wrapper endp
+BinkSetIO_wrapper proc
+	jmp mProcs[60*8]
+BinkSetIO_wrapper endp
+BinkSetIOSize_wrapper proc
+	jmp mProcs[61*8]
+BinkSetIOSize_wrapper endp
+BinkSetMemory_wrapper proc
+	jmp mProcs[62*8]
+BinkSetMemory_wrapper endp
+BinkSetPan_wrapper proc
+	jmp mProcs[63*8]
+BinkSetPan_wrapper endp
+BinkSetSimulate_wrapper proc
+	jmp mProcs[64*8]
+BinkSetSimulate_wrapper endp
+BinkSetSoundOnOff_wrapper proc
+	jmp mProcs[65*8]
+BinkSetSoundOnOff_wrapper endp
+BinkSetSoundSystem_wrapper proc
+	jmp mProcs[66*8]
+BinkSetSoundSystem_wrapper endp
+BinkSetSoundTrack_wrapper proc
+	jmp mProcs[67*8]
+BinkSetSoundTrack_wrapper endp
+BinkSetSpeakerVolumes_wrapper proc
+	jmp mProcs[68*8]
+BinkSetSpeakerVolumes_wrapper endp
+BinkSetVideoOnOff_wrapper proc
+	jmp mProcs[69*8]
+BinkSetVideoOnOff_wrapper endp
+BinkSetVolume_wrapper proc
+	jmp mProcs[70*8]
+BinkSetVolume_wrapper endp
+BinkSetWillLoop_wrapper proc
+	jmp mProcs[71*8]
+BinkSetWillLoop_wrapper endp
+BinkShouldSkip_wrapper proc
+	jmp mProcs[72*8]
+BinkShouldSkip_wrapper endp
+BinkStartAsyncThread_wrapper proc
+	jmp mProcs[73*8]
+BinkStartAsyncThread_wrapper endp
+BinkWait_wrapper proc
+	jmp mProcs[74*8]
+BinkWait_wrapper endp
+BinkWaitStopAsyncThread_wrapper proc
+	jmp mProcs[75*8]
+BinkWaitStopAsyncThread_wrapper endp
+RADTimerRead_wrapper proc
+	jmp mProcs[76*8]
+RADTimerRead_wrapper endp
+end

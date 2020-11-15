@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using NetScriptFramework.Tools;
-
-namespace IFPV.States
+﻿namespace IFPV.States
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Reflection;
+
+    using NetScriptFramework.Tools;
+
     internal sealed class Custom : CameraState
     {
         internal static readonly string                                                   Prefix = "IFPVProfile";
@@ -17,17 +18,20 @@ namespace IFPV.States
 
         private Custom() { }
 
-        internal override int Group => _group;
+        internal override int Group => this._group;
 
         internal string Name { get; private set; }
 
-        internal override int Priority => _prio;
+        internal override int Priority => this._prio;
 
         internal static Custom LoadFrom(string keyword)
         {
             var settings = new ProfileSettings();
-            if (!settings.LoadFrom(Prefix + "." + keyword))
+
+            if ( !settings.LoadFrom(Prefix + "." + keyword) )
+            {
                 return null;
+            }
 
             var c = new Custom();
             c._prio    = settings.Priority;
@@ -37,25 +41,36 @@ namespace IFPV.States
             c._cond2   = settings.conditions2;
             c.Name     = keyword;
 
-            if (c._group < 0 || c._group >= 32)
-                throw new InvalidOperationException(Prefix + "." + keyword + ".config.txt has invalid group setting: " +
-                                                    c._group);
+            if ( c._group < 0 || c._group >= 32 )
+            {
+                throw new InvalidOperationException(Prefix + "." + keyword + ".config.txt has invalid group setting: " + c._group);
+            }
 
             return c;
         }
 
         internal override bool Check(CameraUpdate update)
         {
-            if (_cond == null || _cond.Count == 0)
+            if ( this._cond == null || this._cond.Count == 0 )
+            {
                 return true;
+            }
 
-            foreach (var t in _cond)
-                if (t.Item2 != null && !t.Item2(update, t.Item1))
+            foreach ( var t in this._cond )
+            {
+                if ( t.Item2 != null && !t.Item2(update, t.Item1) )
+                {
                     return false;
+                }
+            }
 
-            foreach (var t in _cond2)
-                if (t.Item2 != null && !t.Item2(update, t.Item1))
+            foreach ( var t in this._cond2 )
+            {
+                if ( t.Item2 != null && !t.Item2(update, t.Item1) )
+                {
                     return false;
+                }
+            }
 
             return true;
         }
@@ -64,10 +79,16 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            if (_setters != null)
-                foreach (var s in _setters)
-                    if (s != null)
+            if ( this._setters != null )
+            {
+                foreach ( var s in this._setters )
+                {
+                    if ( s != null )
+                    {
                         s(this);
+                    }
+                }
+            }
         }
     }
 
@@ -82,10 +103,6 @@ namespace IFPV.States
 
         internal List<Action<CameraState>> setters = new List<Action<CameraState>>(16);
 
-        internal delegate bool _ConditionDelegate(CameraUpdate update, double value);
-
-        internal delegate bool _ConditionDelegate2(CameraUpdate update, string value);
-
         internal int Group { get; set; } = 0;
 
         internal int Priority { get; set; } = 50;
@@ -99,96 +116,132 @@ namespace IFPV.States
             var props  = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             var cf = new ConfigFile(keyword);
-            cf.AddSetting("Priority", new Value(50), "Priority",
-                          "The priority of profile. Higher value means profile is loaded later and will overwrite others.");
-            cf.AddSetting("Group", new Value(0), "Group",
-                          "The group of profile. Multiple profiles with same group ID can not be active at the same time. Only one profile (highest priority) from same group will be active (or none).");
+            cf.AddSetting("Priority", new Value(50), "Priority", "The priority of profile. Higher value means profile is loaded later and will overwrite others.");
+
+            cf.AddSetting("Group", new Value(0), "Group", "The group of profile. Multiple profiles with same group ID can not be active at the same time. Only one profile (highest priority) from same group will be active (or none).");
 
             var cf2 = new ConfigFile(keyword);
 
-            if (!cf2.Load())
+            if ( !cf2.Load() )
+            {
                 return false;
+            }
 
             var valid = new List<Tuple<ConfigEntry, FieldInfo, PropertyInfo>>();
 
-            foreach (var f in fields)
+            foreach ( var f in fields )
             {
                 var attrs = f.GetCustomAttributes(typeof(ConfigValueAttribute), true);
-                if (attrs == null || attrs.Length == 0)
+
+                if ( attrs == null || attrs.Length == 0 )
+                {
                     continue;
+                }
 
                 var a = attrs[0] as ConfigValueAttribute;
-                if (a == null)
-                    continue;
 
-                if (cf2.GetValue(a.Keyword) == null)
+                if ( a == null )
+                {
                     continue;
+                }
+
+                if ( cf2.GetValue(a.Keyword) == null )
+                {
+                    continue;
+                }
 
                 var val     = ToValue(f.FieldType, f.GetValue(Settings.Instance));
                 var setting = cf.AddSetting(a.Keyword, val, a.Name, a.Description, a.Flags);
                 valid.Add(new Tuple<ConfigEntry, FieldInfo, PropertyInfo>(setting, f, null));
             }
 
-            foreach (var p in props)
+            foreach ( var p in props )
             {
                 var attrs = p.GetCustomAttributes(typeof(ConfigValueAttribute), true);
-                if (attrs == null || attrs.Length == 0)
+
+                if ( attrs == null || attrs.Length == 0 )
+                {
                     continue;
+                }
 
                 var a = attrs[0] as ConfigValueAttribute;
-                if (a == null)
-                    continue;
 
-                if (p.GetMethod == null || p.SetMethod == null)
+                if ( a == null )
+                {
                     continue;
+                }
 
-                if (cf2.GetValue(a.Keyword) == null)
+                if ( p.GetMethod == null || p.SetMethod == null )
+                {
                     continue;
+                }
+
+                if ( cf2.GetValue(a.Keyword) == null )
+                {
+                    continue;
+                }
 
                 var val     = ToValue(p.PropertyType, p.GetValue(Settings.Instance));
                 var setting = cf.AddSetting(a.Keyword, val, a.Name, a.Description, a.Flags);
                 valid.Add(new Tuple<ConfigEntry, FieldInfo, PropertyInfo>(setting, null, p));
             }
 
-            if (valid.Count == 0)
+            if ( valid.Count == 0 )
+            {
                 return false;
+            }
 
-            if (!cf.Load())
+            if ( !cf.Load() )
+            {
                 return false;
+            }
 
-            foreach (var t in valid)
+            foreach ( var t in valid )
             {
                 var val = t.Item1.CurrentValue;
-                if (val == null)
+
+                if ( val == null )
+                {
                     continue;
+                }
 
                 var dv = 0.0;
-                if (!val.TryToDouble(out dv))
+
+                if ( !val.TryToDouble(out dv) )
+                {
                     continue;
+                }
 
                 var t2      = cf2.GetValue(t.Item1.Keyword + "_Type");
                 var settype = CameraValueModifier.ModifierTypes.Set;
-                if (t2 != null)
+
+                if ( t2 != null )
                 {
                     var tx = t2.ToString().ToLowerInvariant().Trim();
-                    switch (tx)
+
+                    switch ( tx )
                     {
-                        case "set":
+                        case "set" :
                             settype = CameraValueModifier.ModifierTypes.Set;
                             break;
-                        case "add":
+
+                        case "add" :
                             settype = CameraValueModifier.ModifierTypes.Add;
                             break;
-                        case "multiply":
+
+                        case "multiply" :
                             settype = CameraValueModifier.ModifierTypes.Multiply;
                             break;
-                        case "force":
+
+                        case "force" :
                             settype = CameraValueModifier.ModifierTypes.Force;
                             break;
-                        case "setifpreviousishigherthanthis":
+
+                        case "setifpreviousishigherthanthis" :
                             settype = CameraValueModifier.ModifierTypes.SetIfPreviousIsHigherThanThis;
                             break;
-                        case "setifpreviousislowerthanthis":
+
+                        case "setifpreviousislowerthanthis" :
                             settype = CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis;
                             break;
                     }
@@ -196,39 +249,52 @@ namespace IFPV.States
 
                 long removeDelay = 0;
                 t2 = cf2.GetValue(t.Item1.Keyword + "_RemoveDelay");
-                if (t2 != null)
+
+                if ( t2 != null )
                 {
                     long nx = 0;
-                    if (t2.TryToInt64(out nx) && nx >= 0)
+
+                    if ( t2.TryToInt64(out nx) && nx >= 0 )
+                    {
                         removeDelay = nx;
+                    }
                 }
 
-                AddSetter(t.Item1.Keyword, dv, settype, removeDelay);
+                this.AddSetter(t.Item1.Keyword, dv, settype, removeDelay);
             }
 
-            foreach (var pair in _cond_map)
+            foreach ( var pair in _cond_map )
             {
                 var kw  = "Condition_" + pair.Key;
                 var val = cf2.GetValue(kw);
-                if (val == null)
+
+                if ( val == null )
+                {
                     continue;
+                }
 
                 var amt = 0.0;
-                if (!val.TryToDouble(out amt))
-                    continue;
 
-                conditions.Add(new Tuple<double, _ConditionDelegate>(amt, pair.Value));
+                if ( !val.TryToDouble(out amt) )
+                {
+                    continue;
+                }
+
+                this.conditions.Add(new Tuple<double, _ConditionDelegate>(amt, pair.Value));
             }
 
-            foreach (var pair in _cond_map2)
+            foreach ( var pair in _cond_map2 )
             {
                 var kw  = "Condition_" + pair.Key;
                 var val = cf2.GetValue(kw);
-                if (val == null)
+
+                if ( val == null )
+                {
                     continue;
+                }
 
                 var amt = val.ToString();
-                conditions2.Add(new Tuple<string, _ConditionDelegate2>(amt, pair.Value));
+                this.conditions2.Add(new Tuple<string, _ConditionDelegate2>(amt, pair.Value));
             }
 
             return true;
@@ -243,12 +309,17 @@ namespace IFPV.States
 
         private static bool Cond_Keyword(CameraUpdate update, string amt)
         {
-            if (string.IsNullOrEmpty(amt))
+            if ( string.IsNullOrEmpty(amt) )
+            {
                 return false;
+            }
 
             var obj = update.Target.Object;
-            if (obj == null)
+
+            if ( obj == null )
+            {
                 return false;
+            }
 
             return obj.HasKeywordText(amt);
         }
@@ -262,30 +333,41 @@ namespace IFPV.States
 
         private static bool Cond_NotProfile(CameraUpdate update, string amt)
         {
-            if (string.IsNullOrEmpty(amt))
+            if ( string.IsNullOrEmpty(amt) )
+            {
                 return false;
+            }
 
             return !Cond_Profile(update, amt);
         }
 
         private static bool Cond_Profile(CameraUpdate update, string amt)
         {
-            if (string.IsNullOrEmpty(amt))
-                return false;
-
-            foreach (var s in update.CameraMain.Stack.States)
+            if ( string.IsNullOrEmpty(amt) )
             {
-                if (s is Custom)
+                return false;
+            }
+
+            foreach ( var s in update.CameraMain.Stack.States )
+            {
+                if ( s is Custom )
                 {
-                    var cs = (Custom) s;
-                    if (cs.Name != null && amt.Equals(cs.Name, StringComparison.OrdinalIgnoreCase))
+                    var cs = (Custom)s;
+
+                    if ( cs.Name != null && amt.Equals(cs.Name, StringComparison.OrdinalIgnoreCase) )
+                    {
                         return cs.IsActive;
+                    }
+
                     continue;
                 }
 
                 var t = s.GetType();
-                if (t.Name.Equals(amt, StringComparison.OrdinalIgnoreCase))
+
+                if ( t.Name.Equals(amt, StringComparison.OrdinalIgnoreCase) )
+                {
                     return s.IsActive;
+                }
             }
 
             return false;
@@ -293,24 +375,38 @@ namespace IFPV.States
 
         private static bool Cond_Race(CameraUpdate update, string amt)
         {
-            if (string.IsNullOrEmpty(amt))
+            if ( string.IsNullOrEmpty(amt) )
+            {
                 return false;
+            }
 
             var actor = update.Target.Actor;
-            if (actor == null)
+
+            if ( actor == null )
+            {
                 return false;
+            }
 
             var race = actor.Race;
-            if (race == null)
+
+            if ( race == null )
+            {
                 return false;
+            }
 
             var n = race.Name;
-            if (!string.IsNullOrEmpty(n) && n.IndexOf(amt, StringComparison.OrdinalIgnoreCase) >= 0)
+
+            if ( !string.IsNullOrEmpty(n) && n.IndexOf(amt, StringComparison.OrdinalIgnoreCase) >= 0 )
+            {
                 return true;
+            }
 
             n = race.EditorId;
-            if (!string.IsNullOrEmpty(n) && n.IndexOf(amt, StringComparison.OrdinalIgnoreCase) >= 0)
+
+            if ( !string.IsNullOrEmpty(n) && n.IndexOf(amt, StringComparison.OrdinalIgnoreCase) >= 0 )
+            {
                 return true;
+            }
 
             return false;
         }
@@ -320,33 +416,46 @@ namespace IFPV.States
             _cond_map  = new Dictionary<string, _ConditionDelegate>(StringComparer.OrdinalIgnoreCase);
             _cond_map2 = new Dictionary<string, _ConditionDelegate2>(StringComparer.OrdinalIgnoreCase);
 
-            var methods =
-                typeof(ProfileSettings).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-            foreach (var m in methods)
+            var methods = typeof(ProfileSettings).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+
+            foreach ( var m in methods )
             {
-                if (!m.Name.StartsWith("Cond_"))
+                if ( !m.Name.StartsWith("Cond_") )
+                {
                     continue;
+                }
 
                 var pr = m.GetParameters();
-                if (pr.Length != 2 || pr[0].ParameterType != typeof(CameraUpdate))
-                    continue;
 
-                if (m.ReturnType != typeof(bool))
+                if ( pr.Length != 2 || pr[0].ParameterType != typeof(CameraUpdate) )
+                {
                     continue;
+                }
+
+                if ( m.ReturnType != typeof(bool) )
+                {
+                    continue;
+                }
 
                 var name = m.Name.Substring("Cond_".Length);
 
-                if (pr[1].ParameterType == typeof(double))
-                    _cond_map[name] = (_ConditionDelegate) m.CreateDelegate(typeof(_ConditionDelegate));
-                else if (pr[1].ParameterType == typeof(string))
-                    _cond_map2[name] = (_ConditionDelegate2) m.CreateDelegate(typeof(_ConditionDelegate2));
+                if ( pr[1].ParameterType == typeof(double) )
+                {
+                    _cond_map[name] = (_ConditionDelegate)m.CreateDelegate(typeof(_ConditionDelegate));
+                }
+                else if ( pr[1].ParameterType == typeof(string) )
+                {
+                    _cond_map2[name] = (_ConditionDelegate2)m.CreateDelegate(typeof(_ConditionDelegate2));
+                }
             }
         }
 
         private static void init_cv()
         {
-            if (_cv_map != null)
+            if ( _cv_map != null )
+            {
                 return;
+            }
 
             init_cond();
 
@@ -356,37 +465,47 @@ namespace IFPV.States
             var auto_map = new Dictionary<string, CameraValueBase>();
             var t        = typeof(CameraValueMap);
             var fields   = t.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            foreach (var f in fields)
-            {
-                if (f.FieldType != typeof(CameraValueBase) && !f.FieldType.IsSubclassOf(typeof(CameraValueBase)))
-                    continue;
 
-                auto_map[f.Name] = (CameraValueBase) f.GetValue(map);
+            foreach ( var f in fields )
+            {
+                if ( f.FieldType != typeof(CameraValueBase) && !f.FieldType.IsSubclassOf(typeof(CameraValueBase)) )
+                {
+                    continue;
+                }
+
+                auto_map[f.Name] = (CameraValueBase)f.GetValue(map);
             }
 
             var props = t.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            foreach (var p in props)
+
+            foreach ( var p in props )
             {
-                if (p.PropertyType != typeof(CameraValueBase) && !p.PropertyType.IsSubclassOf(typeof(CameraValueBase)))
+                if ( p.PropertyType != typeof(CameraValueBase) && !p.PropertyType.IsSubclassOf(typeof(CameraValueBase)) )
+                {
                     continue;
+                }
 
-                if (p.GetMethod == null)
+                if ( p.GetMethod == null )
+                {
                     continue;
+                }
 
-                var pv = (CameraValueBase) p.GetValue(map);
-                if (pv != null)
+                var pv = (CameraValueBase)p.GetValue(map);
+
+                if ( pv != null )
+                {
                     auto_map[p.Name] = pv;
+                }
             }
 
-            foreach (var pair in auto_map)
+            foreach ( var pair in auto_map )
             {
-                if (pair.Value == null)
-                    continue;
-
-                _cv_map[pair.Key] = new List<CameraValueBase>
+                if ( pair.Value == null )
                 {
-                    pair.Value
-                };
+                    continue;
+                }
+
+                _cv_map[pair.Key] = new List<CameraValueBase> { pair.Value };
             }
         }
 
@@ -399,51 +518,96 @@ namespace IFPV.States
         /// <exception cref="System.ArgumentException">Unhandled type in configuration class ( + type.Name + )!;type</exception>
         private static Value ToValue(Type type, object value)
         {
-            if (type == typeof(bool))
-                return new Value((bool) value);
-            if (type == typeof(sbyte))
-                return new Value((sbyte) value);
-            if (type == typeof(byte))
-                return new Value((byte) value);
-            if (type == typeof(short))
-                return new Value((short) value);
-            if (type == typeof(ushort))
-                return new Value((ushort) value);
-            if (type == typeof(int))
-                return new Value((int) value);
-            if (type == typeof(uint))
-                return new Value((uint) value);
-            if (type == typeof(long))
-                return new Value((long) value);
-            if (type == typeof(ulong))
-                return new Value((ulong) value);
-            if (type == typeof(float))
-                return new Value((float) value);
-            if (type == typeof(double))
-                return new Value((double) value);
-            if (type == typeof(decimal))
-                return new Value((decimal) value);
-            if (type == typeof(DateTime))
-                return new Value((DateTime) value);
-            if (type == typeof(string))
-                return new Value((string) value);
+            if ( type == typeof(bool) )
+            {
+                return new Value((bool)value);
+            }
+
+            if ( type == typeof(sbyte) )
+            {
+                return new Value((sbyte)value);
+            }
+
+            if ( type == typeof(byte) )
+            {
+                return new Value((byte)value);
+            }
+
+            if ( type == typeof(short) )
+            {
+                return new Value((short)value);
+            }
+
+            if ( type == typeof(ushort) )
+            {
+                return new Value((ushort)value);
+            }
+
+            if ( type == typeof(int) )
+            {
+                return new Value((int)value);
+            }
+
+            if ( type == typeof(uint) )
+            {
+                return new Value((uint)value);
+            }
+
+            if ( type == typeof(long) )
+            {
+                return new Value((long)value);
+            }
+
+            if ( type == typeof(ulong) )
+            {
+                return new Value((ulong)value);
+            }
+
+            if ( type == typeof(float) )
+            {
+                return new Value((float)value);
+            }
+
+            if ( type == typeof(double) )
+            {
+                return new Value((double)value);
+            }
+
+            if ( type == typeof(decimal) )
+            {
+                return new Value((decimal)value);
+            }
+
+            if ( type == typeof(DateTime) )
+            {
+                return new Value((DateTime)value);
+            }
+
+            if ( type == typeof(string) )
+            {
+                return new Value((string)value);
+            }
 
             throw new ArgumentException("Unhandled type in configuration class (" + type.Name + ")!", "type");
         }
 
         private void AddSetter(string keyword, double value, CameraValueModifier.ModifierTypes type, long removeDelay)
         {
-            value = GetCameraValueAmount(keyword, value);
-            var ls = GetCameraValues(keyword);
+            value = this.GetCameraValueAmount(keyword, value);
+            var ls = this.GetCameraValues(keyword);
 
-            foreach (var v in ls)
-                setters.Add(state => { v.AddModifier(state, type, value, true, removeDelay); });
+            foreach ( var v in ls )
+            {
+                this.setters.Add(state => { v.AddModifier(state, type, value, true, removeDelay); });
+            }
         }
 
         private double GetCameraValueAmount(string keyword, double amount)
         {
-            if (keyword.Equals("StabilizeHistoryDuration", StringComparison.OrdinalIgnoreCase))
+            if ( keyword.Equals("StabilizeHistoryDuration", StringComparison.OrdinalIgnoreCase) )
+            {
                 return amount * 1000.0;
+            }
 
             return amount;
         }
@@ -452,8 +616,10 @@ namespace IFPV.States
         {
             List<CameraValueBase> ls = null;
 
-            if (_cv_map.TryGetValue(keyword, out ls))
+            if ( _cv_map.TryGetValue(keyword, out ls) )
+            {
                 return ls;
+            }
 
             var map = IFPVPlugin.Instance.CameraMain.Values;
             ls = new List<CameraValueBase>();
@@ -462,5 +628,9 @@ namespace IFPV.States
 
             return ls;
         }
+
+        internal delegate bool _ConditionDelegate(CameraUpdate update, double value);
+
+        internal delegate bool _ConditionDelegate2(CameraUpdate update, string value);
     }
 }

@@ -1,43 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Runtime.InteropServices;
-using System.Security;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetScriptFramework.Tools._Internal
+﻿namespace NetScriptFramework.Tools._Internal
 {
+    using System;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Runtime.InteropServices;
+
     public static class RTHandler
     {
-        public static CPURegisters _Allocate(IntPtr addr)
-        {
-            return new CPURegisters(addr, null);
-        }
+        public static CPURegisters _Allocate(IntPtr addr) => new CPURegisters(addr, null);
 
-        public static void _Free(CPURegisters cpu)
-        {
+        public static void _Free(CPURegisters cpu) { }
 
-        }
-        
         /// <summary>
-        /// Suspends all threads in current process except the executing thread.
+        ///     Suspends all threads in current process except the executing thread.
         /// </summary>
         internal static void SuspendAllThreadsInCurrentProcess()
         {
-            var threads = System.Diagnostics.Process.GetCurrentProcess().Threads;
-            var cur = GetCurrentThreadId();
+            var threads = Process.GetCurrentProcess().Threads;
+            var cur     = GetCurrentThreadId();
 
-            for(int i = 0; i < threads.Count; i++)
+            for ( var i = 0; i < threads.Count; i++ )
             {
                 var t = threads[i];
 
-                if (t.Id == cur)
+                if ( t.Id == cur )
+                {
                     continue;
+                }
 
                 var handle = OpenThread(2, false, t.Id);
-                if(handle != IntPtr.Zero)
+
+                if ( handle != IntPtr.Zero )
                 {
                     SuspendThread(handle);
                     CloseHandle(handle);
@@ -46,22 +39,25 @@ namespace NetScriptFramework.Tools._Internal
         }
 
         /// <summary>
-        /// Resumes all threads in current process except the executing thread.
+        ///     Resumes all threads in current process except the executing thread.
         /// </summary>
         internal static void ResumeAllThreadsInCurrentProcess()
         {
-            var threads = System.Diagnostics.Process.GetCurrentProcess().Threads;
-            var cur = GetCurrentThreadId();
+            var threads = Process.GetCurrentProcess().Threads;
+            var cur     = GetCurrentThreadId();
 
-            for (int i = 0; i < threads.Count; i++)
+            for ( var i = 0; i < threads.Count; i++ )
             {
                 var t = threads[i];
 
-                if (t.Id == cur)
+                if ( t.Id == cur )
+                {
                     continue;
+                }
 
                 var handle = OpenThread(2, false, t.Id);
-                if (handle != IntPtr.Zero)
+
+                if ( handle != IntPtr.Zero )
                 {
                     ResumeThread(handle);
                     CloseHandle(handle);
@@ -70,27 +66,33 @@ namespace NetScriptFramework.Tools._Internal
         }
 
         /// <summary>
-        /// Suspends all threads in current process except the executing thread.
+        ///     Suspends all threads in current process except the executing thread.
         /// </summary>
         /// <param name="notThese">Not these.</param>
         internal static void SuspendAllThreadsInCurrentProcess(int[] notThese)
         {
-            var threads = System.Diagnostics.Process.GetCurrentProcess().Threads;
-            var cur = GetCurrentThreadId();
+            var threads = Process.GetCurrentProcess().Threads;
+            var cur     = GetCurrentThreadId();
 
-            for (int i = 0; i < threads.Count; i++)
+            for ( var i = 0; i < threads.Count; i++ )
             {
                 var t = threads[i];
 
-                int id = t.Id;
-                if (id == cur)
-                    continue;
+                var id = t.Id;
 
-                if (notThese != null && notThese.Contains(id))
+                if ( id == cur )
+                {
                     continue;
+                }
+
+                if ( notThese != null && notThese.Contains(id) )
+                {
+                    continue;
+                }
 
                 var handle = OpenThread(2, false, id);
-                if (handle != IntPtr.Zero)
+
+                if ( handle != IntPtr.Zero )
                 {
                     SuspendThread(handle);
                     CloseHandle(handle);
@@ -99,27 +101,33 @@ namespace NetScriptFramework.Tools._Internal
         }
 
         /// <summary>
-        /// Resumes all threads in current process except the executing thread.
+        ///     Resumes all threads in current process except the executing thread.
         /// </summary>
         /// <param name="notThese">Don't resume these threads.</param>
         internal static void ResumeAllThreadsInCurrentProcess(int[] notThese)
         {
-            var threads = System.Diagnostics.Process.GetCurrentProcess().Threads;
-            var cur = GetCurrentThreadId();
+            var threads = Process.GetCurrentProcess().Threads;
+            var cur     = GetCurrentThreadId();
 
-            for (int i = 0; i < threads.Count; i++)
+            for ( var i = 0; i < threads.Count; i++ )
             {
                 var t = threads[i];
 
-                int id = t.Id;
-                if (id == cur)
-                    continue;
+                var id = t.Id;
 
-                if (notThese != null && notThese.Contains(id))
+                if ( id == cur )
+                {
                     continue;
+                }
+
+                if ( notThese != null && notThese.Contains(id) )
+                {
+                    continue;
+                }
 
                 var handle = OpenThread(2, false, id);
-                if (handle != IntPtr.Zero)
+
+                if ( handle != IntPtr.Zero )
                 {
                     ResumeThread(handle);
                     CloseHandle(handle);
@@ -128,39 +136,37 @@ namespace NetScriptFramework.Tools._Internal
         }
 
         /// <summary>
-        /// Exits the process.
+        ///     Exits the process.
         /// </summary>
         /// <param name="graceful">Is this graceful exit or should we kill.</param>
         internal static void ExitProcess(bool graceful)
         {
-            try
-            {
-                Main.Shutdown();
-            }
-            catch
-            {
+            try { Main.Shutdown(); }
+            catch { }
 
-            }
-
-            if (graceful)
+            if ( graceful )
+            {
                 Environment.Exit(0);
+            }
             else
-                System.Diagnostics.Process.GetCurrentProcess().Kill();
+            {
+                Process.GetCurrentProcess().Kill();
+            }
         }
 
-        #region API calls
+    #region API calls
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [ DllImport("kernel32.dll", SetLastError = true) ]
         private static extern bool CloseHandle(IntPtr hObject);
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr OpenThread(uint dwDesiredAccess, bool bInheritHandle, int dwThreadId);
-        [DllImport("kernel32.dll")]
-        private static extern uint SuspendThread(IntPtr hThread);
-        [DllImport("kernel32.dll")]
-        private static extern uint ResumeThread(IntPtr hThread);
-        [DllImport("kernel32.dll")]
-        internal static extern int GetCurrentThreadId();
 
-        #endregion
+        [ DllImport("kernel32.dll") ] private static extern IntPtr OpenThread(uint dwDesiredAccess, bool bInheritHandle, int dwThreadId);
+
+        [ DllImport("kernel32.dll") ] private static extern uint SuspendThread(IntPtr hThread);
+
+        [ DllImport("kernel32.dll") ] private static extern uint ResumeThread(IntPtr hThread);
+
+        [ DllImport("kernel32.dll") ] internal static extern int GetCurrentThreadId();
+
+    #endregion
     }
 }

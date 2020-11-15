@@ -1,11 +1,10 @@
-﻿using IFPV.Values;
-using NetScriptFramework.SkyrimSE;
-
-namespace IFPV.Values
+﻿namespace IFPV.Values
 {
+    using NetScriptFramework.SkyrimSE;
+
     internal sealed class InputRotationX : CameraValueBase
     {
-        internal InputRotationX() { Flags |= CameraValueFlags.NoTween | CameraValueFlags.NoModifiers; }
+        internal InputRotationX() => this.Flags |= CameraValueFlags.NoTween | CameraValueFlags.NoModifiers;
 
         internal override double ChangeSpeed => 1.0;
 
@@ -14,14 +13,19 @@ namespace IFPV.Values
             get
             {
                 var pcam = PlayerCamera.Instance;
-                if (pcam != null)
+
+                if ( pcam != null )
                 {
                     var pstate = pcam.State;
-                    if (pstate != null)
+
+                    if ( pstate != null )
                     {
                         var pthird = pstate as ThirdPersonState;
-                        if (pthird != null)
+
+                        if ( pthird != null )
+                        {
                             return pthird.XRotationFromLastResetPoint;
+                        }
                     }
                 }
 
@@ -31,14 +35,19 @@ namespace IFPV.Values
             set
             {
                 var pcam = PlayerCamera.Instance;
-                if (pcam != null)
+
+                if ( pcam != null )
                 {
                     var pstate = pcam.State;
-                    if (pstate != null)
+
+                    if ( pstate != null )
                     {
                         var pthird = pstate as ThirdPersonState;
-                        if (pthird != null)
-                            pthird.XRotationFromLastResetPoint = (float) value;
+
+                        if ( pthird != null )
+                        {
+                            pthird.XRotationFromLastResetPoint = (float)value;
+                        }
                     }
                 }
             }
@@ -52,6 +61,8 @@ namespace IFPV.Values
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly InputRotationX InputRotationX = new InputRotationX();
@@ -60,9 +71,11 @@ namespace IFPV
 
 namespace IFPV.Values
 {
+    using NetScriptFramework.SkyrimSE;
+
     internal sealed class InputRotationY : CameraValueBase
     {
-        internal InputRotationY() { Flags |= CameraValueFlags.NoTween | CameraValueFlags.NoModifiers; }
+        internal InputRotationY() => this.Flags |= CameraValueFlags.NoTween | CameraValueFlags.NoModifiers;
 
         internal override double ChangeSpeed => 1.0;
 
@@ -71,20 +84,28 @@ namespace IFPV.Values
             get
             {
                 var pcam = PlayerCamera.Instance;
-                if (pcam != null)
+
+                if ( pcam != null )
                 {
                     var pstate = pcam.State;
-                    if (pstate != null)
+
+                    if ( pstate != null )
                     {
                         var pthird = pstate as ThirdPersonState;
-                        if (pthird != null)
+
+                        if ( pthird != null )
                         {
                             var refHandle = pcam.TargetRefHandle;
-                            using (var objRefHolder = new ObjectRefHolder(refHandle))
+
+                            using ( var objRefHolder = new ObjectRefHolder(refHandle) )
                             {
                                 var amount = 0.0f;
-                                if (objRefHolder.IsValid)
+
+                                if ( objRefHolder.IsValid )
+                                {
                                     amount = -objRefHolder.Object.Rotation.X;
+                                }
+
                                 var offset = pthird.YRotationFromLastResetPoint;
                                 return amount + offset;
                             }
@@ -98,21 +119,29 @@ namespace IFPV.Values
             set
             {
                 var pcam = PlayerCamera.Instance;
-                if (pcam != null)
+
+                if ( pcam != null )
                 {
                     var pstate = pcam.State;
-                    if (pstate != null)
+
+                    if ( pstate != null )
                     {
                         var pthird = pstate as ThirdPersonState;
-                        if (pthird != null)
+
+                        if ( pthird != null )
                         {
                             var refHandle = pcam.TargetRefHandle;
-                            using (var objRefHolder = new ObjectRefHolder(refHandle))
+
+                            using ( var objRefHolder = new ObjectRefHolder(refHandle) )
                             {
                                 var amount = 0.0f;
-                                if (objRefHolder.IsValid)
+
+                                if ( objRefHolder.IsValid )
+                                {
                                     amount = -objRefHolder.Object.Rotation.X;
-                                var offset = (float) (value - amount);
+                                }
+
+                                var offset = (float)(value - amount);
                                 pthird.YRotationFromLastResetPoint = offset;
                             }
                         }
@@ -129,6 +158,8 @@ namespace IFPV.Values
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly InputRotationY InputRotationY = new InputRotationY();
@@ -145,6 +176,8 @@ namespace IFPV.Values
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly InputRotationXMultiplier InputRotationXMultiplier = new InputRotationXMultiplier();
@@ -161,6 +194,8 @@ namespace IFPV.Values
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly InputRotationYMultiplier InputRotationYMultiplier = new InputRotationYMultiplier();
@@ -169,6 +204,8 @@ namespace IFPV
 
 namespace IFPV.Values
 {
+    using NetScriptFramework.SkyrimSE;
+
     internal sealed class ExtraResponsiveControls : CameraValueBase
     {
         private static double _def_value;
@@ -176,7 +213,7 @@ namespace IFPV.Values
         private static bool    _init_d;
         private static Setting _setting;
 
-        internal ExtraResponsiveControls() { Flags |= CameraValueFlags.NoTween | CameraValueFlags.DontUpdateIfDisabled; }
+        internal ExtraResponsiveControls() => this.Flags |= CameraValueFlags.NoTween | CameraValueFlags.DontUpdateIfDisabled;
 
         internal override double ChangeSpeed => 1.0;
 
@@ -186,16 +223,20 @@ namespace IFPV.Values
             {
                 init();
 
-                if (_setting != null)
+                if ( _setting != null )
+                {
                     return _setting.GetBool() ? 0.0 : 1.0;
+                }
 
                 return _def_value;
             }
 
             set
             {
-                if (_setting != null)
+                if ( _setting != null )
+                {
                     _setting.SetBool(value >= 0.5 ? false : true);
+                }
             }
         }
 
@@ -212,20 +253,27 @@ namespace IFPV.Values
 
         private static void init()
         {
-            if (_init_d)
+            if ( _init_d )
+            {
                 return;
+            }
+
             _init_d = true;
 
             _setting = Setting.FindSettingByName("bDampenPlayerControls:Controls", true, true);
 
-            if (_setting != null)
+            if ( _setting != null )
+            {
                 _def_value = _setting.GetBool() ? 0.0 : 1.0;
+            }
         }
     }
 }
 
 namespace IFPV
 {
+    using Values;
+
     internal partial class CameraValueMap
     {
         internal readonly ExtraResponsiveControls ExtraResponsiveControls = new ExtraResponsiveControls();

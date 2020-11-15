@@ -1,30 +1,36 @@
-﻿using NetScriptFramework.SkyrimSE;
-
-namespace IFPV.States
+﻿namespace IFPV.States
 {
+    using NetScriptFramework.SkyrimSE;
+
     internal class SittingProcess : CameraState
     {
-        internal override int Priority => (int) Priorities.SittingProcess;
+        internal override int Priority => (int)Priorities.SittingProcess;
 
         internal override bool Check(CameraUpdate update)
         {
-            if (!update.CameraMain.IsEnabled)
+            if ( !update.CameraMain.IsEnabled )
+            {
                 return false;
+            }
 
-            if (update.CachedMounted)
+            if ( update.CachedMounted )
+            {
                 return false;
+            }
 
             // Also triggers on some crafting benches but it should be fine
 
             var actor = update.Target.Actor;
-            if (actor == null)
-                return false;
 
-            switch (actor.SitState)
+            if ( actor == null )
             {
-                case ActorActionStates.NotAction:
-                case ActorActionStates.InProgress:
-                    return false;
+                return false;
+            }
+
+            switch ( actor.SitState )
+            {
+                case ActorActionStates.NotAction :
+                case ActorActionStates.InProgress : return false;
             }
 
             return true;
@@ -34,8 +40,7 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            update.Values.RotationFromHead.AddModifier(
-                this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 0.2);
+            update.Values.RotationFromHead.AddModifier(this, CameraValueModifier.ModifierTypes.SetIfPreviousIsLowerThanThis, 0.2);
         }
     }
 }

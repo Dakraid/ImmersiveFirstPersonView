@@ -1,25 +1,34 @@
-﻿using NetScriptFramework;
-
-namespace IFPV.States
+﻿namespace IFPV.States
 {
+    using NetScriptFramework;
+
     internal class SneakRoll : CameraState
     {
-        internal override int Priority => (int) Priorities.SneakRoll;
+        internal override int Priority => (int)Priorities.SneakRoll;
 
         internal override bool Check(CameraUpdate update)
         {
-            if (!update.CameraMain.IsEnabled)
+            if ( !update.CameraMain.IsEnabled )
+            {
                 return false;
+            }
 
-            if (update.CachedMounted)
+            if ( update.CachedMounted )
+            {
                 return false;
+            }
 
             var actor = update.Target.Actor;
-            if (actor == null)
-                return false;
 
-            if (!actor.IsSneaking)
+            if ( actor == null )
+            {
                 return false;
+            }
+
+            if ( !actor.IsSneaking )
+            {
+                return false;
+            }
 
             var flags = Memory.ReadUInt32(actor.Address + 0xC0) & 0x3FFF;
             return (flags & 0x100) != 0;

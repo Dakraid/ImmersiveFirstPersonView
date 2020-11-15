@@ -1,44 +1,58 @@
-﻿using System;
-using NetScriptFramework.SkyrimSE;
-
-namespace IFPV.States
+﻿namespace IFPV.States
 {
+    using System;
+
+    using NetScriptFramework.SkyrimSE;
+
     internal class Lich : CameraState
     {
-        internal override int Group => (int) Groups.Beast;
+        internal override int Group => (int)Groups.Beast;
 
-        internal override int Priority => (int) Priorities.Lich;
+        internal override int Priority => (int)Priorities.Lich;
 
         internal override bool Check(CameraUpdate update)
         {
-            if (!update.CameraMain.IsEnabled)
+            if ( !update.CameraMain.IsEnabled )
+            {
                 return false;
+            }
 
             var actor = update.Target.Actor;
-            if (actor == null)
+
+            if ( actor == null )
+            {
                 return false;
+            }
 
             var want = Settings.Instance.LichRaceName;
-            if (string.IsNullOrEmpty(want))
+
+            if ( string.IsNullOrEmpty(want) )
+            {
                 return false;
+            }
 
             var race = actor.Race;
-            if (race == null)
+
+            if ( race == null )
+            {
                 return false;
+            }
 
             var name = race.Name;
             var id   = race.EditorId;
 
-            return !string.IsNullOrEmpty(name) && name.IndexOf(want, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                   !string.IsNullOrEmpty(id)   && id.IndexOf(want, StringComparison.OrdinalIgnoreCase)   >= 0;
+            return (!string.IsNullOrEmpty(name) && name.IndexOf(want, StringComparison.OrdinalIgnoreCase) >= 0) || (!string.IsNullOrEmpty(id) && id.IndexOf(want, StringComparison.OrdinalIgnoreCase) >= 0);
         }
 
         internal override void OnEntering(CameraUpdate update)
         {
             base.OnEntering(update);
 
-            if (Settings.Instance.HideHead)
+            if ( Settings.Instance.HideHead )
+            {
                 update.Values.HideHead2.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 1.0);
+            }
+
             update.Values.HideHead.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0.0);
             update.Values.HideArms.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0.0);
             update.Values.Show1stPersonArms.AddModifier(this, CameraValueModifier.ModifierTypes.Set, 0.0);
@@ -51,22 +65,27 @@ namespace IFPV.States
 
         private bool _t_init;
 
-        internal override int Group => (int) Groups.Beast;
+        internal override int Group => (int)Groups.Beast;
 
-        internal override int Priority => (int) Priorities.LichTransform;
+        internal override int Priority => (int)Priorities.LichTransform;
 
         internal override bool Check(CameraUpdate update)
         {
-            init();
+            this.init();
 
-            if (_effect == null)
+            if ( this._effect == null )
+            {
                 return false;
+            }
 
             var actor = update.Target.Actor;
-            if (actor == null)
-                return false;
 
-            return actor.HasMagicEffect(_effect);
+            if ( actor == null )
+            {
+                return false;
+            }
+
+            return actor.HasMagicEffect(this._effect);
         }
 
         internal override void OnEntering(CameraUpdate update)
@@ -79,17 +98,22 @@ namespace IFPV.States
 
         private void init()
         {
-            if (_t_init)
+            if ( this._t_init )
+            {
                 return;
-            _t_init = true;
+            }
+
+            this._t_init = true;
 
             var id   = Settings.Instance.LichTransformationEffectId;
             var file = Settings.Instance.LichTransformationEffectFile;
 
-            if (id == 0 || string.IsNullOrEmpty(file))
+            if ( id == 0 || string.IsNullOrEmpty(file) )
+            {
                 return;
+            }
 
-            _effect = TESForm.LookupFormFromFile(id, file) as EffectSetting;
+            this._effect = TESForm.LookupFormFromFile(id, file) as EffectSetting;
         }
     }
 }

@@ -1,58 +1,73 @@
-﻿using System;
-using NetScriptFramework;
-
-namespace IFPV.States
+﻿namespace IFPV.States
 {
+    using System;
+
+    using NetScriptFramework;
+
     internal abstract class Moving : CameraState
     {
         private static long _move_update = -1;
 
         internal static int _move_dir { get; private set; } = -1;
 
-        internal override int Priority => (int) Priorities.Moving;
+        internal override int Priority => (int)Priorities.Moving;
 
         protected internal abstract int IsDirection { get; }
 
         internal override bool Check(CameraUpdate update)
         {
-            if (!update.CameraMain.IsEnabled)
+            if ( !update.CameraMain.IsEnabled )
+            {
                 return false;
+            }
 
-            if (update.CachedMounted)
+            if ( update.CachedMounted )
+            {
                 return false;
+            }
 
             _update_check(update);
-            return _move_dir == IsDirection;
+            return _move_dir == this.IsDirection;
         }
 
         protected void Enter_Backwards(CameraUpdate update, bool diagonal)
         {
-            if (Settings.Instance.Enable360WalkAnimationCompatibilityMode)
+            if ( Settings.Instance.Enable360WalkAnimationCompatibilityMode )
             {
                 var ok = true;
-                if (!Settings.Instance.My360WalkAnimationActivatesWithSneakToo)
-                {
-                    var actor = update.Target.Actor;
-                    if (actor == null || actor.IsSneaking)
-                        ok = false;
-                }
 
-                if (ok && !Settings.Instance.My360WalkAnimationActivatesWithSwimToo)
+                if ( !Settings.Instance.My360WalkAnimationActivatesWithSneakToo )
                 {
                     var actor = update.Target.Actor;
-                    if (actor == null) { ok = false; }
-                    else
+
+                    if ( actor == null || actor.IsSneaking )
                     {
-                        var flags = Memory.ReadUInt32(actor.Address + 0xC0);
-                        if ((flags & 0x400) != 0)
-                            ok = false;
+                        ok = false;
                     }
                 }
 
-                if (ok)
+                if ( ok && !Settings.Instance.My360WalkAnimationActivatesWithSwimToo )
+                {
+                    var actor = update.Target.Actor;
+
+                    if ( actor == null ) { ok = false; }
+                    else
+                    {
+                        var flags = Memory.ReadUInt32(actor.Address + 0xC0);
+
+                        if ( (flags & 0x400) != 0 )
+                        {
+                            ok = false;
+                        }
+                    }
+                }
+
+                if ( ok )
+
                     //update.Values.Offset1PositionY.AddModifier(this, CameraValueModifier.ModifierTypes.Multiply, -1.0);
-                    update.Values.StabilizeIgnoreOffsetX.AddModifier(this, CameraValueModifier.ModifierTypes.Force,
-                                                                     360.0);
+                {
+                    update.Values.StabilizeIgnoreOffsetX.AddModifier(this, CameraValueModifier.ModifierTypes.Force, 360.0);
+                }
             }
         }
 
@@ -65,12 +80,17 @@ namespace IFPV.States
         private static void _update_check(CameraUpdate update)
         {
             var now = update.CameraMain.Plugin.Time;
-            if (now == _move_update)
+
+            if ( now == _move_update )
+            {
                 return;
+            }
+
             _move_update = now;
 
             var actor = update.Target.Actor;
-            if (actor == null)
+
+            if ( actor == null )
             {
                 _move_dir = -1;
                 return;
@@ -79,7 +99,7 @@ namespace IFPV.States
             var  moveFlags = Memory.ReadUInt32(actor.Address + 0xC0) & 0x3FFF;
             uint mask      = 0xCF;
 
-            if ((moveFlags & mask) == 0)
+            if ( (moveFlags & mask) == 0 )
             {
                 _move_dir = -1;
                 return;
@@ -93,49 +113,49 @@ namespace IFPV.States
             dir =  Utility.RadToDeg(dir);
             dir -= 180.0;
 
-            if (dir >= -22.5 && dir < 22.5)
+            if ( dir >= -22.5 && dir < 22.5 )
             {
                 _move_dir = 0;
                 return;
             }
 
-            if (dir >= 22.5 && dir < 67.5)
+            if ( dir >= 22.5 && dir < 67.5 )
             {
                 _move_dir = 1;
                 return;
             }
 
-            if (dir >= 67.5 && dir < 112.5)
+            if ( dir >= 67.5 && dir < 112.5 )
             {
                 _move_dir = 2;
                 return;
             }
 
-            if (dir >= 112.5 && dir < 157.5)
+            if ( dir >= 112.5 && dir < 157.5 )
             {
                 _move_dir = 3;
                 return;
             }
 
-            if (dir >= 157.5 || dir < -157.5)
+            if ( dir >= 157.5 || dir < -157.5 )
             {
                 _move_dir = 4;
                 return;
             }
 
-            if (dir >= -157.5 && dir < -112.5)
+            if ( dir >= -157.5 && dir < -112.5 )
             {
                 _move_dir = 5;
                 return;
             }
 
-            if (dir >= -112.5 && dir < -67.5)
+            if ( dir >= -112.5 && dir < -67.5 )
             {
                 _move_dir = 6;
                 return;
             }
 
-            if (dir >= -67.5 && dir < -22.5)
+            if ( dir >= -67.5 && dir < -22.5 )
             {
                 _move_dir = 7;
                 return;
@@ -162,7 +182,7 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            Enter_Forwards(update, false);
+            this.Enter_Forwards(update, false);
         }
     }
 
@@ -174,8 +194,8 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            Enter_Forwards(update, true);
-            Enter_Right(update, true);
+            this.Enter_Forwards(update, true);
+            this.Enter_Right(update, true);
         }
     }
 
@@ -187,7 +207,7 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            Enter_Right(update, false);
+            this.Enter_Right(update, false);
         }
     }
 
@@ -199,8 +219,8 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            Enter_Backwards(update, true);
-            Enter_Right(update, true);
+            this.Enter_Backwards(update, true);
+            this.Enter_Right(update, true);
         }
     }
 
@@ -212,7 +232,7 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            Enter_Backwards(update, false);
+            this.Enter_Backwards(update, false);
         }
     }
 
@@ -224,8 +244,8 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            Enter_Backwards(update, true);
-            Enter_Left(update, true);
+            this.Enter_Backwards(update, true);
+            this.Enter_Left(update, true);
         }
     }
 
@@ -237,7 +257,7 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            Enter_Left(update, false);
+            this.Enter_Left(update, false);
         }
     }
 
@@ -249,8 +269,8 @@ namespace IFPV.States
         {
             base.OnEntering(update);
 
-            Enter_Forwards(update, true);
-            Enter_Left(update, true);
+            this.Enter_Forwards(update, true);
+            this.Enter_Left(update, true);
         }
     }
 }
