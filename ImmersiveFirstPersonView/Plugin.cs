@@ -4,6 +4,7 @@ namespace IFPV
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Threading;
 
     using NetScriptFramework;
@@ -200,13 +201,6 @@ namespace IFPV
                     {
                         return;
                     }
-                #if PROFILING
-                    if (this.CameraMain._prof_state == 1)
-                    {
-                        this.CameraMain.end_track(CameraMain._performance_track.Frame);
-                        this.CameraMain.begin_track(CameraMain._performance_track.Frame);
-                    }
-                #endif
 
                     var paused    = main.IsGamePaused;
                     var anyPaused = paused;
@@ -257,10 +251,6 @@ namespace IFPV
                     {
                         return;
                     }
-                #if PROFILING
-                    if (this.CameraMain._prof_state == 1)
-                        this.CameraMain.begin_track(CameraMain._performance_track.CameraUpdate);
-                #endif
 
                     // bool ok;
                     if ( this.CameraMain.Update(e) )
@@ -275,24 +265,6 @@ namespace IFPV
 
                     this.Time      -= this._lastDiff;
                     this._lastDiff =  0;
-
-                #if PROFILING
-                    if (this.CameraMain._prof_state == 1)
-                        this.CameraMain.end_track(CameraMain._performance_track.CameraUpdate);
-                #endif
-
-                #if PROFILING
-                    if (ok && this.CameraMain._prof_state == 0)
-                    {
-                        this.CameraMain._prof_state = 1;
-                        this.CameraMain.begin_track(CameraMain._performance_track.Frame);
-                    }
-                    else if (this.CameraMain._prof_state == 1 && NetScriptFramework.Tools.Input.IsPressed(NetScriptFramework.Tools.VirtualKeys.N9))
-                    {
-                        this.CameraMain._prof_state = 2;
-                        this.CameraMain._end_profiling();
-                    }
-                #endif
                 },
                 1000
             );
@@ -308,7 +280,7 @@ namespace IFPV
                 50
             );
 
-            Events.OnUpdatePlayerTurnToCamera.Register(
+            var turnEventHandler = Events.OnUpdatePlayerTurnToCamera.Register(
                 e =>
                 {
                     if ( this.CameraMain == null || !this.CameraMain.IsInitialized )
@@ -343,6 +315,9 @@ namespace IFPV
                 },
                 50
             );
+
+            Debug.Assert(turnEventHandler != null);
+            Debug.Write(turnEventHandler);
 
             Events.OnShadowCullingBegin.Register(
                 e =>

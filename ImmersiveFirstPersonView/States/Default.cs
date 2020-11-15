@@ -1,10 +1,12 @@
 namespace IFPV.States
 {
     using System;
+    using System.Diagnostics;
 
     using NetScriptFramework;
     using NetScriptFramework.SkyrimSE;
 
+    [DebuggerDisplay("AutoTurn = {" + nameof(_autoTurnAngleMod) + "}")]
     internal sealed class Default : CameraState
     {
         internal static float _look_downoffset_ratio;
@@ -124,7 +126,7 @@ namespace IFPV.States
             {
                 if ( Utility.RadToDeg(Math.Abs(x)) >= autoTurn )
                 {
-                    this._autoTurnAngleMod ??= update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Force, 1.0, false);
+                    this._autoTurnAngleMod ??= update.Values.FaceCamera.AddModifier(this, CameraValueModifier.ModifierTypes.Force, 2.0, false);
 
                     this._autoTurnTime                       = update.CameraMain.Plugin.Time + 500;
                     update.CameraMain.LastTurnIsFromAutoTurn = update.CameraMain.Plugin.Time + 50;
