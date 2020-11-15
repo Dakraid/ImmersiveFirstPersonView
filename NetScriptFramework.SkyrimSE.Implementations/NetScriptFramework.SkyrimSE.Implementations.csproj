@@ -11,16 +11,17 @@
     <Product>NetScriptFramework.SkyrimSE.Implementations</Product>
     <Copyright>Copyright © meh321 2019</Copyright>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <OutputPath>..\Build\Debug\Data\NetScriptFramework\</OutputPath>
     <UseWindowsForms>true</UseWindowsForms>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugType>full</DebugType>
+    <OutputPath>..\Build\Debug\Data\NetScriptFramework\</OutputPath>
     <DocumentationFile>..\Build\Debug\Data\NetScriptFramework\NetScriptFramework.SkyrimSE.Implementations.xml</DocumentationFile>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>..\Build\Release\Data\NetScriptFramework\</OutputPath>
     <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>

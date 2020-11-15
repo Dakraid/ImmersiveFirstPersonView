@@ -9,8 +9,8 @@ namespace IFPV.States
     [DebuggerDisplay("AutoTurn = {" + nameof(_autoTurnAngleMod) + "}")]
     internal sealed class Default : CameraState
     {
-        internal static float _look_downoffset_ratio;
-        internal static float _look_downoffset_ratio_leftrightmove;
+        internal static float LookDownoffsetRatio;
+        internal static float LookDownoffsetRatioLeftrightmove;
 
         internal static int CantAutoTurnCounter = 0;
 
@@ -88,8 +88,8 @@ namespace IFPV.States
                 this._nearClip = null;
             }
 
-            _look_downoffset_ratio               = 0.0f;
-            _look_downoffset_ratio_leftrightmove = 0.0f;
+            LookDownoffsetRatio               = 0.0f;
+            LookDownoffsetRatioLeftrightmove = 0.0f;
         }
 
         internal override void Update(CameraUpdate update)
@@ -284,9 +284,9 @@ namespace IFPV.States
                         downRatio = (downAngle - downMove) / (90.0 - downMove);
                     }
 
-                    _look_downoffset_ratio = (float)downRatio;
+                    LookDownoffsetRatio = (float)downRatio;
                 }
-                else if ( _look_downoffset_ratio != 0.0f ) { _look_downoffset_ratio = 0.0f; }
+                else if ( LookDownoffsetRatio != 0.0f ) { LookDownoffsetRatio = 0.0f; }
 
                 int moveType;
 
@@ -315,21 +315,21 @@ namespace IFPV.States
 
                         var dr = (float)downRatio;
 
-                        if ( _look_downoffset_ratio_leftrightmove < dr )
+                        if ( LookDownoffsetRatioLeftrightmove < dr )
                         {
                             this.IncLeftRightMoveFix(dr);
                         }
-                        else if ( _look_downoffset_ratio_leftrightmove > dr )
+                        else if ( LookDownoffsetRatioLeftrightmove > dr )
                         {
                             this.DecLeftRightMoveFix(dr);
                         }
                     }
-                    else if ( _look_downoffset_ratio_leftrightmove != 0.0f )
+                    else if ( LookDownoffsetRatioLeftrightmove != 0.0f )
                     {
                         this.DecLeftRightMoveFix(0.0f);
                     }
                 }
-                else if ( _look_downoffset_ratio_leftrightmove != 0.0f )
+                else if ( LookDownoffsetRatioLeftrightmove != 0.0f )
                 {
                     this.DecLeftRightMoveFix(0.0f);
                 }
@@ -339,22 +339,22 @@ namespace IFPV.States
         private void DecLeftRightMoveFix(float min)
         {
             var diff = IFPVPlugin.Instance._lastDiff2 * 0.001f;
-            _look_downoffset_ratio_leftrightmove -= diff * 2.0f;
+            LookDownoffsetRatioLeftrightmove -= diff * 2.0f;
 
-            if ( _look_downoffset_ratio_leftrightmove < min )
+            if ( LookDownoffsetRatioLeftrightmove < min )
             {
-                _look_downoffset_ratio_leftrightmove = min;
+                LookDownoffsetRatioLeftrightmove = min;
             }
         }
 
         private void IncLeftRightMoveFix(float max)
         {
             var diff = IFPVPlugin.Instance._lastDiff2 * 0.001f;
-            _look_downoffset_ratio_leftrightmove += diff * 5.0f;
+            LookDownoffsetRatioLeftrightmove += diff * 5.0f;
 
-            if ( _look_downoffset_ratio_leftrightmove > max )
+            if ( LookDownoffsetRatioLeftrightmove > max )
             {
-                _look_downoffset_ratio_leftrightmove = max;
+                LookDownoffsetRatioLeftrightmove = max;
             }
         }
 

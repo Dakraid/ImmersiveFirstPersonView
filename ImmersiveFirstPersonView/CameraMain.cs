@@ -690,9 +690,9 @@ namespace IFPV
                     }
 
                     // Look down offset.
-                    if ( Default._look_downoffset_ratio > 0.0f || Default._look_downoffset_ratio_leftrightmove > 0.0f )
+                    if ( Default.LookDownoffsetRatio > 0.0f || Default.LookDownoffsetRatioLeftrightmove > 0.0f )
                     {
-                        var ratio = Default._look_downoffset_ratio;
+                        var ratio = Default.LookDownoffsetRatio;
                         var root  = update.Target.RootNode;
 
                         if ( root != null )
@@ -701,7 +701,7 @@ namespace IFPV
                             var y = Settings.Instance.DownOffsetY * ratio;
                             var z = Settings.Instance.DownOffsetZ * ratio;
 
-                            y += Settings.Instance.TryFixLeftRightMovementClipping * Default._look_downoffset_ratio_leftrightmove;
+                            y += Settings.Instance.TryFixLeftRightMovementClipping * Default.LookDownoffsetRatioLeftrightmove;
 
                             if ( x != 0.0f || y != 0.0f || z != 0.0f )
                             {
